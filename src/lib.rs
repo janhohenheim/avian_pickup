@@ -6,7 +6,7 @@ use bevy::prelude::*;
 
 /// Everything you need to use the Avian Pickup plugin.
 pub mod prelude {
-    //pub use crate::{AvianPickupCamera, AvianPickupPlugin};
+    pub use crate::{AvianPickupCamera, AvianPickupPlugin};
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -15,12 +15,12 @@ pub mod prelude {
 ///
 /// # Example
 ///
-/// ```no_run
-/// //# use avian3d::prelude::*;
-/// //# use avian_pickup::prelude::*;
-/// //# use bevy::prelude::*;
+/// ```
+/// # use avian3d::prelude::*;
+/// # use avian_pickup::prelude::*;
+/// # use bevy::prelude::*;
 ///
-/// //App::new().add_plugins((DefaultPlugins, PhysicsPlugins::default(), AvianPickupPlugin::default()));
+/// App::new().add_plugins((DefaultPlugins, PhysicsPlugins::default(), AvianPickupPlugin::default()));
 /// ```
 pub struct AvianPickupPlugin;
 
@@ -37,6 +37,9 @@ impl Plugin for AvianPickupPlugin {
 ///
 /// # Example
 /// ```
-/// use avian_pickup::prelude::*;
+/// # use avian_pickup::prelude::*;
+/// fn setup_camera(mut commands: Commands) {
+///     commands.spawn((Name::new("Player Camera"), Camera3dBundle::default(), AvianPickupCamera));
+/// }
 /// ```
 pub struct AvianPickupCamera;
