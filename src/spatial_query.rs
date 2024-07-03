@@ -28,10 +28,13 @@ fn query(
         let colliders = spatial_query.shape_intersections(&box_collider, origin.translation, origin.rotation, query_filter);
         let rigid_bodies = colliders
             .iter()
-            // unwrap cannot fail: shape intersections only returns colliders
-            .map(|&entity| q_collider.get(entity).unwrap().map_or(entity, ColliderParent::get))
-            // unwrap cannot fail: all colliders either have a rigid body or a `ColliderParent`
-            .map(|entity| q_rigid_body.get(entity).unwrap());
+            .map(|&entity| {
+                q_collider
+                    .get(entity)
+                    .expect("shape_intersections returned something without a collider")
+                    .map_or(entity, ColliderParent::get)
+            })
+            .map(|entity| q_rigid_body.get(entity).expect("collider has no rigid body and no `ColliderParent`"));
         info!("rigid_bodies: {:?}", rigid_bodies);
     }
 }
