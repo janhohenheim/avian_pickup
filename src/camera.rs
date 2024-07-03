@@ -15,7 +15,6 @@ pub(super) fn plugin(app: &mut App) {
 /// }
 /// ```
 #[derive(Debug, Clone, Copy, Hash, Component, Default, PartialEq, Eq, Reflect)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serialize", reflect(Serialize, Deserialize))]
 #[reflect(Debug, Component, Default, Hash, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize), reflect(Serialize, Deserialize))]
 pub struct AvianPickupCamera;

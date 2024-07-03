@@ -66,8 +66,8 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
     ));
 }
 
-fn handle_input(key_input: Res<ButtonInput<KeyCode>>) {
+fn handle_input(key_input: Res<ButtonInput<KeyCode>>, mut pickup_events: EventWriter<AvianPickupEvent>) {
     if key_input.just_pressed(KeyCode::KeyE) {
-        info!("E pressed!");
+        pickup_events.send(AvianPickupEvent::TogglePickup);
     }
 }

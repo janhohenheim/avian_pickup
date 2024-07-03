@@ -6,13 +6,18 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 mod camera;
+mod event;
+mod spatial_query;
 
-/// Everything you need to use the Avian Pickup plugin.
+/// Everything you need to get started with Avian Pickup.
 pub mod prelude {
-    pub use crate::{camera::AvianPickupCamera, AvianPickupPlugin};
+    pub(crate) use avian3d::prelude::*;
+    pub(crate) use bevy::prelude::*;
+
+    pub use crate::{camera::AvianPickupCamera, event::AvianPickupEvent, AvianPickupPlugin, AvianPickupSystem};
 }
 
-/// The Avian Pickup plugin. Add this after the Physics plugins to enable pickup functionality.
+/// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable pickup functionality.
 /// Uses the same [`Schedule`]` as Avian.
 ///
 /// # Example
@@ -30,14 +35,19 @@ pub struct AvianPickupPlugin;
 
 impl Plugin for AvianPickupPlugin {
     fn build(&self, app: &mut App) {
+        // Run `expect` first so that other plugins can just call `unwrap`.
         let physics_schedule = app.get_schedule_mut(PhysicsSchedule).expect(
             "Failed to build `AvianPickupPlugin`:\
                 Avian's `PhysicsSchedule` was not found. Make sure to add Avian's plugins *before* `AvianPickupPlugin`.\
                 This usually done by adding `PhysicsPlugins` to your `App`.",
         );
 
-        physics_schedule.configure_sets(AvianPickupSystem::First.in_set(PhysicsStepSet::First));
-        app.add_plugins(camera::plugin);
+        physics_schedule.configure_sets(
+            (AvianPickupSystem::First, AvianPickupSystem::SpatialQuery)
+                .chain()
+                .in_set(PhysicsStepSet::First),
+        );
+        app.add_plugins((camera::plugin, event::plugin, spatial_query::plugin));
     }
 }
 
@@ -48,4 +58,6 @@ impl Plugin for AvianPickupPlugin {
 pub enum AvianPickupSystem {
     /// Runs at the start of the [`AvianPickupSystem`]. Empty by default.
     First,
+    /// Performs spatial queries.
+    SpatialQuery,
 }
