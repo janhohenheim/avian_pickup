@@ -4,3 +4,24 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+avian3d = { git = "https://github.com/Jondolf/bevy_xpbd", branch = "avian", features = ["simd"]}
+
+[dependencies.bevy]
+version = "0.14.0-rc"
+
+[dev-dependencies]
+# Improve performance by suppressing WGPU's trace logging at compile time
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+
+[dev-dependencies.bevy]
+version = "0.14.0-rc"
+features = ["dynamic_linking"]
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
