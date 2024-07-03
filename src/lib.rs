@@ -4,14 +4,26 @@
 
 use bevy::prelude::*;
 
+/// Everything you need to use the Avian Pickup plugin.
 pub mod prelude {
     pub use crate::AvianPickupPlugin;
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
 #[non_exhaustive]
+/// The Avian Pickup plugin. Add this after the Physics plugins to enable pickup functionality.
+///
+/// # Example
+///
+/// ```
+/// # use avian3d::prelude::*;
+/// # use avian_pickup::prelude::*;
+/// # use bevy::prelude::*;
+///
+/// App::new().add_plugins((DefaultPlugins, PhysicsPlugins::default(), AvianPickupPlugin::default()));
+/// ```
 pub struct AvianPickupPlugin;
 
 impl Plugin for AvianPickupPlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, _app: &mut App) {}
 }

@@ -1,6 +1,7 @@
 [package]
 name = "avian_pickup"
 version = "0.1.0"
+authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 edition = "2021"
 
 [dependencies]
