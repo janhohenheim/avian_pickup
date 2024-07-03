@@ -2,14 +2,17 @@
 #![warn(missing_docs)]
 #![doc = include_str!("../readme.md")]
 
+use avian3d::prelude::PhysicsSchedule;
 use bevy::prelude::*;
+
+mod camera;
 
 /// Everything you need to use the Avian Pickup plugin.
 pub mod prelude {
-    pub use crate::{AvianPickupCamera, AvianPickupPlugin};
+    pub use crate::{camera::AvianPickupCamera, AvianPickupPlugin};
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug)]
 #[non_exhaustive]
 /// The Avian Pickup plugin. Add this after the Physics plugins to enable pickup functionality.
 ///
@@ -25,21 +28,14 @@ pub mod prelude {
 pub struct AvianPickupPlugin;
 
 impl Plugin for AvianPickupPlugin {
-    fn build(&self, _app: &mut App) {}
-}
+    fn build(&self, app: &mut App) {
+        // Doing an `expect` here so that subplugins can just `unwrap`.
+        let _physics_schedule = app.get_schedule_mut(PhysicsSchedule).expect(
+            "Failed to build `AvianPickupPlugin`:\
+                Avian's `PhysicsSchedule` was not found. Make sure to add Avian's plugins *before* `AvianPickupPlugin`.\
+                This usually done by adding `PhysicsPlugins` to your `App`.",
+        );
 
-#[derive(Debug, Clone, Copy, Hash, Component, Default, PartialEq, Eq, Reflect)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serialize", reflect(Serialize, Deserialize))]
-#[reflect(Debug, Component, Default, Hash, PartialEq)]
-/// Tag component for the camera that will be used for picking up objects.
-/// Place this on the camera entity that is under the player control.
-///
-/// # Example
-/// ```
-/// # use avian_pickup::prelude::*;
-/// fn setup_camera(mut commands: Commands) {
-///     commands.spawn((Name::new("Player Camera"), Camera3dBundle::default(), AvianPickupCamera));
-/// }
-/// ```
-pub struct AvianPickupCamera;
+        app.add_plugins(camera::plugin);
+    }
+}
