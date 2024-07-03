@@ -13,6 +13,7 @@ fn query(
     spatial_query: SpatialQuery,
     config: Res<AvianPickupConfig>,
     q_collider: Query<Option<&ColliderParent>, With<Collider>>,
+    q_rigid_body: Query<&RigidBody>,
 ) {
     let origin = single!(q_camera).compute_transform();
     for event in r_pickup.read() {
@@ -28,7 +29,9 @@ fn query(
         let rigid_bodies = colliders
             .iter()
             // unwrap cannot fail: shape intersections only returns colliders
-            .map(|&entity| q_collider.get(entity).unwrap().map_or(entity, ColliderParent::get));
+            .map(|&entity| q_collider.get(entity).unwrap().map_or(entity, ColliderParent::get))
+            // unwrap cannot fail: all colliders either have a rigid body or a `ColliderParent`
+            .map(|entity| q_rigid_body.get(entity).unwrap());
         info!("rigid_bodies: {:?}", rigid_bodies);
     }
 }
