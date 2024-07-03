@@ -41,7 +41,7 @@ impl Plugin for AvianPickupPlugin {
     }
 }
 
-/// Set enum for the systems relating to accessibility.
+/// Set enum for the systems added by [`AvianPickupPlugin`].
 /// Use this to order your systems relative to the ones used by Avian Pickup.
 /// This is run in Avian's `PhysicsStepSet::First`.
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
