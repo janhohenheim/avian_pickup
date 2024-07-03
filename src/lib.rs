@@ -12,8 +12,6 @@ pub mod prelude {
     pub use crate::{camera::AvianPickupCamera, AvianPickupPlugin};
 }
 
-#[derive(Default)]
-#[non_exhaustive]
 /// The Avian Pickup plugin. Add this after the Physics plugins to enable pickup functionality.
 /// Uses the same [`Schedule`]` as Avian.
 ///
@@ -26,6 +24,8 @@ pub mod prelude {
 ///
 /// App::new().add_plugins((DefaultPlugins, PhysicsPlugins::default(), AvianPickupPlugin::default()));
 /// ```
+#[derive(Default)]
+#[non_exhaustive]
 pub struct AvianPickupPlugin;
 
 impl Plugin for AvianPickupPlugin {
