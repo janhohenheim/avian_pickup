@@ -41,7 +41,7 @@ jobs:
           submodules: 'true'
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: nightly
           components: rustfmt
       - name: Cache Cargo build files
         uses: Leafwing-Studios/cargo-cache@v1

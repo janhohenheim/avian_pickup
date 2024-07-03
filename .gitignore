@@ -1,4 +1,1 @@
 /target
-# My preferred config uses nightly features, so I'm not adding it.
-# Otherwise people running stable get errors on running `cargo fmt`.
-rustfmt.toml
