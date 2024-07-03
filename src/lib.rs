@@ -6,6 +6,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 mod camera;
+mod config;
 mod event;
 mod spatial_query;
 
@@ -14,7 +15,7 @@ pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
 
-    pub use crate::{camera::AvianPickupCamera, event::AvianPickupEvent, AvianPickupPlugin, AvianPickupSystem};
+    pub use crate::{camera::AvianPickupCamera, config::AvianPickupConfig, event::AvianPickupEvent, AvianPickupPlugin, AvianPickupSystem};
 }
 
 /// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable pickup functionality.
@@ -47,7 +48,7 @@ impl Plugin for AvianPickupPlugin {
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
-        app.add_plugins((camera::plugin, event::plugin, spatial_query::plugin));
+        app.add_plugins((config::plugin, camera::plugin, event::plugin, spatial_query::plugin));
     }
 }
 

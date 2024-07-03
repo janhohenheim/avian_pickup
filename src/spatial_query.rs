@@ -6,21 +6,13 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(query.in_set(AvianPickupSystem::SpatialQuery));
 }
 
-fn query(mut r_pickup: EventReader<AvianPickupEvent>) {
+/// Adapted from <https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690>
+fn query(mut r_pickup: EventReader<AvianPickupEvent>, spatial_query: SpatialQuery, config: Res<AvianPickupConfig>) {
     for event in r_pickup.read() {
-        match event {
-            AvianPickupEvent::TryPickup => {
-                info!("TryPickup");
-            }
-            AvianPickupEvent::StopPickup => {
-                info!("StopPickup");
-            }
-            AvianPickupEvent::TogglePickup => {
-                info!("TogglePickup");
-            }
-            AvianPickupEvent::ThrowHeldObject => {
-                info!("ThrowHeldObject");
-            }
+        if !matches!(event, AvianPickupEvent::TryPickup) {
+            continue;
         }
+        let box_shape = Cuboid::from_size(Vec3::splat(0.5));
+        //spatial_query.shape_intersections()
     }
 }
