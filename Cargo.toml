@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-avian3d = { git = "https://github.com/Jondolf/bevy_xpbd", branch = "avian", features = ["simd"]}
+avian3d = { git = "https://github.com/Jondolf/bevy_xpbd", branch = "avian"}
 
 [dependencies.bevy]
 version = "0.14.0-rc"
