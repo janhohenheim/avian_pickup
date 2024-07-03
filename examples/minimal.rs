@@ -25,6 +25,7 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
             transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_to(-Vec3::Z, Vec3::Y),
             ..default()
         },
+        AvianPickupCamera,
     ));
 
     commands.spawn((
@@ -68,6 +69,6 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
 
 fn handle_input(key_input: Res<ButtonInput<KeyCode>>, mut pickup_events: EventWriter<AvianPickupEvent>) {
     if key_input.just_pressed(KeyCode::KeyE) {
-        pickup_events.send(AvianPickupEvent::TogglePickup);
+        pickup_events.send(AvianPickupEvent::TryPickup);
     }
 }

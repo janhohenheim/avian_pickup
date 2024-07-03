@@ -9,12 +9,14 @@ mod camera;
 mod config;
 mod event;
 mod spatial_query;
+mod util;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
 
+    pub(crate) use crate::util::*;
     pub use crate::{camera::AvianPickupCamera, config::AvianPickupConfig, event::AvianPickupEvent, AvianPickupPlugin, AvianPickupSystem};
 }
 
