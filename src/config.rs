@@ -11,7 +11,7 @@ pub(super) fn plugin(app: &mut App) {
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// # use avian_pickup::prelude::*;
 /// # use bevy::prelude::*;
 /// # use avian3d::prelude::*;

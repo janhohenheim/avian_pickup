@@ -31,7 +31,7 @@ pub mod prelude {
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// # use avian3d::prelude::*;
 /// # use avian_pickup::prelude::*;
 /// # use bevy::prelude::*;
