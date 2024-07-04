@@ -33,19 +33,22 @@ fn query(
         );
         let rigid_bodies = colliders
             .into_iter()
+            // get colliders
             .map(|entity| {
                 q_collider
                     .get(entity)
-                    .expect("shape_intersections returned something without a collider")
+                    .expect("`shape_intersections` returned something without a `Collider`")
                     .map_or(entity, ColliderParent::get)
             })
+            // get rigid bodies
             .map(|entity| {
                 q_rigid_body
                     .get(entity)
-                    .expect("collider has no rigid body and no `ColliderParent`")
+                    .expect("Failed to get `RigidBody` for entity")
             })
+            // keep only dynamic rigid bodies
             .filter_map(|(entity, &rigid_body, global_transform)| {
-                (rigid_body == RigidBody::Dynamic).then(|| (entity, global_transform))
+                (rigid_body == RigidBody::Dynamic).then_some((entity, global_transform))
             });
         info!("rigid_bodies: {:?}", rigid_bodies);
     }

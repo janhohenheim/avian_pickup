@@ -36,12 +36,18 @@ pub struct AvianPickupConfig {
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
     pub trace_length: f32,
+    /// Changes how wide the pickup range is, lower numbers are wider. This is a
+    /// dot product value. Default: 0.97
+    ///
+    /// Corresponds to Source's [`physcannon_cone`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_cone).
+    pub cone: f32,
 }
 
 impl Default for AvianPickupConfig {
     fn default() -> Self {
         Self {
             trace_length: 250.0,
+            cone: 0.97,
         }
     }
 }
