@@ -17,11 +17,17 @@ pub mod prelude {
     pub(crate) use bevy::prelude::*;
 
     pub(crate) use crate::util::*;
-    pub use crate::{camera::AvianPickupCamera, config::AvianPickupConfig, event::AvianPickupEvent, AvianPickupPlugin, AvianPickupSystem};
+    pub use crate::{
+        camera::AvianPickupCamera,
+        config::AvianPickupConfig,
+        event::AvianPickupEvent,
+        AvianPickupPlugin,
+        AvianPickupSystem,
+    };
 }
 
-/// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable pickup functionality.
-/// Uses the same [`Schedule`]` as Avian.
+/// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable
+/// pickup functionality. Uses the same [`Schedule`]` as Avian.
 ///
 /// # Example
 ///
@@ -30,7 +36,11 @@ pub mod prelude {
 /// # use avian_pickup::prelude::*;
 /// # use bevy::prelude::*;
 ///
-/// App::new().add_plugins((DefaultPlugins, PhysicsPlugins::default(), AvianPickupPlugin::default()));
+/// App::new().add_plugins((
+///     DefaultPlugins,
+///     PhysicsPlugins::default(),
+///     AvianPickupPlugin::default(),
+/// ));
 /// ```
 #[derive(Default)]
 #[non_exhaustive]
@@ -50,7 +60,12 @@ impl Plugin for AvianPickupPlugin {
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
-        app.add_plugins((config::plugin, camera::plugin, event::plugin, spatial_query::plugin));
+        app.add_plugins((
+            config::plugin,
+            camera::plugin,
+            event::plugin,
+            spatial_query::plugin,
+        ));
     }
 }
 

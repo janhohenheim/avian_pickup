@@ -13,7 +13,7 @@ fn query(
     spatial_query: SpatialQuery,
     config: Res<AvianPickupConfig>,
     q_collider: Query<Option<&ColliderParent>, With<Collider>>,
-    q_rigid_body: Query<&RigidBody>,
+    q_rigid_body: Query<(Entity, &RigidBody, &GlobalTransform)>,
 ) {
     let origin = single!(q_camera).compute_transform();
     for event in r_pickup.read() {
@@ -25,16 +25,28 @@ fn query(
         let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
         let query_filter = SpatialQueryFilter::default();
 
-        let colliders = spatial_query.shape_intersections(&box_collider, origin.translation, origin.rotation, query_filter);
+        let colliders = spatial_query.shape_intersections(
+            &box_collider,
+            origin.translation,
+            origin.rotation,
+            query_filter,
+        );
         let rigid_bodies = colliders
-            .iter()
-            .map(|&entity| {
+            .into_iter()
+            .map(|entity| {
                 q_collider
                     .get(entity)
                     .expect("shape_intersections returned something without a collider")
                     .map_or(entity, ColliderParent::get)
             })
-            .map(|entity| q_rigid_body.get(entity).expect("collider has no rigid body and no `ColliderParent`"));
+            .map(|entity| {
+                q_rigid_body
+                    .get(entity)
+                    .expect("collider has no rigid body and no `ColliderParent`")
+            })
+            .filter_map(|(entity, &rigid_body, global_transform)| {
+                (rigid_body == RigidBody::Dynamic).then(|| (entity, global_transform))
+            });
         info!("rigid_bodies: {:?}", rigid_bodies);
     }
 }

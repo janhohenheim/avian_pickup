@@ -15,7 +15,11 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     let static_material = materials.add(Color::WHITE);
     let dynamic_material = materials.add(Color::from(tailwind::EMERALD_300));
 
@@ -67,7 +71,10 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
     ));
 }
 
-fn handle_input(key_input: Res<ButtonInput<KeyCode>>, mut pickup_events: EventWriter<AvianPickupEvent>) {
+fn handle_input(
+    key_input: Res<ButtonInput<KeyCode>>,
+    mut pickup_events: EventWriter<AvianPickupEvent>,
+) {
     if key_input.just_pressed(KeyCode::KeyE) {
         pickup_events.send(AvianPickupEvent::TryPickup);
     }

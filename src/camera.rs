@@ -11,10 +11,18 @@ pub(super) fn plugin(app: &mut App) {
 /// ```
 /// # use avian_pickup::prelude::*;
 /// fn setup_camera(mut commands: Commands) {
-///     commands.spawn((Name::new("Player Camera"), Camera3dBundle::default(), AvianPickupCamera));
+///     commands.spawn((
+///         Name::new("Player Camera"),
+///         Camera3dBundle::default(),
+///         AvianPickupCamera,
+///     ));
 /// }
 /// ```
 #[derive(Debug, Clone, Copy, Hash, Component, Default, PartialEq, Eq, Reflect)]
 #[reflect(Debug, Component, Default, Hash, PartialEq)]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize), reflect(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
 pub struct AvianPickupCamera;
