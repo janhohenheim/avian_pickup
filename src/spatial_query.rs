@@ -25,7 +25,6 @@ fn query(
         }
         let mut nearest_dist = config.trace_length + 1.0;
         let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
-        // TODO: Allow the user to filter out certain entities and layers.
         let query_filter = SpatialQueryFilter::default().with_excluded_entities([camera_entity]);
 
         let colliders = spatial_query.shape_intersections(

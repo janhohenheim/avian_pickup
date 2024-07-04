@@ -1,3 +1,4 @@
+use avian3d::prelude::*;
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -26,7 +27,7 @@ pub(super) fn plugin(app: &mut App) {
 ///         ..default()
 ///     });
 /// ```
-#[derive(Debug, Clone, Copy, Resource, PartialEq, Reflect)]
+#[derive(Debug, Clone, Resource, PartialEq, Reflect)]
 #[reflect(Debug, Resource, Default, PartialEq)]
 #[cfg_attr(
     feature = "serialize",
@@ -34,6 +35,14 @@ pub(super) fn plugin(app: &mut App) {
     reflect(Serialize, Deserialize)
 )]
 pub struct AvianPickupConfig {
+    /// The spatial query filter to use when looking for objects to pick up.
+    /// Default: All entities
+    ///
+    /// In addition, the following entities are always excluded:
+    /// - The entity holding
+    ///   [`AvianPickupCamera`](crate::prelude::AvianPickupCamera)
+    /// - All colliders that do not belong to a [`RigidBody::Dynamic`]
+    pub spatial_query_filter: SpatialQueryFilter,
     /// How far an object can be pulled from. Default: 250.0
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
@@ -48,6 +57,7 @@ pub struct AvianPickupConfig {
 impl Default for AvianPickupConfig {
     fn default() -> Self {
         Self {
+            spatial_query_filter: default(),
             trace_length: 250.0,
             cone: 0.97,
         }
