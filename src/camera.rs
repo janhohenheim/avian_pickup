@@ -6,6 +6,8 @@ pub(super) fn plugin(app: &mut App) {
 
 /// Tag component for the camera that will be used for picking up objects.
 /// Place this on the camera entity that is under the player control.
+/// Note that Avian Pickup will only do anything if there is *exactly one*
+/// entity with this component.
 ///
 /// # Example
 /// ```
