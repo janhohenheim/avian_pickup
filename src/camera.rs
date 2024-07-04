@@ -10,6 +10,8 @@ pub(super) fn plugin(app: &mut App) {
 /// # Example
 /// ```
 /// # use avian_pickup::prelude::*;
+/// # use bevy::prelude::*;
+///
 /// fn setup_camera(mut commands: Commands) {
 ///     commands.spawn((
 ///         Name::new("Player Camera"),

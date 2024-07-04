@@ -26,44 +26,52 @@ fn query(
         let mut nearest_dist = config.trace_length + 1.0;
         let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
         // TODO: Allow the user to filter out certain entities and layers.
-        let query_filter = SpatialQueryFilter::default().with_excluded_entities(camera_entity);
+        let query_filter = SpatialQueryFilter::default().with_excluded_entities([camera_entity]);
 
         let colliders = spatial_query.shape_intersections(
             &box_collider,
             origin.translation,
             origin.rotation,
-            query_filter,
+            query_filter.clone(),
         );
+        let mut nearest_entity = None;
 
         for collider in colliders {
             let rigid_body_entity = q_collider
                 .get(collider)
                 .expect("`shape_intersections` returned something without a `Collider`")
                 .map_or(collider, ColliderParent::get);
-            let (rigid_body, object_transform) = q_rigid_body
+            let (&rigid_body, object_transform) = q_rigid_body
                 .get(rigid_body_entity)
                 .expect("Failed to get `RigidBody` for entity");
             if rigid_body != RigidBody::Dynamic {
                 continue;
             }
-            let object_transform = object_transform.compute_transform();
+            let object_translation = object_transform.translation();
 
             // Closer than other objects
-            let los = object_transform.translation - origin.translation;
+            let los = object_translation - origin.translation;
             let (los, dist) = Dir3::new_and_length(los).expect("Failed to normalize line of sight");
             if dist >= nearest_dist {
                 continue;
             }
 
             // Cull to the cone
-            // TODO: Sometimes, punt_cone is used
             let max_dot = config.cone;
             if los.dot(origin.forward().into()) <= max_dot {
                 continue;
             }
 
             // Make sure it isn't occluded!
-            todo!();
+            if let Some(hit) =
+                spatial_query.cast_ray(origin.translation, los, dist, true, query_filter.clone())
+            {
+                if hit.entity == rigid_body_entity {
+                    nearest_dist = dist;
+                    nearest_entity.replace(rigid_body_entity);
+                }
+            }
         }
+        info!("Nearest entity: {:?}", nearest_entity)
     }
 }

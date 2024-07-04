@@ -13,6 +13,8 @@ pub(super) fn plugin(app: &mut App) {
 /// ```
 /// # use avian_pickup::prelude::*;
 /// # use bevy::prelude::*;
+/// # use avian3d::prelude::*;
+///
 /// App::new()
 ///     .add_plugins((
 ///         DefaultPlugins,
