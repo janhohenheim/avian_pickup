@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{prelude::AvianPickupActorState, pull_object::PullObject};
+use crate::{
+    prelude::{AvianPickupActor, AvianPickupActorState},
+    pull_object::PullObject,
+};
 
 pub(super) mod prelude {
     pub use super::AvianPickupEvent;
@@ -33,16 +36,35 @@ pub enum AvianPickupEvent {
 fn usher_event(
     trigger: Trigger<AvianPickupEvent>,
     mut commands: Commands,
-    q_actor: Query<&AvianPickupActorState>,
+    q_actor: Query<(
+        Option<&AvianPickupActorState>,
+        Has<AvianPickupActor>,
+        Has<GlobalTransform>,
+    )>,
 ) {
     let event = trigger.event();
     let entity = trigger.entity();
-    let Ok(&state) = q_actor.get(entity) else {
+    // Unwrap cannot fail: the query only checks optional components
+    let (state, has_actor, has_transform) = q_actor.get(entity).unwrap();
+    let Some(&state) = state else {
         error!(
             "`AvianPickupEvent` was triggered on an entity without `AvianPickupActorState`. Ignoring."
         );
         return;
     };
+    // Doing these checks to that other systems can just call `unwrap`
+    if !has_actor {
+        error!(
+            "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
+        );
+        return;
+    }
+    if !has_transform {
+        error!(
+            "`AvianPickupEvent` was triggered on an entity without `GlobalTransform`. Ignoring."
+        );
+        return;
+    }
 
     match event {
         AvianPickupEvent::JustPressedL => info!("Throw"),

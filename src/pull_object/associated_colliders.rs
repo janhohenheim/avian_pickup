@@ -3,7 +3,7 @@ use std::iter;
 use avian3d::{prelude::*, sync::ancestor_marker::AncestorMarker};
 use bevy::prelude::*;
 
-use super::{PullObject, PullObjectPiped};
+use super::PullObject;
 
 pub(super) fn get_associated_colliders(
     trigger: Trigger<PullObject>,
@@ -14,8 +14,7 @@ pub(super) fn get_associated_colliders(
         Option<&Children>,
     )>,
     q_rigid_body: Query<Has<RigidBody>>,
-    mut commands: Commands,
-) {
+) -> (Entity, Vec<Entity>) {
     let mut colliders = Vec::new();
     let entity = trigger.entity();
     let rigid_body = iter::once(entity)
@@ -24,7 +23,7 @@ pub(super) fn get_associated_colliders(
     if let Some(rigid_body) = rigid_body {
         collect_sub_colliders(rigid_body, &q_collider, &mut colliders);
     }
-    commands.trigger_targets(PullObjectPiped(colliders), entity);
+    (entity, colliders)
 }
 
 fn collect_sub_colliders(

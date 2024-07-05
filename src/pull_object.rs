@@ -4,34 +4,30 @@ use crate::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_event::<PullObject>()
-        .observe(associated_colliders::get_associated_colliders)
-        .observe(pull_object_piped);
+        .observe(associated_colliders::get_associated_colliders.pipe(pull_object_piped));
 }
 
 #[derive(Debug, Event)]
 pub(crate) struct PullObject;
 
-#[derive(Debug, Event)]
-/// Needed because piping doesn't work until <https://github.com/bevyengine/bevy/issues/14157> is fixed
-struct PullObjectPiped(Vec<Entity>);
+fn pull_object(
+    trigger: Trigger<PullObject>,
+    spatial_query: SpatialQuery,
+    q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
+) {
+    let actor_entity = trigger.entity();
+    let (origin, config) = q_actor.get(actor_entity).unwrap();
+}
 
-/// Adapted from <https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690>
+/// Inspired by <https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690>
 fn pull_object_piped(
-    trigger: Trigger<PullObjectPiped>,
+    In((actor_entity, actor_colliders)): In<(Entity, Vec<Entity>)>,
     spatial_query: SpatialQuery,
     q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
     q_collider: Query<&ColliderParent>,
     q_rigid_body: Query<(&RigidBody, &GlobalTransform)>,
 ) {
-    let PullObjectPiped(actor_colliders) = trigger.event();
-    let actor_entity = trigger.entity();
-
-    let Ok((origin, config)) = q_actor.get(actor_entity) else {
-        error!(
-            "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
-        );
-        return;
-    };
+    let (origin, config) = q_actor.get(actor_entity).unwrap();
 
     let origin = origin.compute_transform();
     let query_filter = config
