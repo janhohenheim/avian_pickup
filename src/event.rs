@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::spatial_query::TryPickup;
+use crate::try_pickup::TryPickup;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<AvianPickupEvent>()

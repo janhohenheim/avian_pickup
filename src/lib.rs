@@ -7,7 +7,7 @@ use bevy::prelude::*;
 
 mod actor;
 mod event;
-mod spatial_query;
+mod try_pickup;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
@@ -56,7 +56,7 @@ impl Plugin for AvianPickupPlugin {
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
-        app.add_plugins((event::plugin, actor::plugin, spatial_query::plugin));
+        app.add_plugins((event::plugin, actor::plugin, try_pickup::plugin));
     }
 }
 
