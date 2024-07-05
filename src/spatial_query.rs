@@ -1,3 +1,5 @@
+use std::iter;
+
 use crate::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -10,21 +12,21 @@ pub(super) fn plugin(app: &mut App) {
 fn query(
     mut r_pickup: EventReader<AvianPickupEvent>,
     spatial_query: SpatialQuery,
-    q_actor: Query<(Entity, &GlobalTransform, &AvianPickupActor)>,
-    q_collider: Query<Option<&ColliderParent>, With<Collider>>,
+    q_actor: Query<(&GlobalTransform, &AvianPickupActor, &AssociatedColliders)>,
+    q_collider: Query<&ColliderParent>,
     q_rigid_body: Query<(&RigidBody, &GlobalTransform)>,
 ) {
-    for (actor_entity, origin, config) in q_actor.iter() {
-        let origin = origin.compute_transform();
-        let query_filter = config
-            .spatial_query_filter
-            .clone()
-            .with_excluded_entities([actor_entity]);
+    for event in r_pickup.read() {
+        if !matches!(event, AvianPickupEvent::TryPickup) {
+            continue;
+        }
+        for (origin, config, actor_colliders) in q_actor.iter() {
+            let origin = origin.compute_transform();
+            let query_filter = config
+                .spatial_query_filter
+                .clone()
+                .with_excluded_entities(actor_colliders.0.clone());
 
-        for event in r_pickup.read() {
-            if !matches!(event, AvianPickupEvent::TryPickup) {
-                continue;
-            }
             let mut nearest_dist = config.trace_length + 1.0;
             let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
 
@@ -40,7 +42,7 @@ fn query(
                 let rigid_body_entity = q_collider
                     .get(collider)
                     .expect("`shape_intersections` returned something without a `Collider`")
-                    .map_or(collider, ColliderParent::get);
+                    .get();
                 let (&rigid_body, object_transform) = q_rigid_body
                     .get(rigid_body_entity)
                     .expect("Failed to get `RigidBody` for entity");

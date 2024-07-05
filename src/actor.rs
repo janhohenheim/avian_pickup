@@ -1,8 +1,14 @@
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{
+    ecs::component::{ComponentHooks, StorageType},
+    prelude::*,
+};
+
+use crate::prelude::AssociatedColliders;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<AvianPickupActor>();
+    app.register_type::<AvianPickupActor>()
+        .observe(add_associated_colliders);
 }
 
 /// Tag component for an actor that is able to pick up object.
@@ -24,7 +30,7 @@ pub(super) fn plugin(app: &mut App) {
 ///     ));
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Component, Reflect)]
+#[derive(Debug, Component, Clone, PartialEq, Reflect)]
 #[reflect(Debug, Component, Default, PartialEq)]
 #[cfg_attr(
     feature = "serialize",
@@ -59,4 +65,10 @@ impl Default for AvianPickupActor {
             cone: 0.97,
         }
     }
+}
+
+fn add_associated_colliders(trigger: Trigger<OnAdd, AvianPickupActor>, mut commands: Commands) {
+    commands
+        .entity(trigger.entity())
+        .insert(AssociatedColliders::default());
 }

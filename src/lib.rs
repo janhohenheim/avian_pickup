@@ -6,6 +6,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 mod actor;
+mod associated_colliders;
 mod event;
 mod spatial_query;
 
@@ -14,6 +15,7 @@ pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
 
+    pub(crate) use crate::associated_colliders::AssociatedColliders;
     pub use crate::{
         actor::AvianPickupActor,
         event::AvianPickupEvent,
@@ -56,7 +58,12 @@ impl Plugin for AvianPickupPlugin {
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
-        app.add_plugins((event::plugin, actor::plugin, spatial_query::plugin));
+        app.add_plugins((
+            event::plugin,
+            actor::plugin,
+            associated_colliders::plugin,
+            spatial_query::plugin,
+        ));
     }
 }
 
