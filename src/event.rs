@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{on_pressed_r::OnPressedR, prelude::AvianPickupActorState};
+use crate::{prelude::AvianPickupActorState, pull_object::PullObject};
 
 pub(super) mod prelude {
     pub use super::AvianPickupEvent;
@@ -9,7 +9,7 @@ pub(super) mod prelude {
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<AvianPickupEvent>()
         .add_event::<AvianPickupEvent>()
-        .observe(handle_event);
+        .observe(usher_event);
 }
 
 /// Event for picking up and throwing objects.
@@ -30,7 +30,7 @@ pub enum AvianPickupEvent {
     PressedR,
 }
 
-fn handle_event(
+fn usher_event(
     trigger: Trigger<AvianPickupEvent>,
     mut commands: Commands,
     q_actor: Query<&AvianPickupActorState>,
@@ -48,7 +48,9 @@ fn handle_event(
         AvianPickupEvent::JustPressedL => info!("Throw"),
         AvianPickupEvent::JustPressedR if state == AvianPickupActorState::Holding => info!("Drop"),
         AvianPickupEvent::JustPressedR | AvianPickupEvent::PressedR => {
-            commands.trigger_targets(OnPressedR, entity)
+            if state != AvianPickupActorState::Holding {
+                commands.trigger_targets(PullObject, entity)
+            }
         }
     }
 }
