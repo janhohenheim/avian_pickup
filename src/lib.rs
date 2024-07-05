@@ -8,6 +8,7 @@ use bevy::prelude::*;
 mod actor;
 mod event;
 mod pull_object;
+mod collider;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {

@@ -3,10 +3,11 @@ use std::iter;
 use avian3d::{prelude::*, sync::ancestor_marker::AncestorMarker};
 use bevy::prelude::*;
 
-use super::PullObject;
+use crate::prelude::AvianPickupActor;
 
-pub(super) fn get_associated_colliders(
-    trigger: Trigger<PullObject>,
+pub(super) fn prepare_spatial_query_filter(
+    In(entity): In<Entity>,
+    q_actor: Query<&AvianPickupActor>,
     q_parent: Query<&Parent>,
     q_collider: Query<(
         Has<Collider>,
@@ -14,16 +15,21 @@ pub(super) fn get_associated_colliders(
         Option<&Children>,
     )>,
     q_rigid_body: Query<Has<RigidBody>>,
-) -> (Entity, Vec<Entity>) {
+) -> (Entity, SpatialQueryFilter) {
     let mut colliders = Vec::new();
-    let entity = trigger.entity();
     let rigid_body = iter::once(entity)
         .chain(q_parent.iter_ancestors(entity))
         .find(|&entity| q_rigid_body.contains(entity));
     if let Some(rigid_body) = rigid_body {
         collect_sub_colliders(rigid_body, &q_collider, &mut colliders);
     }
-    (entity, colliders)
+    let spatial_query_filter = q_actor
+        .get(entity)
+        .unwrap()
+        .spatial_query_filter
+        .clone()
+        .with_excluded_entities(colliders);
+    (entity, spatial_query_filter)
 }
 
 fn collect_sub_colliders(
