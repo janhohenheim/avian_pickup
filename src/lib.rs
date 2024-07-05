@@ -15,8 +15,8 @@ pub mod prelude {
     pub(crate) use bevy::prelude::*;
 
     pub use crate::{
-        actor::AvianPickupActor,
-        event::AvianPickupEvent,
+        actor::prelude::*,
+        event::prelude::*,
         AvianPickupPlugin,
         AvianPickupSystem,
     };

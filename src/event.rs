@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::try_pickup::TryPickup;
+use crate::{prelude::AvianPickupActorState, try_pickup::TryPickup};
+
+pub(super) mod prelude {
+    pub use super::AvianPickupEvent;
+}
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<AvianPickupEvent>()
@@ -18,38 +22,33 @@ pub(super) fn plugin(app: &mut App) {
     reflect(Serialize, Deserialize)
 )]
 pub enum AvianPickupEvent {
-    /// Try to pick up the object in front of the camera. If there is no object,
-    /// do nothing. If there is, start applying a force to it until it is
-    /// close enough to the camera to be picked up. Does nothing if there is
-    /// already an object being held.
-    TryPickup,
-    /// Stop applying a force to an object that is being picked up or already
-    /// held.
-    StopPickup,
-    /// Toggle the pickup state of the held object. Acts as
-    /// [`AvianPickupEvent::StopPickup`] if we are trying to pick up an object
-    /// or holding one, and as [`AvianPickupEvent::TryPickup`] otherwise.
-    TogglePickup,
-    /// Throw the held object. Does nothing if there is no object being held.
-    /// This also does nothing if the object is still being picked up.
-    ThrowHeldObject,
+    /// The left mouse button was just pressed this update.
+    JustPressedL,
+    /// The right mouse button was just pressed this update.
+    JustPressedR,
+    /// The right mouse button was pressed.
+    PressedR,
 }
 
-fn handle_event(trigger: Trigger<AvianPickupEvent>, mut commands: Commands) {
+fn handle_event(
+    trigger: Trigger<AvianPickupEvent>,
+    mut commands: Commands,
+    q_actor: Query<&AvianPickupActorState>,
+) {
     let event = trigger.event();
     let entity = trigger.entity();
+    let Ok(&state) = q_actor.get(entity) else {
+        error!(
+            "`AvianPickupEvent` was triggered on an entity without `AvianPickupActorState`. Ignoring."
+        );
+        return;
+    };
+
     match event {
-        AvianPickupEvent::TryPickup => {
-            commands.trigger_targets(TryPickup, entity);
-        }
-        AvianPickupEvent::StopPickup => {
-            todo!("Stop pickup");
-        }
-        AvianPickupEvent::TogglePickup => {
-            todo!("Toggle pickup");
-        }
-        AvianPickupEvent::ThrowHeldObject => {
-            todo!("Throw held object");
+        AvianPickupEvent::JustPressedL => info!("Throw"),
+        AvianPickupEvent::JustPressedR if state == AvianPickupActorState::Holding => info!("Drop"),
+        AvianPickupEvent::JustPressedR | AvianPickupEvent::PressedR => {
+            commands.trigger_targets(TryPickup, entity)
         }
     }
 }

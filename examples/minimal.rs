@@ -73,13 +73,19 @@ fn setup(
 
 fn handle_input(
     mut commands: Commands,
-    key_input: Res<ButtonInput<KeyCode>>,
+    key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
 ) {
-    if key_input.just_pressed(KeyCode::KeyE) {
-        let Ok(actor) = actors.get_single() else {
-            return;
-        };
-        commands.trigger_targets(AvianPickupEvent::TryPickup, actor);
+    let Ok(actor) = actors.get_single() else {
+        return;
+    };
+    if key_input.just_pressed(MouseButton::Left) {
+        commands.trigger_targets(AvianPickupEvent::JustPressedL, actor);
+    }
+    if key_input.just_pressed(MouseButton::Right) {
+        commands.trigger_targets(AvianPickupEvent::JustPressedR, actor);
+    }
+    if key_input.pressed(MouseButton::Right) {
+        commands.trigger_targets(AvianPickupEvent::PressedR, actor);
     }
 }
