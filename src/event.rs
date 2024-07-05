@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{prelude::AvianPickupActorState, try_pickup::TryPickup};
+use crate::{on_pressed_r::OnPressedR, prelude::AvianPickupActorState};
 
 pub(super) mod prelude {
     pub use super::AvianPickupEvent;
@@ -48,7 +48,7 @@ fn handle_event(
         AvianPickupEvent::JustPressedL => info!("Throw"),
         AvianPickupEvent::JustPressedR if state == AvianPickupActorState::Holding => info!("Drop"),
         AvianPickupEvent::JustPressedR | AvianPickupEvent::PressedR => {
-            commands.trigger_targets(TryPickup, entity)
+            commands.trigger_targets(OnPressedR, entity)
         }
     }
 }

@@ -3,27 +3,27 @@ mod associated_colliders;
 use crate::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_event::<TryPickup>()
+    app.add_event::<OnPressedR>()
         .observe(associated_colliders::get_associated_colliders)
-        .observe(try_pickup);
+        .observe(on_pressed_r_piped);
 }
 
 #[derive(Debug, Event)]
-pub(crate) struct TryPickup;
+pub(crate) struct OnPressedR;
 
 #[derive(Debug, Event)]
 /// Needed because piping doesn't work until <https://github.com/bevyengine/bevy/issues/14157> is fixed
-struct TryPickupWithOwnColliders(Vec<Entity>);
+struct OnPressedRPiped(Vec<Entity>);
 
 /// Adapted from <https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690>
-fn try_pickup(
-    trigger: Trigger<TryPickupWithOwnColliders>,
+fn on_pressed_r_piped(
+    trigger: Trigger<OnPressedRPiped>,
     spatial_query: SpatialQuery,
     q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
     q_collider: Query<&ColliderParent>,
     q_rigid_body: Query<(&RigidBody, &GlobalTransform)>,
 ) {
-    let TryPickupWithOwnColliders(actor_colliders) = trigger.event();
+    let OnPressedRPiped(actor_colliders) = trigger.event();
     let actor_entity = trigger.entity();
 
     let Ok((origin, config)) = q_actor.get(actor_entity) else {

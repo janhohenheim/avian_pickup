@@ -3,10 +3,10 @@ use std::iter;
 use avian3d::{prelude::*, sync::ancestor_marker::AncestorMarker};
 use bevy::prelude::*;
 
-use super::{TryPickup, TryPickupWithOwnColliders};
+use super::{OnPressedR, OnPressedRPiped};
 
 pub(super) fn get_associated_colliders(
-    trigger: Trigger<TryPickup>,
+    trigger: Trigger<OnPressedR>,
     q_parent: Query<&Parent>,
     q_collider: Query<(
         Has<Collider>,
@@ -24,7 +24,7 @@ pub(super) fn get_associated_colliders(
     if let Some(rigid_body) = rigid_body {
         collect_sub_colliders(rigid_body, &q_collider, &mut colliders);
     }
-    commands.trigger_targets(TryPickupWithOwnColliders(colliders), entity);
+    commands.trigger_targets(OnPressedRPiped(colliders), entity);
 }
 
 fn collect_sub_colliders(
