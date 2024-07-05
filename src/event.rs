@@ -1,8 +1,11 @@
 use bevy::prelude::*;
 
+use crate::spatial_query::TryPickup;
+
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<AvianPickupEvent>()
-        .add_event::<AvianPickupEvent>();
+        .add_event::<AvianPickupEvent>()
+        .observe(handle_event);
 }
 
 /// Event for picking up and throwing objects.
@@ -30,4 +33,23 @@ pub enum AvianPickupEvent {
     /// Throw the held object. Does nothing if there is no object being held.
     /// This also does nothing if the object is still being picked up.
     ThrowHeldObject,
+}
+
+fn handle_event(trigger: Trigger<AvianPickupEvent>, mut commands: Commands) {
+    let event = trigger.event();
+    let entity = trigger.entity();
+    match event {
+        AvianPickupEvent::TryPickup => {
+            commands.trigger_targets(TryPickup, entity);
+        }
+        AvianPickupEvent::StopPickup => {
+            todo!("Stop pickup");
+        }
+        AvianPickupEvent::TogglePickup => {
+            todo!("Toggle pickup");
+        }
+        AvianPickupEvent::ThrowHeldObject => {
+            todo!("Throw held object");
+        }
+    }
 }
