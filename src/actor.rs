@@ -2,45 +2,42 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<AvianPickupConfig>()
-        .init_resource::<AvianPickupConfig>();
+    app.register_type::<AvianPickupActor>();
 }
 
-/// Configuration for the Avian Pickup plugin. Can be overridden by inserting it
-/// after adding the plugin.
+/// Tag component for an actor that is able to pick up object.
+/// For a first-person game, add this to the camera entity that is under the
+/// player control.
+///
+/// Requires the entity to also hold [`TransformBundle`].
 ///
 /// # Example
-///
-/// ```no_run
+/// ```
 /// # use avian_pickup::prelude::*;
 /// # use bevy::prelude::*;
-/// # use avian3d::prelude::*;
 ///
-/// App::new()
-///     .add_plugins((
-///         DefaultPlugins,
-///         PhysicsPlugins::default(),
-///         AvianPickupPlugin::default(),
-///     ))
-///     .insert_resource(AvianPickupConfig {
-///         trace_length: 500.0,
-///         ..default()
-///     });
+/// fn setup_camera(mut commands: Commands) {
+///     commands.spawn((
+///         Name::new("Player Camera"),
+///         Camera3dBundle::default(),
+///         AvianPickupActor::default(),
+///     ));
+/// }
 /// ```
-#[derive(Debug, Clone, Resource, PartialEq, Reflect)]
-#[reflect(Debug, Resource, Default, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Component, Reflect)]
+#[reflect(Debug, Component, Default, PartialEq)]
 #[cfg_attr(
     feature = "serialize",
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct AvianPickupConfig {
+pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for objects to pick up.
     /// Default: All entities
     ///
     /// In addition, the following entities are always excluded:
     /// - The entity holding
-    ///   [`AvianPickupCamera`](crate::prelude::AvianPickupCamera)
+    ///   [`AvianPickupActor`](crate::prelude::AvianPickupActor)
     /// - All colliders that do not belong to a [`RigidBody::Dynamic`]
     pub spatial_query_filter: SpatialQueryFilter,
     /// How far an object can be pulled from. Default: 250.0
@@ -54,7 +51,7 @@ pub struct AvianPickupConfig {
     pub cone: f32,
 }
 
-impl Default for AvianPickupConfig {
+impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
             spatial_query_filter: default(),

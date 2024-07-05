@@ -29,7 +29,7 @@ fn setup(
             transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_to(-Vec3::Z, Vec3::Y),
             ..default()
         },
-        AvianPickupCamera,
+        AvianPickupActor::default(),
     ));
 
     commands.spawn((
