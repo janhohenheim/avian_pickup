@@ -72,10 +72,14 @@ fn setup(
 }
 
 fn handle_input(
+    mut commands: Commands,
     key_input: Res<ButtonInput<KeyCode>>,
-    mut pickup_events: EventWriter<AvianPickupEvent>,
+    actors: Query<Entity, With<AvianPickupActor>>,
 ) {
     if key_input.just_pressed(KeyCode::KeyE) {
-        pickup_events.send(AvianPickupEvent::TryPickup);
+        let Ok(actor) = actors.get_single() else {
+            return;
+        };
+        commands.trigger_targets(AvianPickupEvent::TryPickup, actor);
     }
 }
