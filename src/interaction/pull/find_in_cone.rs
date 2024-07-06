@@ -1,5 +1,5 @@
 use super::Prop;
-use crate::prelude::*;
+use crate::{math::METERS_PER_INCH, prelude::*};
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectInCone`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690)
 pub(super) fn find_prop_in_cone(
@@ -8,7 +8,7 @@ pub(super) fn find_prop_in_cone(
     config: &AvianPickupActor,
     q_transform: &Query<&GlobalTransform>,
 ) -> Option<Prop> {
-    const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0;
+    const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0 * METERS_PER_INCH;
     let mut nearest_dist = config.trace_length + MAGIC_OFFSET_ASK_VALVE;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
 

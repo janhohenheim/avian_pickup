@@ -10,6 +10,7 @@ mod cooldown;
 mod input;
 mod interaction;
 mod spatial_query_filter;
+mod math;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {

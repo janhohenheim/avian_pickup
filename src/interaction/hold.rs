@@ -12,5 +12,6 @@ fn hold(q_actor: Query<(&AvianPickupActorState, &GlobalTransform)>) {
             continue;
         };
         let _transform = transform.compute_transform();
+        info!("Hold!")
     }
 }
