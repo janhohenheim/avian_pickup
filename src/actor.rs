@@ -55,7 +55,7 @@ pub struct AvianPickupActor {
     /// In addition, all colliders that do not belong to a
     /// [`RigidBody::Dynamic`] will implicitly be filtered out.
     pub spatial_query_filter: SpatialQueryFilter,
-    /// How far an object can be pulled from. Default: 250.0
+    /// How far an object can be pulled from in meters. Default: 6.35 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
     pub trace_length: f32,
@@ -64,6 +64,11 @@ pub struct AvianPickupActor {
     ///
     /// Corresponds to Source's [`physcannon_cone`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_cone).
     pub cone: f32,
+    /// The maximum mass in kg an object can have to be picked up. Default: 35.0
+    /// kg
+    ///
+    /// Corresponds to Source's [`physcannon_maxmass`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_maxmass).
+    pub max_mass: f32,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -95,6 +100,7 @@ impl Default for AvianPickupActor {
             spatial_query_filter: default(),
             trace_length: 250.0 * METERS_PER_HAMMER_UNIT,
             cone: 0.97,
+            max_mass: 35.0,
         }
     }
 }
