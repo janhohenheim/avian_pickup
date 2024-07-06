@@ -1,8 +1,10 @@
 # Avian Pickup
 
-WIP WIP WIP
+A plugin for implementing picking up dynamic rigid bodies in Avian physics.
+Modeled after Half Life 2's gravity gun.
 
-Do not use this yet.
+> [!WARNING]  
+> I'm not done implementing this yet. Stay tuned.
 
 ## Version Compatibility
 
