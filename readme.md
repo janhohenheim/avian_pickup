@@ -1,5 +1,9 @@
 # Avian Pickup
 
+WIP WIP WIP
+
+Do not use this yet.
+
 ## Version Compatibility
 
 | `avian_pickup` | `avian` | `bevy` |
