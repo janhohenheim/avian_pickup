@@ -80,12 +80,12 @@ fn handle_input(
         return;
     };
     if key_input.just_pressed(MouseButton::Left) {
-        commands.trigger_targets(AvianPickupEvent::JustPressedL, actor);
+        commands.trigger_targets(AvianPickupInput::JustPressedL, actor);
     }
     if key_input.just_pressed(MouseButton::Right) {
-        commands.trigger_targets(AvianPickupEvent::JustPressedR, actor);
+        commands.trigger_targets(AvianPickupInput::JustPressedR, actor);
     }
     if key_input.pressed(MouseButton::Right) {
-        commands.trigger_targets(AvianPickupEvent::PressedR, actor);
+        commands.trigger_targets(AvianPickupInput::PressedR, actor);
     }
 }

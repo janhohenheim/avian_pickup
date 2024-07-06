@@ -72,10 +72,13 @@ pub enum AvianPickupActorState {
     /// The actor is trying to pick up an object.
     /// The object is still too far away to be picked up,
     /// so we're pulling it closer.
-    Pulling,
+    Pulling(Entity),
     /// The actor is holding an object.
-    Holding,
+    Holding(Entity),
+    /// The actor is throwing an object.
+    Throwing(Entity),
 }
+
 
 impl Default for AvianPickupActor {
     fn default() -> Self {

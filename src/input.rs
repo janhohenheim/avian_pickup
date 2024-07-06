@@ -6,12 +6,12 @@ use crate::{
 };
 
 pub(super) mod prelude {
-    pub use super::AvianPickupEvent;
+    pub use super::AvianPickupInput;
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<AvianPickupEvent>()
-        .add_event::<AvianPickupEvent>()
+    app.register_type::<AvianPickupInput>()
+        .add_event::<AvianPickupInput>()
         .observe(usher_event);
 }
 
@@ -24,7 +24,7 @@ pub(super) fn plugin(app: &mut App) {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub enum AvianPickupEvent {
+pub enum AvianPickupInput {
     /// The left mouse button was just pressed this update.
     JustPressedL,
     /// The right mouse button was just pressed this update.
@@ -34,7 +34,7 @@ pub enum AvianPickupEvent {
 }
 
 fn usher_event(
-    trigger: Trigger<AvianPickupEvent>,
+    trigger: Trigger<AvianPickupInput>,
     mut commands: Commands,
     q_actor: Query<(
         Option<&AvianPickupActorState>,
@@ -67,11 +67,16 @@ fn usher_event(
     }
 
     match event {
-        AvianPickupEvent::JustPressedL => info!("Throw"),
-        AvianPickupEvent::JustPressedR if state == AvianPickupActorState::Holding => info!("Drop"),
-        AvianPickupEvent::JustPressedR | AvianPickupEvent::PressedR => {
-            if state != AvianPickupActorState::Holding {
-                commands.trigger_targets(PullObject, entity)
+        AvianPickupInput::JustPressedL => info!("Throw"),
+        AvianPickupInput::JustPressedR if matches!(state, AvianPickupActorState::Holding(..)) => {
+            info!("Drop")
+        }
+        AvianPickupInput::JustPressedR | AvianPickupInput::PressedR => {
+            if matches!(
+                state,
+                AvianPickupActorState::Idle | AvianPickupActorState::Pulling(..)
+            ) {
+                commands.trigger_targets(PullObject, entity);
             }
         }
     }

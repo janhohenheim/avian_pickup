@@ -6,16 +6,16 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 mod actor;
-mod event;
-mod pull_object;
 mod collider;
+mod input;
+mod pull_object;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
 
-    pub use crate::{actor::prelude::*, event::prelude::*, AvianPickupPlugin, AvianPickupSystem};
+    pub use crate::{actor::prelude::*, input::prelude::*, AvianPickupPlugin, AvianPickupSystem};
 }
 
 /// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable
@@ -52,7 +52,7 @@ impl Plugin for AvianPickupPlugin {
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
-        app.add_plugins((event::plugin, actor::plugin, pull_object::plugin));
+        app.add_plugins((input::plugin, actor::plugin, pull_object::plugin));
     }
 }
 
