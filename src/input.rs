@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    prelude::{AvianPickupActor, AvianPickupActorState},
+    prelude::{AvianPickupActor, AvianPickupActorState, Cooldown},
     pull_object::PullObject,
 };
 
@@ -39,31 +39,34 @@ fn usher_event(
     q_actor: Query<(
         Option<&AvianPickupActorState>,
         Has<AvianPickupActor>,
+        Has<Cooldown>,
         Has<GlobalTransform>,
     )>,
 ) {
     let event = trigger.event();
     let entity = trigger.entity();
     // Unwrap cannot fail: the query only checks optional components
-    let (state, has_actor, has_transform) = q_actor.get(entity).unwrap();
+    let (state, has_actor, has_cooldown, has_transform) = q_actor.get(entity).unwrap();
     let Some(&state) = state else {
         error!(
             "`AvianPickupEvent` was triggered on an entity without `AvianPickupActorState`. Ignoring."
         );
         return;
     };
-    // Doing these checks to that other systems can just call `unwrap`
-    if !has_actor {
-        error!(
-            "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
-        );
-        return;
-    }
-    if !has_transform {
-        error!(
-            "`AvianPickupEvent` was triggered on an entity without `GlobalTransform`. Ignoring."
-        );
-        return;
+
+    // Doing these checks now so that later systems can just call `unwrap`
+    let checks = [
+        (has_actor, "AvianPickupActor"),
+        (has_cooldown, "Cooldown"),
+        (has_transform, "GlobalTransform"),
+    ];
+    for (has_component, component_name) in checks.iter() {
+        if !has_component {
+            error!(
+                "`AvianPickupEvent` was triggered on an entity without `{component_name}`. Ignoring."
+            );
+            return;
+        }
     }
 
     match event {

@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{prelude::AvianPickupCooldown, spatial_query_filter::prepare_spatial_query_filter};
+use crate::{prelude::Cooldown, spatial_query_filter::prepare_spatial_query_filter};
 
 pub(super) mod prelude {
     pub use super::{AvianPickupActor, AvianPickupActorState};
@@ -113,10 +113,9 @@ impl Default for AvianPickupActor {
 
 fn add_state_to_actor(trigger: Trigger<OnAdd, AvianPickupActor>, mut commands: Commands) -> Entity {
     let entity = trigger.entity();
-    commands.entity(entity).insert((
-        AvianPickupActorState::default(),
-        AvianPickupCooldown::default(),
-    ));
+    commands
+        .entity(entity)
+        .insert((AvianPickupActorState::default(), Cooldown::default()));
     entity
 }
 

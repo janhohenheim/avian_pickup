@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use crate::AvianPickupSystem;
 
 pub(super) mod prelude {
-    pub(crate) use super::AvianPickupCooldown;
+    pub(crate) use super::Cooldown;
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -17,12 +17,12 @@ pub(super) fn plugin(app: &mut App) {
 
 /// Timings taken from [`CWeaponPhysCannon::SecondaryAttack`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2284)
 #[derive(Debug, Clone, PartialEq, Component, Default)]
-pub(crate) struct AvianPickupCooldown {
+pub(crate) struct Cooldown {
     pub(crate) left: Timer,
     pub(crate) right: Timer,
 }
 
-impl AvianPickupCooldown {
+impl Cooldown {
     pub(crate) fn drop_held(&mut self) {
         self.left = Timer::from_seconds(0.5, TimerMode::Once);
         self.right = Timer::from_seconds(0.5, TimerMode::Once);
@@ -45,7 +45,7 @@ impl AvianPickupCooldown {
     }
 }
 
-fn tick(mut query: Query<&mut AvianPickupCooldown>, time: Res<Time>) {
+fn tick(mut query: Query<&mut Cooldown>, time: Res<Time>) {
     for mut cooldown in query.iter_mut() {
         cooldown.tick(time.delta());
     }

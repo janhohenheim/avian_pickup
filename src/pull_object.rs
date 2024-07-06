@@ -7,7 +7,11 @@ mod find_in_trace;
 use self::{can_pull::*, find_in_cone::*, find_in_trace::*};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_event::<PullObject>().observe(find_object);
+    app.add_event::<PullObject>()
+        .observe(find_object)
+        .get_schedule_mut(PhysicsSchedule)
+        .unwrap()
+        .add_systems(flush_pulling_state.in_set(AvianPickupSystem::ResetIdle));
 }
 
 #[derive(Debug, Event)]
@@ -20,14 +24,16 @@ fn find_object(
     mut q_actor: Query<(
         &GlobalTransform,
         &AvianPickupActor,
-        &mut AvianPickupCooldown,
+        &mut AvianPickupActorState,
+        &mut Cooldown,
     )>,
     q_collider: Query<&ColliderParent>,
     mut q_rigid_body: Query<(&RigidBody, &Mass, &mut ExternalImpulse, &GlobalTransform)>,
     q_transform: Query<&GlobalTransform>,
 ) {
     let actor_entity = trigger.entity();
-    let (origin, config, mut cooldown) = q_actor.get_mut(actor_entity).unwrap();
+    let (origin, config, mut state, mut cooldown) = q_actor.get_mut(actor_entity).unwrap();
+
     if !cooldown.right.finished() {
         return;
     }
@@ -56,7 +62,9 @@ fn find_object(
 
     let can_hold = prop.toi <= config.trace_length;
     info!("{prop:?} can be held: {can_hold}");
-    if !can_hold {
+    if can_hold {
+        *state = AvianPickupActorState::Holding(prop.entity);
+    } else {
         let object_transform = object_transform.compute_transform();
         let direction = origin.translation - object_transform.translation;
         let magic_factor_ask_valve = if mass.0 < 50.0 {
@@ -67,6 +75,7 @@ fn find_object(
         let pull_impulse = direction * config.pull_force * magic_factor_ask_valve;
         cooldown.pull();
         impulse.apply_impulse(pull_impulse);
+        *state = AvianPickupActorState::Pulling(prop.entity);
     }
 }
 
@@ -75,4 +84,27 @@ fn find_object(
 struct Prop {
     pub entity: Entity,
     pub toi: f32,
+}
+
+fn flush_pulling_state(mut states: Query<(Mut<AvianPickupActorState>, &Cooldown)>) {
+    for (mut state, cooldown) in states.iter_mut() {
+        // Okay, so the basic idea is this:
+        // Pulling happens in discrete impulses every n milliseconds.
+        // New pulls happen regularly, but we should also reset to idle at some point.
+        // Technically, we could reset to idle every frame and let it be overwritten by
+        // a new pull, but that would mean that in the time between discrete
+        // impulses, the state would be idle. That is technically true, but
+        // probably not what a user observing the state component would expect.
+        // So, instead we set it to idle only if the cooldown is finished.
+        //
+        // The reason we check for `is_changed` is that we run in `PostUpdate` by
+        // default, so we would change a newly set `Pulling` state to `Idle`
+        // immediately.
+        if !state.is_changed()
+            && matches!(state.as_ref(), AvianPickupActorState::Pulling(..))
+            && cooldown.right.finished()
+        {
+            *state = AvianPickupActorState::Idle;
+        }
+    }
 }

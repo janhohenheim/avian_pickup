@@ -50,7 +50,11 @@ impl Plugin for AvianPickupPlugin {
         );
 
         physics_schedule.configure_sets(
-            (AvianPickupSystem::First, AvianPickupSystem::TickTimers)
+            (
+                AvianPickupSystem::First,
+                AvianPickupSystem::ResetIdle,
+                AvianPickupSystem::TickTimers,
+            )
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
@@ -70,6 +74,11 @@ impl Plugin for AvianPickupPlugin {
 pub enum AvianPickupSystem {
     /// Runs at the start of the [`AvianPickupSystem`]. Empty by default.
     First,
+    /// Resets the
+    /// [`AvianPickupActorState`](crate::prelude::AvianPickupActorState) to
+    /// [`AvianPickupActorState::Idle`](crate::prelude::AvianPickupActorState::Idle)
+    /// if needed
+    ResetIdle,
     /// Performs spatial queries.
     TickTimers,
 }
