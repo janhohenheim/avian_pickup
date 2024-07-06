@@ -29,7 +29,10 @@ impl AvianPickupCooldown {
     }
 
     pub(crate) fn hold(&mut self) {
-        self.right = Timer::from_seconds(0.5, TimerMode::Once);
+        // Sneakily updated in two places:
+        // - [+ 0.5](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2316)
+        // - [+ 0.4](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2438)
+        self.right = Timer::from_seconds(0.9, TimerMode::Once);
     }
 
     pub(crate) fn pull(&mut self) {
