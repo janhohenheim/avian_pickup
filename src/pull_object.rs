@@ -24,7 +24,7 @@ fn find_object(
     let (origin, config) = q_actor.get(actor_entity).unwrap();
 
     let origin = origin.compute_transform();
-    let candidate = get_object_candidate(&spatial_query, origin, &config);
+    let candidate = get_object_candidate(&spatial_query, origin, config);
 
     let reaction = if let Some(candidate) = candidate {
         if candidate.toi_fraction < 0.25 {

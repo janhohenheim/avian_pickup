@@ -23,9 +23,7 @@ pub(super) fn prepare_spatial_query_filter(
         return;
     };
 
-    let excluded_entities = &mut actor
-        .spatial_query_filter
-        .excluded_entities;
+    let excluded_entities = &mut actor.spatial_query_filter.excluded_entities;
 
     let rigid_body = iter::once(entity)
         .chain(q_parent.iter_ancestors(entity))
