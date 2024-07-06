@@ -17,13 +17,20 @@ pub(crate) struct PullObject;
 fn find_object(
     trigger: Trigger<PullObject>,
     spatial_query: SpatialQuery,
-    q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
+    mut q_actor: Query<(
+        &GlobalTransform,
+        &AvianPickupActor,
+        &mut AvianPickupCooldown,
+    )>,
     q_collider: Query<&ColliderParent>,
     mut q_rigid_body: Query<(&RigidBody, &Mass, &mut ExternalImpulse, &GlobalTransform)>,
     q_transform: Query<&GlobalTransform>,
 ) {
     let actor_entity = trigger.entity();
-    let (origin, config) = q_actor.get(actor_entity).unwrap();
+    let (origin, config, mut cooldown) = q_actor.get_mut(actor_entity).unwrap();
+    if !cooldown.right.finished() {
+        return;
+    }
 
     let origin = origin.compute_transform();
     let prop = find_prop_in_trace(&spatial_query, origin, config)
@@ -58,7 +65,7 @@ fn find_object(
             1.0
         };
         let pull_impulse = direction * config.pull_force * magic_factor_ask_valve;
-        info!("Applying pull impulse: {pull_impulse}");
+        cooldown.pull();
         impulse.apply_impulse(pull_impulse);
     }
 }

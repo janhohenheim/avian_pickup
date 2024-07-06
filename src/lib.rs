@@ -3,9 +3,10 @@
 #![doc = include_str!("../readme.md")]
 
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{ecs::schedule::InternedScheduleLabel, prelude::*};
 
 mod actor;
+mod cooldown;
 mod input;
 mod pull_object;
 mod spatial_query_filter;
@@ -15,6 +16,7 @@ pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
 
+    pub(crate) use crate::cooldown::prelude::*;
     pub use crate::{actor::prelude::*, input::prelude::*, AvianPickupPlugin, AvianPickupSystem};
 }
 
@@ -48,11 +50,16 @@ impl Plugin for AvianPickupPlugin {
         );
 
         physics_schedule.configure_sets(
-            (AvianPickupSystem::First, AvianPickupSystem::SpatialQuery)
+            (AvianPickupSystem::First, AvianPickupSystem::TickTimers)
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
-        app.add_plugins((input::plugin, actor::plugin, pull_object::plugin));
+        app.add_plugins((
+            input::plugin,
+            actor::plugin,
+            pull_object::plugin,
+            cooldown::plugin,
+        ));
     }
 }
 
@@ -64,5 +71,5 @@ pub enum AvianPickupSystem {
     /// Runs at the start of the [`AvianPickupSystem`]. Empty by default.
     First,
     /// Performs spatial queries.
-    SpatialQuery,
+    TickTimers,
 }
