@@ -69,6 +69,11 @@ pub struct AvianPickupActor {
     ///
     /// Corresponds to Source's [`physcannon_maxmass`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_maxmass).
     pub max_mass: f32,
+    /// How much force to be used when pulling objects to the player.
+    /// Default: 4000.0
+    /// 
+    /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
+    pub pull_force: f32,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -101,6 +106,7 @@ impl Default for AvianPickupActor {
             trace_length: 250.0 * METERS_PER_HAMMER_UNIT,
             cone: 0.97,
             max_mass: 35.0,
+            pull_force: 4000.0,
         }
     }
 }

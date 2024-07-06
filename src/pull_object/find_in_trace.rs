@@ -1,7 +1,7 @@
 use crate::{prelude::*, pull_object::Candidate};
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectTrace`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2470)
-pub(super) fn get_object_candidate(
+pub(super) fn find_object_in_trace(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
