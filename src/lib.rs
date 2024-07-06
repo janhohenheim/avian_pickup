@@ -3,7 +3,7 @@
 #![doc = include_str!("../readme.md")]
 
 use avian3d::prelude::*;
-use bevy::{ecs::schedule::InternedScheduleLabel, prelude::*};
+use bevy::prelude::*;
 
 mod actor;
 mod cooldown;

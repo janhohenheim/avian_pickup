@@ -67,15 +67,20 @@ fn find_object(
     } else {
         let object_transform = object_transform.compute_transform();
         let direction = origin.translation - object_transform.translation;
-        let magic_factor_ask_valve = if mass.0 < 50.0 {
-            (mass.0 + 0.5) * (1.0 / 50.0)
-        } else {
-            1.0
-        };
-        let pull_impulse = direction * config.pull_force * magic_factor_ask_valve;
+        let mass_adjustment = adjust_impulse_for_mass(mass);
+        let pull_impulse = direction * config.pull_force * mass_adjustment;
         cooldown.pull();
         impulse.apply_impulse(pull_impulse);
         *state = AvianPickupActorState::Pulling(prop.entity);
+    }
+}
+
+/// Taken from [this snippet](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2607-L2610)
+fn adjust_impulse_for_mass(mass: Mass) -> f32 {
+    if mass.0 < 50.0 {
+        (mass.0 + 0.5) * (1.0 / 50.0)
+    } else {
+        1.0
     }
 }
 
