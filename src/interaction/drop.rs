@@ -17,5 +17,6 @@ fn drop(
         return;
     }
     *state = AvianPickupActorState::Idle;
+    info!("Drop!");
     cooldown.drop();
 }

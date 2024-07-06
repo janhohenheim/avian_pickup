@@ -12,6 +12,7 @@ fn main() {
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, handle_input)
+        .add_systems(PhysicsSchedule, debug.in_set(AvianPickupSystem::Last))
         .run();
 }
 
@@ -87,5 +88,11 @@ fn handle_input(
     }
     if key_input.pressed(MouseButton::Right) {
         commands.trigger_targets(AvianPickupInput::PressedR, actor);
+    }
+}
+
+fn debug(q_state: Query<&AvianPickupActorState, Changed<AvianPickupActorState>>) {
+    for state in q_state.iter() {
+        info!("{:?}", state);
     }
 }

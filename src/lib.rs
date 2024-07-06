@@ -55,10 +55,12 @@ impl Plugin for AvianPickupPlugin {
                 AvianPickupSystem::HoldObject,
                 AvianPickupSystem::ResetIdle,
                 AvianPickupSystem::TickTimers,
+                AvianPickupSystem::Last,
             )
                 .chain()
                 .in_set(PhysicsStepSet::First),
         );
+
         app.add_plugins((
             input::plugin,
             actor::plugin,
@@ -77,7 +79,8 @@ pub enum AvianPickupSystem {
     First,
     /// Adds forces to an object held by
     /// [`AvianPickupActorState::Holding`](crate::prelude::AvianPickupActorState::Holding)
-    /// in order to keep it in place in front of the [`AvianPickupActor`](crate::prelude::AvianPickupActor).
+    /// in order to keep it in place in front of the
+    /// [`AvianPickupActor`](crate::prelude::AvianPickupActor).
     HoldObject,
     /// Resets the
     /// [`AvianPickupActorState`](crate::prelude::AvianPickupActorState) to
@@ -86,4 +89,6 @@ pub enum AvianPickupSystem {
     ResetIdle,
     /// Performs spatial queries.
     TickTimers,
+    /// Runs at the end of the [`AvianPickupSystem`]. Empty by default.
+    Last,
 }
