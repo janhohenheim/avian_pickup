@@ -23,7 +23,7 @@ pub(crate) struct Cooldown {
 }
 
 impl Cooldown {
-    pub(crate) fn drop_held(&mut self) {
+    pub(crate) fn drop(&mut self) {
         self.left = Timer::from_seconds(0.5, TimerMode::Once);
         self.right = Timer::from_seconds(0.5, TimerMode::Once);
     }

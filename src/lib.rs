@@ -8,7 +8,7 @@ use bevy::prelude::*;
 mod actor;
 mod cooldown;
 mod input;
-mod pull_object;
+mod interaction;
 mod spatial_query_filter;
 
 /// Everything you need to get started with Avian Pickup.
@@ -52,6 +52,7 @@ impl Plugin for AvianPickupPlugin {
         physics_schedule.configure_sets(
             (
                 AvianPickupSystem::First,
+                AvianPickupSystem::HoldObject,
                 AvianPickupSystem::ResetIdle,
                 AvianPickupSystem::TickTimers,
             )
@@ -61,7 +62,7 @@ impl Plugin for AvianPickupPlugin {
         app.add_plugins((
             input::plugin,
             actor::plugin,
-            pull_object::plugin,
+            interaction::plugin,
             cooldown::plugin,
         ));
     }
@@ -74,6 +75,10 @@ impl Plugin for AvianPickupPlugin {
 pub enum AvianPickupSystem {
     /// Runs at the start of the [`AvianPickupSystem`]. Empty by default.
     First,
+    /// Adds forces to an object held by
+    /// [`AvianPickupActorState::Holding`](crate::prelude::AvianPickupActorState::Holding)
+    /// in order to keep it in place in front of the [`AvianPickupActor`](crate::prelude::AvianPickupActor).
+    HoldObject,
     /// Resets the
     /// [`AvianPickupActorState`](crate::prelude::AvianPickupActorState) to
     /// [`AvianPickupActorState::Idle`](crate::prelude::AvianPickupActorState::Idle)

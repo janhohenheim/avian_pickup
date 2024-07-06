@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
+    interaction::{DropObject, PullObject, ThrowObject},
     prelude::{AvianPickupActor, AvianPickupActorState, Cooldown},
-    pull_object::PullObject,
 };
 
 pub(super) mod prelude {
@@ -10,9 +10,7 @@ pub(super) mod prelude {
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<AvianPickupInput>()
-        .add_event::<AvianPickupInput>()
-        .observe(usher_event);
+    app.register_type::<AvianPickupInput>().observe(usher_event);
 }
 
 /// Event for picking up and throwing objects.
@@ -70,9 +68,11 @@ fn usher_event(
     }
 
     match event {
-        AvianPickupInput::JustPressedL => info!("Throw"),
+        AvianPickupInput::JustPressedL => {
+            commands.trigger_targets(ThrowObject, entity);
+        }
         AvianPickupInput::JustPressedR if matches!(state, AvianPickupActorState::Holding(..)) => {
-            info!("Drop")
+            commands.trigger_targets(DropObject, entity);
         }
         AvianPickupInput::JustPressedR | AvianPickupInput::PressedR => {
             if matches!(

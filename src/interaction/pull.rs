@@ -7,8 +7,7 @@ mod find_in_trace;
 use self::{can_pull::*, find_in_cone::*, find_in_trace::*};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_event::<PullObject>()
-        .observe(find_object)
+    app.observe(find_object)
         .get_schedule_mut(PhysicsSchedule)
         .unwrap()
         .add_systems(flush_pulling_state.in_set(AvianPickupSystem::ResetIdle));
@@ -63,6 +62,7 @@ fn find_object(
     let can_hold = prop.toi <= config.trace_length;
     info!("{prop:?} can be held: {can_hold}");
     if can_hold {
+        cooldown.hold();
         *state = AvianPickupActorState::Holding(prop.entity);
     } else {
         let object_transform = object_transform.compute_transform();
@@ -91,8 +91,8 @@ struct Prop {
     pub toi: f32,
 }
 
-fn flush_pulling_state(mut states: Query<(Mut<AvianPickupActorState>, &Cooldown)>) {
-    for (mut state, cooldown) in states.iter_mut() {
+fn flush_pulling_state(mut q_state: Query<(Mut<AvianPickupActorState>, &Cooldown)>) {
+    for (mut state, cooldown) in q_state.iter_mut() {
         // Okay, so the basic idea is this:
         // Pulling happens in discrete impulses every n milliseconds.
         // New pulls happen regularly, but we should also reset to idle at some point.
