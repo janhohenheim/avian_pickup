@@ -26,15 +26,15 @@ fn find_object(
     let (origin, config) = q_actor.get(actor_entity).unwrap();
 
     let origin = origin.compute_transform();
-    let candidate = find_object_in_trace(&spatial_query, origin, config)
-        .or_else(|| find_object_in_cone(&spatial_query, origin, &config, &q_transform));
+    let prop = find_prop_in_trace(&spatial_query, origin, config)
+        .or_else(|| find_prop_in_cone(&spatial_query, origin, &config, &q_transform));
 
-    let Some(candidate) = candidate else {
+    let Some(prop) = prop else {
         return;
     };
 
     // unwrap cannot fail: all colliders have a `ColliderParent`
-    let rigid_body_entity = q_collider.get(candidate.entity).unwrap().get();
+    let rigid_body_entity = q_collider.get(prop.entity).unwrap().get();
 
     let Ok((&rigid_body, &mass, mut impulse, object_transform)) =
         q_rigid_body.get_mut(rigid_body_entity)
@@ -47,8 +47,8 @@ fn find_object(
         return;
     }
 
-    let can_hold = candidate.toi <= config.trace_length;
-    info!("{candidate:?} can be held: {can_hold}");
+    let can_hold = prop.toi <= config.trace_length;
+    info!("{prop:?} can be held: {can_hold}");
     if !can_hold {
         let object_transform = object_transform.compute_transform();
         let direction = origin.translation - object_transform.translation;
@@ -65,7 +65,7 @@ fn find_object(
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 
-struct Candidate {
+struct Prop {
     pub entity: Entity,
     pub toi: f32,
 }

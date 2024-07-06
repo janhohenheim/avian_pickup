@@ -1,11 +1,11 @@
-use crate::{prelude::*, pull_object::Candidate};
+use crate::{prelude::*, pull_object::Prop};
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectTrace`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2470)
-pub(super) fn find_object_in_trace(
+pub(super) fn find_prop_in_trace(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
-) -> Option<Candidate> {
+) -> Option<Prop> {
     const MAGIC_FACTOR_ASK_VALVE: f32 = 4.0;
     let test_length = config.trace_length * MAGIC_FACTOR_ASK_VALVE;
     let hit = spatial_query.cast_ray(
@@ -17,7 +17,7 @@ pub(super) fn find_object_in_trace(
     );
 
     if let Some(hit) = hit {
-        Candidate {
+        Prop {
             entity: hit.entity,
             toi: hit.time_of_impact,
         }
@@ -35,7 +35,7 @@ pub(super) fn find_object_in_trace(
             config.spatial_query_filter.clone(),
         );
         if let Some(hit) = hit {
-            Candidate {
+            Prop {
                 entity: hit.entity,
                 toi: hit.time_of_impact,
             }
