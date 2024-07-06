@@ -4,7 +4,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_event::<PullObject>().observe(
         on_pull_object
             .pipe(crate::collider::prepare_spatial_query_filter)
-            .pipe(pull_object_piped),
+            .pipe(pull_object),
     );
 }
 
@@ -16,26 +16,46 @@ fn on_pull_object(trigger: Trigger<PullObject>) -> Entity {
 }
 
 /// Inspired by <https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2470>
-fn pull_object(
-    In((actor_entity, filter)): In<(Entity, SpatialQueryFilter)>,
-    spatial_query: SpatialQuery,
-    q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
-) {
-    let (origin, config) = q_actor.get(actor_entity).unwrap();
-    let origin = origin.compute_transform();
-    const MAGIC: f32 = 4.0;
-    let test_length = config.trace_length * MAGIC;
-    spatial_query.cast_ray(
+fn get_object_candidate(
+    spatial_query: &SpatialQuery,
+    origin: Transform,
+    config: &AvianPickupActor,
+    filter: SpatialQueryFilter,
+) -> Option<(Entity, f32)> {
+    const MAGIC_NUMBER_ASK_VALVE: f32 = 4.0;
+    let test_length = config.trace_length * MAGIC_NUMBER_ASK_VALVE;
+    let hit = spatial_query.cast_ray(
         origin.translation,
         origin.forward(),
         test_length,
         true,
-        filter,
+        filter.clone(),
     );
+
+    if let Some(hit) = hit {
+        Some((hit.entity, hit.time_of_impact))
+    } else {
+        let fake_aabb_because_parry_cannot_do_aabb_casts =
+            Cuboid::from_size(Vec3::splat(MAGIC_NUMBER_ASK_VALVE * 2.)).into();
+        let hit = spatial_query.cast_shape(
+            &fake_aabb_because_parry_cannot_do_aabb_casts,
+            origin.translation,
+            Quat::IDENTITY,
+            origin.forward(),
+            test_length,
+            false,
+            filter,
+        );
+        if let Some(hit) = hit {
+            Some((hit.entity, hit.time_of_impact).into())
+        } else {
+            None
+        }
+    }
 }
 
 /// Inspired by <https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690>
-fn pull_object_piped(
+fn pull_object(
     In((actor_entity, filter)): In<(Entity, SpatialQueryFilter)>,
     spatial_query: SpatialQuery,
     q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
@@ -45,6 +65,8 @@ fn pull_object_piped(
     let (origin, config) = q_actor.get(actor_entity).unwrap();
 
     let origin = origin.compute_transform();
+
+    let candidate = get_object_candidate(&spatial_query, origin, &config, filter.clone());
 
     let mut nearest_dist = config.trace_length + 1.0;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
