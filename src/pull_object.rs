@@ -58,6 +58,7 @@ fn find_object(
             1.0
         };
         let pull_impulse = direction * config.pull_force * magic_factor_ask_valve;
+        info!("Applying pull impulse: {pull_impulse}");
         impulse.apply_impulse(pull_impulse);
     }
 }

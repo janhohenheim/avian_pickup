@@ -6,7 +6,7 @@ pub(super) fn find_object_in_trace(
     origin: Transform,
     config: &AvianPickupActor,
 ) -> Option<Candidate> {
-    const MAGIC_FACTOR_ASK_VALVE: f32 = 4.0 * METERS_PER_HAMMER_UNIT;
+    const MAGIC_FACTOR_ASK_VALVE: f32 = 4.0;
     let test_length = config.trace_length * MAGIC_FACTOR_ASK_VALVE;
     let hit = spatial_query.cast_ray(
         origin.translation,

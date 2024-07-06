@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::{math::METERS_PER_HAMMER_UNIT, spatial_query_filter::prepare_spatial_query_filter};
+use crate::spatial_query_filter::prepare_spatial_query_filter;
 
 pub(super) mod prelude {
     pub use super::{AvianPickupActor, AvianPickupActorState};
@@ -55,7 +55,7 @@ pub struct AvianPickupActor {
     /// In addition, all colliders that do not belong to a
     /// [`RigidBody::Dynamic`] will implicitly be filtered out.
     pub spatial_query_filter: SpatialQueryFilter,
-    /// How far an object can be pulled from in meters. Default: 6.35 m
+    /// How far an object can be pulled from in meters. Default: 5 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
     pub trace_length: f32,
@@ -70,8 +70,8 @@ pub struct AvianPickupActor {
     /// Corresponds to Source's [`physcannon_maxmass`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_maxmass).
     pub max_mass: f32,
     /// How much force to be used when pulling objects to the player.
-    /// Default: 4000.0
-    /// 
+    /// Default: 100.0 N
+    ///
     /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
     pub pull_force: f32,
 }
@@ -103,10 +103,10 @@ impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
             spatial_query_filter: default(),
-            trace_length: 250.0 * METERS_PER_HAMMER_UNIT,
+            trace_length: 5.,
             cone: 0.97,
             max_mass: 35.0,
-            pull_force: 4000.0,
+            pull_force: 100.0,
         }
     }
 }
