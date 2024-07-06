@@ -39,7 +39,7 @@ fn find_object(
 
     let origin = origin.compute_transform();
     let prop = find_prop_in_trace(&spatial_query, origin, config)
-        .or_else(|| find_prop_in_cone(&spatial_query, origin, &config, &q_transform));
+        .or_else(|| find_prop_in_cone(&spatial_query, origin, config, &q_transform));
 
     let Some(prop) = prop else {
         return;
@@ -55,7 +55,7 @@ fn find_object(
         return;
     };
 
-    if !can_pull(rigid_body, mass, &config) {
+    if !can_pull(rigid_body, mass, config) {
         return;
     }
 
