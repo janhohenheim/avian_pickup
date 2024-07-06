@@ -36,7 +36,7 @@ fn find_object(
         ObjectReaction::None
     };
 
-    if reaction == ObjectReaction::None || true {
+    if reaction == ObjectReaction::None {
         let object = find_object_in_cone(
             In(actor_entity),
             spatial_query,

@@ -9,11 +9,13 @@ mod actor;
 mod input;
 mod pull_object;
 mod spatial_query_filter;
+mod math;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
+    pub(crate) use crate::math::*;
 
     pub use crate::{actor::prelude::*, input::prelude::*, AvianPickupPlugin, AvianPickupSystem};
 }

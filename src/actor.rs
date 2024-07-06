@@ -1,7 +1,7 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-use crate::spatial_query_filter::prepare_spatial_query_filter;
+use crate::{math::METERS_PER_HAMMER_UNIT, spatial_query_filter::prepare_spatial_query_filter};
 
 pub(super) mod prelude {
     pub use super::{AvianPickupActor, AvianPickupActorState};
@@ -93,7 +93,7 @@ impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
             spatial_query_filter: default(),
-            trace_length: 250.0,
+            trace_length: 250.0 * METERS_PER_HAMMER_UNIT,
             cone: 0.97,
         }
     }

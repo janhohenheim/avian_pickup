@@ -12,7 +12,7 @@ pub(super) fn get_object_candidate(
     origin: Transform,
     config: &AvianPickupActor,
 ) -> Option<Candidate> {
-    const MAGIC_NUMBER_ASK_VALVE: f32 = 4.0;
+    const MAGIC_NUMBER_ASK_VALVE: f32 = 4.0 * METERS_PER_HAMMER_UNIT;
     let test_length = config.trace_length * MAGIC_NUMBER_ASK_VALVE;
     let hit = spatial_query.cast_ray(
         origin.translation,
@@ -35,7 +35,7 @@ pub(super) fn get_object_candidate(
         let hit = spatial_query.cast_shape(
             &fake_aabb_because_parry_cannot_do_aabb_casts,
             origin.translation,
-            Quat::IDENTITY,
+            origin.rotation,
             origin.forward(),
             test_length,
             false,
