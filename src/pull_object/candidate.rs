@@ -1,10 +1,4 @@
-use crate::prelude::*;
-
-pub(super) struct Candidate {
-    pub entity: Entity,
-    pub toi: f32,
-    pub toi_fraction: f32,
-}
+use crate::{prelude::*, pull_object::Candidate};
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectTrace`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2470)
 pub(super) fn get_object_candidate(
@@ -12,8 +6,8 @@ pub(super) fn get_object_candidate(
     origin: Transform,
     config: &AvianPickupActor,
 ) -> Option<Candidate> {
-    const MAGIC_NUMBER_ASK_VALVE: f32 = 4.0 * METERS_PER_HAMMER_UNIT;
-    let test_length = config.trace_length * MAGIC_NUMBER_ASK_VALVE;
+    const MAGIC_FACTOR_ASK_VALVE: f32 = 4.0 * METERS_PER_HAMMER_UNIT;
+    let test_length = config.trace_length * MAGIC_FACTOR_ASK_VALVE;
     let hit = spatial_query.cast_ray(
         origin.translation,
         origin.forward(),
@@ -26,12 +20,11 @@ pub(super) fn get_object_candidate(
         Candidate {
             entity: hit.entity,
             toi: hit.time_of_impact,
-            toi_fraction: hit.time_of_impact / test_length,
         }
         .into()
     } else {
         let fake_aabb_because_parry_cannot_do_aabb_casts =
-            Cuboid::from_size(Vec3::splat(MAGIC_NUMBER_ASK_VALVE * 2.)).into();
+            Cuboid::from_size(Vec3::splat(MAGIC_FACTOR_ASK_VALVE * 2.)).into();
         let hit = spatial_query.cast_shape(
             &fake_aabb_because_parry_cannot_do_aabb_casts,
             origin.translation,
@@ -45,7 +38,6 @@ pub(super) fn get_object_candidate(
             Candidate {
                 entity: hit.entity,
                 toi: hit.time_of_impact,
-                toi_fraction: hit.time_of_impact / test_length,
             }
             .into()
         } else {

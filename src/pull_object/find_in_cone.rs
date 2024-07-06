@@ -1,18 +1,16 @@
+use super::Candidate;
 use crate::prelude::*;
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectInCone`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690)
 pub(super) fn find_object_in_cone(
-    In(actor_entity): In<Entity>,
-    spatial_query: SpatialQuery,
-    q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
-    q_collider: Query<&ColliderParent>,
-    q_rigid_body: Query<(&RigidBody, &GlobalTransform)>,
-) -> Option<Entity> {
-    let (origin, config) = q_actor.get(actor_entity).unwrap();
-
-    let origin = origin.compute_transform();
-
-    let mut nearest_dist = config.trace_length + 1.0;
+    spatial_query: &SpatialQuery,
+    origin: Transform,
+    config: &AvianPickupActor,
+    q_collider: &Query<&ColliderParent>,
+    q_rigid_body: &Query<(&RigidBody, &GlobalTransform)>,
+) -> Option<Candidate> {
+    const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0;
+    let mut nearest_dist = config.trace_length + MAGIC_OFFSET_ASK_VALVE;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
 
     let colliders = spatial_query.shape_intersections(
@@ -21,7 +19,7 @@ pub(super) fn find_object_in_cone(
         origin.rotation,
         config.spatial_query_filter.clone(),
     );
-    let mut nearest_entity = None;
+    let mut canditate = None;
 
     for collider in colliders {
         let rigid_body_entity = q_collider
@@ -59,9 +57,12 @@ pub(super) fn find_object_in_cone(
         ) {
             if hit.entity == rigid_body_entity {
                 nearest_dist = dist;
-                nearest_entity.replace(rigid_body_entity);
+                canditate.replace(Candidate {
+                    entity: rigid_body_entity,
+                    toi: hit.time_of_impact,
+                });
             }
         }
     }
-    nearest_entity
+    canditate
 }
