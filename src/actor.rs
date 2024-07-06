@@ -1,4 +1,4 @@
-use avian3d::{prelude::*, sync::ancestor_marker::AncestorMarker};
+use avian3d::prelude::*;
 use bevy::prelude::*;
 
 use crate::spatial_query_filter::prepare_spatial_query_filter;
