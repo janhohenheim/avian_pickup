@@ -3,11 +3,8 @@ use crate::prelude::*;
 mod candidate;
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_event::<PullObject>().observe(
-        on_pull_object
-            .pipe(crate::collider::prepare_spatial_query_filter)
-            .pipe(pull_object),
-    );
+    app.add_event::<PullObject>()
+        .observe(on_pull_object.pipe(pull_object));
 }
 
 #[derive(Debug, Event)]
@@ -19,7 +16,7 @@ fn on_pull_object(trigger: Trigger<PullObject>) -> Entity {
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectInCone`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690)
 fn pull_object(
-    In((actor_entity, filter)): In<(Entity, SpatialQueryFilter)>,
+    In(actor_entity): In<Entity>,
     spatial_query: SpatialQuery,
     q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
     q_collider: Query<&ColliderParent>,
@@ -30,8 +27,7 @@ fn pull_object(
     let origin = origin.compute_transform();
 
     // TODO: [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2497)
-    let candidate =
-        candidate::get_object_candidate(&spatial_query, origin, &config, filter.clone());
+    let candidate = candidate::get_object_candidate(&spatial_query, origin, &config);
 
     let mut nearest_dist = config.trace_length + 1.0;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
@@ -40,7 +36,7 @@ fn pull_object(
         &box_collider,
         origin.translation,
         origin.rotation,
-        filter.clone(),
+        config.spatial_query_filter.clone(),
     );
     let mut nearest_entity = None;
 
@@ -71,9 +67,13 @@ fn pull_object(
         }
 
         // Make sure it isn't occluded!
-        if let Some(hit) =
-            spatial_query.cast_ray(origin.translation, los, dist, true, filter.clone())
-        {
+        if let Some(hit) = spatial_query.cast_ray(
+            origin.translation,
+            los,
+            dist,
+            true,
+            config.spatial_query_filter.clone(),
+        ) {
             if hit.entity == rigid_body_entity {
                 nearest_dist = dist;
                 nearest_entity.replace(rigid_body_entity);

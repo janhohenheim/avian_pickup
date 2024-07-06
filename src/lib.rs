@@ -6,9 +6,9 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 mod actor;
-mod collider;
 mod input;
 mod pull_object;
+mod spatial_query_filter;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {

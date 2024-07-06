@@ -1,5 +1,7 @@
-use avian3d::prelude::*;
+use avian3d::{prelude::*, sync::ancestor_marker::AncestorMarker};
 use bevy::prelude::*;
+
+use crate::spatial_query_filter::prepare_spatial_query_filter;
 
 pub(super) mod prelude {
     pub use super::{AvianPickupActor, AvianPickupActorState};
@@ -7,7 +9,8 @@ pub(super) mod prelude {
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<AvianPickupActor>()
-        .observe(add_state_to_actor);
+        .observe(add_state_to_actor.pipe(prepare_spatial_query_filter))
+        .observe(on_collider_constructor_hierarchy_finished.pipe(prepare_spatial_query_filter));
 }
 
 /// Tag component for an actor that is able to pick up object.
@@ -40,10 +43,17 @@ pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for objects to pick up.
     /// Default: All entities
     ///
-    /// In addition, the following entities are always excluded:
-    /// - The entity holding
-    ///   [`AvianPickupActor`](crate::prelude::AvianPickupActor)
-    /// - All colliders that do not belong to a [`RigidBody::Dynamic`]
+    /// For your convenience, the following entities will be added to the filter
+    /// automatically when the component is added:
+    /// - The [`AvianPickupActor`], if it is a [`Collider`]
+    /// - All descendants of the [`AvianPickupActor`] that are [`Collider`]s
+    ///
+    /// If the [`AvianPickupActor`] is a [`ColliderConstructorHierarchy`], the
+    /// entities will be added when the colliders have actually been
+    /// constructed.
+    ///
+    /// In addition, all colliders that do not belong to a
+    /// [`RigidBody::Dynamic`] will implicitly be filtered out.
     pub spatial_query_filter: SpatialQueryFilter,
     /// How far an object can be pulled from. Default: 250.0
     ///
@@ -79,7 +89,6 @@ pub enum AvianPickupActorState {
     Throwing(Entity),
 }
 
-
 impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
@@ -90,8 +99,16 @@ impl Default for AvianPickupActor {
     }
 }
 
-fn add_state_to_actor(trigger: Trigger<OnAdd, AvianPickupActor>, mut commands: Commands) {
+fn add_state_to_actor(trigger: Trigger<OnAdd, AvianPickupActor>, mut commands: Commands) -> Entity {
+    let entity = trigger.entity();
     commands
-        .entity(trigger.entity())
+        .entity(entity)
         .insert(AvianPickupActorState::default());
+    entity
+}
+
+fn on_collider_constructor_hierarchy_finished(
+    trigger: Trigger<OnRemove, ColliderConstructorHierarchy>,
+) -> Entity {
+    trigger.entity()
 }

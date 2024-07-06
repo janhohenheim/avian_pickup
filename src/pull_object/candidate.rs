@@ -11,7 +11,6 @@ pub(super) fn get_object_candidate(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
-    filter: SpatialQueryFilter,
 ) -> Option<Candidate> {
     const MAGIC_NUMBER_ASK_VALVE: f32 = 4.0;
     let test_length = config.trace_length * MAGIC_NUMBER_ASK_VALVE;
@@ -20,7 +19,7 @@ pub(super) fn get_object_candidate(
         origin.forward(),
         test_length,
         true,
-        filter.clone(),
+        config.spatial_query_filter.clone(),
     );
 
     if let Some(hit) = hit {
@@ -40,7 +39,7 @@ pub(super) fn get_object_candidate(
             origin.forward(),
             test_length,
             false,
-            filter,
+            config.spatial_query_filter.clone(),
         );
         if let Some(hit) = hit {
             Candidate {
