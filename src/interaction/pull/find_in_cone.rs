@@ -16,7 +16,7 @@ pub(super) fn find_prop_in_cone(
         &box_collider,
         origin.translation,
         origin.rotation,
-        config.spatial_query_filter.clone(),
+        &config.spatial_query_filter,
     );
     let mut canditate = None;
 
@@ -43,7 +43,7 @@ pub(super) fn find_prop_in_cone(
             los,
             dist,
             true,
-            config.spatial_query_filter.clone(),
+            &config.spatial_query_filter,
         ) {
             if hit.entity == collider {
                 nearest_dist = dist;

@@ -14,7 +14,7 @@ pub(super) fn find_prop_in_trace(
         origin.forward(),
         test_length,
         true,
-        config.spatial_query_filter.clone(),
+        &config.spatial_query_filter,
     );
 
     if let Some(hit) = hit {
@@ -33,7 +33,7 @@ pub(super) fn find_prop_in_trace(
             origin.forward(),
             test_length,
             false,
-            config.spatial_query_filter.clone(),
+            &config.spatial_query_filter,
         );
         if let Some(hit) = hit {
             Prop {
