@@ -45,12 +45,16 @@ fn grabcontroller_simulate(
         &ShadowParams,
         &Mass,
         &mut LinearVelocity,
-        &AngularVelocity,
+        &mut AngularVelocity,
+        &Position,
+        &Rotation,
         &mut GrabParams,
     )>,
 ) {
     let dt = time.delta_seconds();
-    for (shadow, mass, mut velocity, angvel, mut grab) in q_object.iter_mut() {
+    for (shadow, mass, mut velocity, mut angvel, position, rotation, mut grab) in
+        q_object.iter_mut()
+    {
         // imo InContactWithHeavyObject will always be false,
         // as we are effectively asking "is the current object heavier than the
         // current object?"
@@ -59,7 +63,15 @@ fn grabcontroller_simulate(
         let mut shadow = *shadow;
         shadow.max_angular *= grab.contact_amount * grab.contact_amount * grab.contact_amount;
 
-        grab.time_to_arrive = compute_shadow_control(shadow, grab.time_to_arrive, dt);
+        grab.time_to_arrive = compute_shadow_control(
+            &mut shadow,
+            grab.time_to_arrive,
+            dt,
+            *position,
+            *rotation,
+            &mut velocity,
+            &mut angvel,
+        );
 
         // Slide along the current contact points to fix bouncing problems
         *velocity = phys_compute_slide_direction(*velocity, *angvel, *mass);
@@ -67,39 +79,24 @@ fn grabcontroller_simulate(
     }
 }
 
-/*
-IMotionEvent::simresult_e CGrabController::Simulate( IPhysicsMotionController *pController, IPhysicsObject *pObject, float deltaTime, Vector &linear, AngularImpulse &angular )
-{
-    game_shadowcontrol_params_t shadowParams = m_shadow;
-    if ( InContactWithHeavyObject( pObject, GetLoadWeight() ) )
-    {
-        m_contactAmount = Approach( 0.1f, m_contactAmount, deltaTime*2.0f );
-    }
-    else
-    {
-        m_contactAmount = Approach( 1.0f, m_contactAmount, deltaTime*2.0f );
-    }
-    shadowParams.maxAngular = m_shadow.maxAngular * m_contactAmount * m_contactAmount * m_contactAmount;
-    m_timeToArrive = pObject->ComputeShadowControl( shadowParams, m_timeToArrive, deltaTime );
-
-    // Slide along the current contact points to fix bouncing problems
-    Vector velocity;
-    AngularImpulse angVel;
-    pObject->GetVelocity( &velocity, &angVel );
-    PhysComputeSlideDirection( pObject, velocity, angVel, &velocity, &angVel, GetLoadWeight() );
-    pObject->SetVelocityInstantaneous( &velocity, NULL );
-
-    linear.Init();
-    angular.Init();
-    m_errorTime += deltaTime;
-
-    return SIM_LOCAL_ACCELERATION;
-}
-
-*/
-
-fn compute_shadow_control(shadow: ShadowParams, seconds_to_arrival: f32, dt: f32) -> f32 {
-    todo!()
+fn compute_shadow_control(
+    shadow: &mut ShadowParams,
+    seconds_to_arrival: f32,
+    dt: f32,
+    position: Position,
+    rotation: Rotation,
+    velocity: &mut LinearVelocity,
+    angvel: &mut AngularVelocity,
+) -> f32 {
+    compute_shadow_controller(
+        shadow,
+        position,
+        rotation,
+        velocity,
+        angvel,
+        seconds_to_arrival,
+        dt,
+    )
 }
 /*
 float JoltPhysicsObject::ComputeShadowControl( const hlshadowcontrol_params_t &params, float flSecondsToArrival, float flDeltaTime )
@@ -142,83 +139,116 @@ float JoltPhysicsObject::ComputeShadowControl( const hlshadowcontrol_params_t &p
 }
  */
 
+fn compute_shadow_controller(
+    params: &mut ShadowParams,
+    position: Position,
+    rotation: Rotation,
+    linear_velocity: &mut LinearVelocity,
+    angular_velocity: &mut AngularVelocity,
+    seconds_to_arrival: f32,
+    dt: f32,
+) -> f32 {
+    let fraction = if seconds_to_arrival > 0.0 {
+        (dt / seconds_to_arrival).min(1.0)
+    } else {
+        1.0
+    };
+
+    let seconds_to_arrival = (seconds_to_arrival - dt).max(0.0);
+    if fraction <= 0.0 {
+        return seconds_to_arrival;
+    }
+
+    let delta_position = params.target_position - position.0;
+    // Teleport distance is always 0, so we don't care about that branch of the
+    // code. That would be the only place where position and rotation are
+    // mutated, so that means we get to use them immutably here!
+
+    let inv_dt = dt.recip();
+    let fraction_time = fraction * inv_dt;
+
+    compute_controller(
+        linear_velocity,
+        delta_position,
+        params.max_speed,
+        params.max_damp_speed,
+        fraction_time,
+    );
+
+    // Don't think this is used? It at least doesn't appear in 2013's shadow params
+    let _last_position = position.0 + linear_velocity.0 * dt;
+
+    let delta_rotation = params.target_rotation * rotation.0.inverse();
+
+    let delta_angles = delta_rotation.to_scaled_axis();
+    compute_controller(
+        angular_velocity,
+        delta_angles,
+        params.max_angular,
+        params.max_damp_angular,
+        fraction_time,
+    );
+
+    seconds_to_arrival
+}
+/*
+ static float ComputeShadowController( JoltShadowControlParams &params, JPH::Vec3 &position, JPH::Quat &rotation, JPH::Vec3 &linearVelocity, JPH::Vec3& angularVelocity, float flSecondsToArrival, float flDeltaTime )
+{
+    const float flFraction = flSecondsToArrival > 0.0f
+        ? Min( flDeltaTime / flSecondsToArrival, 1.0f )
+        : 1.0f;
+
+    flSecondsToArrival = Max( flSecondsToArrival - flDeltaTime, 0.0f );
+
+    if ( flFraction <= 0.0f )
+        return flSecondsToArrival;
+
+    JPH::Vec3 deltaPosition = params.TargetPosition - position;
+
+    if ( params.TeleportDistance > 0.0f && deltaPosition.LengthSq() > Square( params.TeleportDistance ) )
+    {
+        position = params.TargetPosition;
+        rotation = params.TargetRotation;
+        deltaPosition = JPH::Vec3::sZero();
+    }
+
+    const float flInvDeltaTime = 1.0f / flDeltaTime;
+    const float flFractionTime = flFraction * flInvDeltaTime;
+
+    ComputeController( linearVelocity, deltaPosition, params.MaxSpeed, params.MaxDampSpeed, flFractionTime, params.DampFactor, &params.LastImpulse);
+
+    params.LastPosition = position + linearVelocity * flDeltaTime;
+
+    JPH::Quat deltaRotation = params.TargetRotation * rotation.Inversed();
+
+    JPH::Vec3 axis;
+    float angle;
+    deltaRotation.GetAxisAngle( axis, angle );
+
+    JPH::Vec3 deltaAngles = axis * angle;
+    ComputeController( angularVelocity, deltaAngles, params.MaxAngular, params.MaxDampAngular, flFractionTime, params.DampFactor );
+
+    return flSecondsToArrival;
+}
+  */
+
 fn phys_compute_slide_direction(
     velocity: LinearVelocity,
     angular_velocity: AngularVelocity,
     min_mass: Mass,
 ) -> LinearVelocity {
-    // No need to return angular velocity, as we are not using it
-    todo!()
+    // No need to return angular velocity, as we are not using it in the 2013 code
+
+    // Sooooooo
+    // The Jolt code depends on `CreatePhysicsSnapshot`, BUT
+    // [that is actually not implemented](https://github.com/Joshua-Ashton/VPhysics-Jolt/blob/main/vphysics_jolt/vjolt_friction.cpp#L26)
+    // Meanwhile, 2003's `CGrabController::Simulate` just runs
+    // `ComputeShadowControl` and does not even have any
+    // `PhysComputeSlideDirection` method. So I guess we don't need it? Jolt's
+    // implementation has a somewhat unsure sounding comment about not needing
+    // this either, so I guess we're good to go?
+    velocity
 }
-
-/*
-
-void PhysComputeSlideDirection( IPhysicsObject *pPhysics, const Vector &inputVelocity, const AngularImpulse &inputAngularVelocity,
-                               Vector *pOutputVelocity, Vector *pOutputAngularVelocity, float minMass )
-{
-    Vector velocity = inputVelocity;
-    AngularImpulse angVel = inputAngularVelocity;
-    Vector pos;
-
-    IPhysicsFrictionSnapshot *pSnapshot = pPhysics->CreateFrictionSnapshot();
-    while ( pSnapshot->IsValid() )
-    {
-        IPhysicsObject *pOther = pSnapshot->GetObject( 1 );
-        if ( !pOther->IsMoveable() || pOther->GetMass() > minMass )
-        {
-            Vector normal;
-            pSnapshot->GetSurfaceNormal( normal );
-
-            // BUGBUG: Figure out the correct rotation clipping equation
-            if ( pOutputAngularVelocity )
-            {
-                angVel = normal * DotProduct( angVel, normal );
-#if 0
-                pSnapshot->GetContactPoint( point );
-                Vector point, dummy;
-                AngularImpulse angularClip, clip2;
-
-                pPhysics->CalculateVelocityOffset( normal, point, dummy, angularClip );
-                VectorNormalize( angularClip );
-                float proj = DotProduct( angVel, angularClip );
-                if ( proj > 0 )
-                {
-                    angVel -= angularClip * proj;
-                }
-                CrossProduct( angularClip, normal, clip2 );
-                proj = DotProduct( angVel, clip2 );
-                if ( proj > 0 )
-                {
-                    angVel -= clip2 * proj;
-                }
-                //NDebugOverlay::Line( point, point - normal * 20, 255, 0, 0, true, 0.1 );
-#endif
-            }
-
-            // Determine how far along plane to slide based on incoming direction.
-            // NOTE: Normal points away from this object
-            float proj = DotProduct( velocity, normal );
-            if ( proj > 0.0f )
-            {
-                velocity -= normal * proj;
-            }
-        }
-        pSnapshot->NextFrictionData();
-    }
-    pPhysics->DestroyFrictionSnapshot( pSnapshot );
-
-    //NDebugOverlay::Line( pos, pos + unitVel * 20, 0, 0, 255, true, 0.1 );
-
-    if ( pOutputVelocity )
-    {
-        *pOutputVelocity = velocity;
-    }
-    if ( pOutputAngularVelocity )
-    {
-        *pOutputAngularVelocity = angVel;
-    }
-}
- */
 
 fn compute_controller_2003(current_velocity: &mut Vec3, delta: Vec3, max_speed: f32) {
     if current_velocity.length_squared() < 1e-6 {
@@ -230,3 +260,73 @@ fn compute_controller_2003(current_velocity: &mut Vec3, delta: Vec3, max_speed: 
     }
     *current_velocity = Vec3::from(acceleration);
 }
+
+fn compute_controller(
+    velocity: &mut Vec3,
+    delta: Vec3,
+    max_speed: f32,
+    max_damp_speed: f32,
+    scale_delta: f32,
+) {
+    let current_speed_sq = velocity.length_squared();
+    if current_speed_sq < 1e-6 {
+        *velocity = Vec3::ZERO;
+    } else if max_damp_speed > 0.0 {
+        // max_damp_speed = 4
+        let mut acceleration_damping = *velocity * -1.0; // vel = (8, 0, 0) -> accel_d = (-8, 0, 0)
+        let speed = current_speed_sq.sqrt(); // speed = 8
+        if speed > max_damp_speed {
+            let some_factor_idk = max_damp_speed / speed; // some_fac = 4 / 8 = 0.5
+            acceleration_damping *= some_factor_idk; // accel_d = (-4, 0, 0)
+        }
+        *velocity += acceleration_damping; // vel = (4, 0, 0)
+    }
+
+    let mut acceleration = Vec3::ZERO;
+    if max_speed > 0.0 {
+        acceleration = delta * scale_delta; // accel = (8, 0, 0)
+        let speed = delta.length() * scale_delta; // speed = 8
+        if speed > max_speed {
+            let some_factor_idk = max_speed / speed; // some_fac = 4 / 8 = 0.5
+            acceleration *= some_factor_idk; // accel = (4, 0, 0)
+        }
+        *velocity += acceleration; // vel = (4, 0, 0)
+    }
+}
+/*
+static void ComputeController( JPH::Vec3 &vecCurrentVelocity, const JPH::Vec3 &vecDeltaPos, float flMaxSpeed, float flMaxDampSpeed, float flScaleDelta, float flDamping, JPH::Vec3 *pOutImpulse = nullptr )
+{
+    float flCurrentSpeedSq = vecCurrentVelocity.LengthSq();
+    if ( flCurrentSpeedSq < 1e-6f )
+    {
+        vecCurrentVelocity = JPH::Vec3::sZero();
+    }
+    else if ( flMaxDampSpeed > 0 )
+    {
+        JPH::Vec3 vecAccelDampening = vecCurrentVelocity * -flDamping;
+        float flSpeed = sqrtf( flCurrentSpeedSq ) * fabsf( flDamping );
+        if ( flSpeed > flMaxDampSpeed )
+        {
+            flSpeed = flMaxDampSpeed / flSpeed;
+            vecAccelDampening *= flSpeed;
+        }
+        vecCurrentVelocity += vecAccelDampening;
+    }
+
+    JPH::Vec3 vecAcceleration = JPH::Vec3::sZero();
+    if ( flMaxSpeed > 0.0f )
+    {
+        vecAcceleration = vecDeltaPos * flScaleDelta;
+        float flSpeed = vecDeltaPos.Length() * flScaleDelta;
+        if ( flSpeed > flMaxSpeed )
+        {
+            flSpeed = flMaxSpeed / flSpeed;
+            vecAcceleration *= flSpeed;
+        }
+        vecCurrentVelocity += vecAcceleration;
+    }
+
+    if ( pOutImpulse )
+        *pOutImpulse = vecAcceleration;
+}
+ */
