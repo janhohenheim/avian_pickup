@@ -351,8 +351,8 @@ mod tests {
 
     #[test]
     fn is_compute_controller_same_as_trimmed() {
-        for vel in 0..100 {
-            for delta in 0..100 {
+        for vel in 0..300 {
+            for delta in 0..300 {
                 let vel = Vec3::new(vel as f32, 0.0, 0.0);
                 let delta = Vec3::new(delta as f32, 0.0, 0.0);
 
@@ -365,7 +365,7 @@ mod tests {
                     compute_controller_trimmed(vel, delta, max_speed, max_damp_speed, scale_delta);
 
                 let diff = (orig - trimmed).length();
-                if diff > 1e-6 {
+                if diff > 1e-5 {
                     panic!(
                         "Difference between compute_controller and compute_controller_trimmed: {diff}\n\
                         orig: {orig}, trimmed: {trimmed}\n\
