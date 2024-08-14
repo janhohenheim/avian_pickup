@@ -167,13 +167,14 @@ fn compute_shadow_controller(
     let inv_dt = dt.recip();
     let fraction_time = fraction * inv_dt;
 
-    compute_controller(
-        linear_velocity,
+    *linear_velocity = compute_controller(
+        linear_velocity.0,
         delta_position,
         params.max_speed,
         params.max_damp_speed,
         fraction_time,
-    );
+    )
+    .into();
 
     // Don't think this is used? It at least doesn't appear in 2013's shadow params
     let _last_position = position.0 + linear_velocity.0 * dt;
@@ -181,13 +182,14 @@ fn compute_shadow_controller(
     let delta_rotation = params.target_rotation * rotation.0.inverse();
 
     let delta_angles = delta_rotation.to_scaled_axis();
-    compute_controller(
-        angular_velocity,
+    *angular_velocity = compute_controller(
+        angular_velocity.0,
         delta_angles,
         params.max_angular,
         params.max_damp_angular,
         fraction_time,
-    );
+    )
+    .into();
 
     seconds_to_arrival
 }
@@ -262,24 +264,24 @@ fn compute_controller_2003(current_velocity: &mut Vec3, delta: Vec3, max_speed: 
 }
 
 fn compute_controller(
-    velocity: &mut Vec3,
+    mut velocity: Vec3,
     delta: Vec3,
     max_speed: f32,
     max_damp_speed: f32,
     scale_delta: f32,
-) {
+) -> Vec3 {
     let current_speed_sq = velocity.length_squared();
     if current_speed_sq < 1e-6 {
-        *velocity = Vec3::ZERO;
+        velocity = Vec3::ZERO;
     } else if max_damp_speed > 0.0 {
         // max_damp_speed = 4
-        let mut acceleration_damping = *velocity * -1.0; // vel = (8, 0, 0) -> accel_d = (-8, 0, 0)
+        let mut acceleration_damping = velocity * -1.0; // vel = (8, 0, 0) -> accel_d = (-8, 0, 0)
         let speed = current_speed_sq.sqrt(); // speed = 8
         if speed > max_damp_speed {
             let some_factor_idk = max_damp_speed / speed; // some_fac = 4 / 8 = 0.5
             acceleration_damping *= some_factor_idk; // accel_d = (-4, 0, 0)
         }
-        *velocity += acceleration_damping; // vel = (4, 0, 0)
+        velocity += acceleration_damping; // vel = (4, 0, 0)
     }
 
     let mut acceleration = Vec3::ZERO;
@@ -290,9 +292,91 @@ fn compute_controller(
             let some_factor_idk = max_speed / speed; // some_fac = 4 / 8 = 0.5
             acceleration *= some_factor_idk; // accel = (4, 0, 0)
         }
-        *velocity += acceleration; // vel = (4, 0, 0)
+        velocity += acceleration; // vel = (4, 0, 0)
+    }
+    velocity
+}
+
+fn compute_controller_trimmed(
+    mut velocity: Vec3,
+    delta: Vec3,
+    max_speed: f32,
+    max_damp_speed: f32,
+    scale_delta: f32,
+) -> Vec3 {
+    let current_speed_sq = velocity.length_squared();
+    if current_speed_sq > (max_damp_speed * max_damp_speed) {
+        let (dir, speed) = Dir3::new_and_length(velocity).unwrap();
+        let new_speed = speed - max_damp_speed;
+        velocity = dir * new_speed;
+    } else {
+        velocity = Vec3::ZERO;
+    }
+
+    if max_speed > 0.0 {
+        let mut acceleration = delta * scale_delta;
+        let accel_speed_sq = acceleration.length_squared();
+        if accel_speed_sq > (max_speed * max_speed) {
+            let norm = Dir3::new(acceleration).unwrap();
+            acceleration = norm * max_speed;
+        }
+        velocity += acceleration;
+    }
+    velocity
+}
+
+fn compute_collider_no_damp(
+    velocity: Vec3,
+    delta: Vec3,
+    max_speed: f32,
+    max_damp_speed: f32,
+    scale_delta: f32,
+) -> Vec3 {
+    if max_speed > 0.0 {
+        let mut acceleration = delta * scale_delta;
+        let accel_speed_sq = acceleration.length_squared();
+        if accel_speed_sq > (max_speed * max_speed) {
+            let norm = Dir3::new(acceleration).unwrap();
+            acceleration = norm * max_speed;
+        }
+        acceleration
+    } else {
+        Vec3::ZERO
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_compute_controller_same_as_trimmed() {
+        for vel in 0..100 {
+            for delta in 0..100 {
+                let vel = Vec3::new(vel as f32, 0.0, 0.0);
+                let delta = Vec3::new(delta as f32, 0.0, 0.0);
+
+                let max_speed = 35.0;
+                let max_damp_speed = 2.0 * max_speed;
+                let scale_delta = 0.5;
+
+                let orig = compute_controller(vel, delta, max_speed, max_damp_speed, scale_delta);
+                let trimmed =
+                    compute_controller_trimmed(vel, delta, max_speed, max_damp_speed, scale_delta);
+
+                let diff = (orig - trimmed).length();
+                if diff > 1e-6 {
+                    panic!(
+                        "Difference between compute_controller and compute_controller_trimmed: {diff}\n\
+                        orig: {orig}, trimmed: {trimmed}\n\
+                        Velocity: {vel}, Delta: {delta}, max_speed: {max_speed}, max_damp_speed: {max_damp_speed}, scale_delta: {scale_delta}"
+                    );
+                }
+            }
+        }
+    }
+}
+
 /*
 static void ComputeController( JPH::Vec3 &vecCurrentVelocity, const JPH::Vec3 &vecDeltaPos, float flMaxSpeed, float flMaxDampSpeed, float flScaleDelta, float flDamping, JPH::Vec3 *pOutImpulse = nullptr )
 {
