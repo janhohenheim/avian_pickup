@@ -32,6 +32,7 @@ struct ShadowParams {
 struct GrabParams {
     contact_amount: f32,
     time_to_arrive: f32,
+    /// Todo: this is never read
     error_time: f32,
 }
 

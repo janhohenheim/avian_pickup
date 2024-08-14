@@ -1,16 +1,17 @@
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{
+    ecs::component::{ComponentHooks, StorageType},
+    prelude::*,
+};
 
-use crate::{prelude::Cooldown, spatial_query_filter::prepare_spatial_query_filter};
+use crate::prelude::Cooldown;
 
 pub(super) mod prelude {
     pub use super::{AvianPickupActor, AvianPickupActorState};
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<AvianPickupActor>()
-        .observe(add_state_to_actor.pipe(prepare_spatial_query_filter))
-        .observe(on_collider_constructor_hierarchy_finished.pipe(prepare_spatial_query_filter));
+    app.register_type::<AvianPickupActor>();
 }
 
 /// Tag component for an actor that is able to pick up object.
@@ -32,7 +33,7 @@ pub(super) fn plugin(app: &mut App) {
 ///     ));
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Component, Reflect)]
+#[derive(Debug, Clone, PartialEq, Reflect)]
 #[reflect(Debug, Component, Default, PartialEq)]
 #[cfg_attr(
     feature = "serialize",
@@ -111,16 +112,15 @@ impl Default for AvianPickupActor {
     }
 }
 
-fn add_state_to_actor(trigger: Trigger<OnAdd, AvianPickupActor>, mut commands: Commands) -> Entity {
-    let entity = trigger.entity();
-    commands
-        .entity(entity)
-        .insert((AvianPickupActorState::default(), Cooldown::default()));
-    entity
-}
+impl Component for AvianPickupActor {
+    const STORAGE_TYPE: StorageType = StorageType::Table;
 
-fn on_collider_constructor_hierarchy_finished(
-    trigger: Trigger<OnRemove, ColliderConstructorHierarchy>,
-) -> Entity {
-    trigger.entity()
+    fn register_component_hooks(hooks: &mut ComponentHooks) {
+        hooks.on_add(|mut world, targeted_entity, _component_id| {
+            let mut commands = world.commands();
+            commands
+                .entity(targeted_entity)
+                .insert((AvianPickupActorState::default(), Cooldown::default()));
+        });
+    }
 }
