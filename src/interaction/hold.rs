@@ -57,46 +57,28 @@ fn grabcontroller_simulate(
     {
         // imo InContactWithHeavyObject will always be false,
         // as we are effectively asking "is the current object heavier than the
-        // current object?"
+        // current object?", so I removed that branch
+
         // TODO: make this smooth_nudge
         grab.contact_amount = grab.contact_amount.lerp(1.0, dt * 2.0);
         let mut shadow = *shadow;
         shadow.max_angular *= grab.contact_amount * grab.contact_amount * grab.contact_amount;
 
-        grab.time_to_arrive = compute_shadow_control(
+        // Skipping `ComputeShadowControl` as we use SI units directly
+        grab.time_to_arrive = compute_shadow_controller(
             &mut shadow,
-            grab.time_to_arrive,
-            dt,
             *position,
             *rotation,
             &mut velocity,
             &mut angvel,
+            grab.time_to_arrive,
+            dt,
         );
 
         // Slide along the current contact points to fix bouncing problems
         *velocity = phys_compute_slide_direction(*velocity, *angvel, *mass);
         grab.error_time += dt;
     }
-}
-
-fn compute_shadow_control(
-    shadow: &mut ShadowParams,
-    seconds_to_arrival: f32,
-    dt: f32,
-    position: Position,
-    rotation: Rotation,
-    velocity: &mut LinearVelocity,
-    angvel: &mut AngularVelocity,
-) -> f32 {
-    compute_shadow_controller(
-        shadow,
-        position,
-        rotation,
-        velocity,
-        angvel,
-        seconds_to_arrival,
-        dt,
-    )
 }
 
 fn compute_shadow_controller(
