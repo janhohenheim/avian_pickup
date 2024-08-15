@@ -33,10 +33,6 @@ fn find_object(
     let actor_entity = trigger.entity();
     let (origin, config, mut state, mut cooldown) = q_actor.get_mut(actor_entity).unwrap();
 
-    if !cooldown.right.finished() {
-        return;
-    }
-
     let origin = origin.compute_transform();
     let prop = find_prop_in_trace(&spatial_query, origin, config)
         .or_else(|| find_prop_in_cone(&spatial_query, origin, config, &q_transform));
@@ -64,7 +60,7 @@ fn find_object(
         cooldown.hold();
         info!("Start Holding");
         *state = AvianPickupActorState::Holding(prop.entity);
-    } else {
+    } else if cooldown.right.finished() {
         let object_transform = object_transform.compute_transform();
         let direction = origin.translation - object_transform.translation;
         let mass_adjustment = adjust_impulse_for_mass(mass);

@@ -33,7 +33,6 @@ fn hold(
             continue;
         };
         let _transform = transform.compute_transform();
-        info!("Hold!");
         let dt = time.delta_seconds();
         //
         // Unwrap cannot fail: rigid bodies are guarateed to have a
