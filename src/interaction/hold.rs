@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use crate::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -6,52 +8,39 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(hold.in_set(AvianPickupSystem::HoldObject));
 }
 
-fn hold(q_actor: Query<(&AvianPickupActorState, &GlobalTransform)>) {
-    for (&state, transform) in q_actor.iter() {
-        let AvianPickupActorState::Holding(_entity) = state else {
-            continue;
-        };
-        let _transform = transform.compute_transform();
-        info!("Hold!")
-    }
+pub(super) mod prelude {
+    pub(crate) use super::{GrabParams, ShadowParams};
 }
 
-#[derive(Debug, Copy, Clone, Component)]
-struct ShadowParams {
-    target_position: Vec3,
-    target_rotation: Quat,
-    max_angular: f32,
-    max_damp_angular: f32,
-    max_speed: f32,
-    max_damp_speed: f32,
-    // damp_factor = 1
-    // teleport_distance = 0
-}
-
-#[derive(Debug, Copy, Clone, Component)]
-struct GrabParams {
-    contact_amount: f32,
-    time_to_arrive: f32,
-    /// Todo: this is never read
-    error_time: f32,
-}
-
-fn grabcontroller_simulate(
+/// Basically GrabController::Simulate
+fn hold(
     time: Res<Time>,
     mut q_object: Query<(
-        &ShadowParams,
         &Mass,
         &mut LinearVelocity,
         &mut AngularVelocity,
-        &Position,
-        &Rotation,
+        &GlobalTransform,
+    )>,
+    mut q_actor: Query<(
+        &AvianPickupActorState,
+        &GlobalTransform,
         &mut GrabParams,
+        &ShadowParams,
     )>,
 ) {
-    let dt = time.delta_seconds();
-    for (shadow, mass, mut velocity, mut angvel, position, rotation, mut grab) in
-        q_object.iter_mut()
-    {
+    for (&state, transform, mut grab, shadow) in q_actor.iter_mut() {
+        let AvianPickupActorState::Holding(entity) = state else {
+            continue;
+        };
+        let _transform = transform.compute_transform();
+        info!("Hold!");
+        let dt = time.delta_seconds();
+        //
+        // Unwrap cannot fail: rigid bodies are guarateed to have a
+        // `Mass`, `LinearVelocity`, `AngularVelocity`, and `GlobalTransform`
+        let (mass, mut velocity, mut angvel, object_transform) = q_object.get_mut(entity).unwrap();
+        let object_transform = object_transform.compute_transform();
+
         // imo InContactWithHeavyObject will always be false,
         // as we are effectively asking "is the current object heavier than the
         // current object?", so I removed that branch
@@ -64,8 +53,7 @@ fn grabcontroller_simulate(
         // Skipping `ComputeShadowControl` as we use SI units directly
         grab.time_to_arrive = compute_shadow_controller(
             &mut shadow,
-            *position,
-            *rotation,
+            object_transform,
             &mut velocity,
             &mut angvel,
             grab.time_to_arrive,
@@ -78,10 +66,52 @@ fn grabcontroller_simulate(
     }
 }
 
+#[derive(Debug, Copy, Clone, Component)]
+pub(crate) struct ShadowParams {
+    target_position: Vec3,
+    target_rotation: Quat,
+    max_angular: f32,
+    max_damp_angular: f32,
+    max_speed: f32,
+    max_damp_speed: f32,
+    // damp_factor = 1
+    // teleport_distance = 0
+}
+
+impl Default for ShadowParams {
+    fn default() -> Self {
+        Self {
+            target_position: Vec3::ZERO,
+            target_rotation: Quat::IDENTITY,
+            max_angular: TAU * 10.0,
+            max_damp_angular: 0.0,
+            max_speed: 25.4,
+            max_damp_speed: 25.4 * 2.,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Component)]
+pub(crate) struct GrabParams {
+    contact_amount: f32,
+    time_to_arrive: f32,
+    /// Todo: this is never read
+    error_time: f32,
+}
+
+impl Default for GrabParams {
+    fn default() -> Self {
+        Self {
+            contact_amount: 0.0,
+            time_to_arrive: 0.0,
+            error_time: 0.0,
+        }
+    }
+}
+
 fn compute_shadow_controller(
     params: &mut ShadowParams,
-    position: Position,
-    rotation: Rotation,
+    transform: Transform,
     linear_velocity: &mut LinearVelocity,
     angular_velocity: &mut AngularVelocity,
     seconds_to_arrival: f32,
@@ -98,7 +128,7 @@ fn compute_shadow_controller(
         return seconds_to_arrival;
     }
 
-    let delta_position = params.target_position - position.0;
+    let delta_position = params.target_position - transform.translation;
     // Teleport distance is always 0, so we don't care about that branch of the
     // code. That would be the only place where position and rotation are
     // mutated, so that means we get to use them immutably here!
@@ -116,9 +146,9 @@ fn compute_shadow_controller(
     .into();
 
     // Don't think this is used? It at least doesn't appear in 2013's shadow params
-    let _last_position = position.0 + linear_velocity.0 * dt;
+    let _last_position = transform.translation + linear_velocity.0 * dt;
 
-    let delta_rotation = params.target_rotation * rotation.0.inverse();
+    let delta_rotation = params.target_rotation * transform.rotation.inverse();
 
     let delta_angles = delta_rotation.to_scaled_axis();
     *angular_velocity = compute_controller(
@@ -172,9 +202,8 @@ fn compute_controller(
         velocity += acceleration_damping; // vel = (4, 0, 0)
     }
 
-    let mut acceleration = Vec3::ZERO;
     if max_speed > 0.0 {
-        acceleration = delta * scale_delta; // accel = (8, 0, 0)
+        let mut acceleration = delta * scale_delta; // accel = (8, 0, 0)
         let speed = delta.length() * scale_delta; // speed = 8
         if speed > max_speed {
             let some_factor_idk = max_speed / speed; // some_fac = 4 / 8 = 0.5
@@ -185,7 +214,7 @@ fn compute_controller(
     velocity
 }
 
-fn compute_controller_trimmed(
+fn _compute_controller_trimmed(
     mut velocity: Vec3,
     delta: Vec3,
     max_speed: f32,
@@ -213,11 +242,11 @@ fn compute_controller_trimmed(
     velocity
 }
 
-fn compute_collider_no_damp(
-    velocity: Vec3,
+fn _compute_collider_no_damp(
+    _velocity: Vec3,
     delta: Vec3,
     max_speed: f32,
-    max_damp_speed: f32,
+    _max_damp_speed: f32,
     scale_delta: f32,
 ) -> Vec3 {
     if max_speed > 0.0 {

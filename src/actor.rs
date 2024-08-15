@@ -4,7 +4,10 @@ use bevy::{
     prelude::*,
 };
 
-use crate::prelude::Cooldown;
+use crate::{
+    interaction::{GrabParams, ShadowParams},
+    prelude::Cooldown,
+};
 
 pub(super) mod prelude {
     pub use super::{AvianPickupActor, AvianPickupActorState};
@@ -118,9 +121,12 @@ impl Component for AvianPickupActor {
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(|mut world, targeted_entity, _component_id| {
             let mut commands = world.commands();
-            commands
-                .entity(targeted_entity)
-                .insert((AvianPickupActorState::default(), Cooldown::default()));
+            commands.entity(targeted_entity).insert((
+                AvianPickupActorState::default(),
+                Cooldown::default(),
+                GrabParams::default(),
+                ShadowParams::default(),
+            ));
         });
     }
 }

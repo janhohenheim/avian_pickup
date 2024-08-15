@@ -62,6 +62,7 @@ fn find_object(
     let can_hold = prop.toi <= config.trace_length;
     if can_hold {
         cooldown.hold();
+        info!("Start Holding");
         *state = AvianPickupActorState::Holding(prop.entity);
     } else {
         let object_transform = object_transform.compute_transform();
