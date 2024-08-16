@@ -17,14 +17,14 @@ pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
 
-    pub(crate) use crate::cooldown::prelude::*;
     pub use crate::{
         actor::prelude::*,
         input::prelude::*,
-        prop::PreferredPickupRotation,
+        prop::{PickupMass, PreferredPickupRotation, PreferredPickupDistance},
         AvianPickupPlugin,
         AvianPickupSystem,
     };
+    pub(crate) use crate::{cooldown::prelude::*, prop::NonPickupMass};
 }
 
 /// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable

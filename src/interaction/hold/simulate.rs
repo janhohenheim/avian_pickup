@@ -2,7 +2,7 @@ use super::{GrabParams, ShadowParams};
 use crate::prelude::*;
 
 /// Basically GrabController::Simulate
-pub(super) fn hold(
+pub(super) fn simulate(
     time: Res<Time>,
     mut q_object: Query<(
         &Mass,
@@ -23,7 +23,7 @@ pub(super) fn hold(
         };
         let _transform = transform.compute_transform();
         let dt = time.delta_seconds();
-        //
+
         // Unwrap cannot fail: rigid bodies are guarateed to have a
         // `Mass`, `LinearVelocity`, `AngularVelocity`, and `GlobalTransform`
         let (mass, mut velocity, mut angvel, object_transform) = q_object.get_mut(entity).unwrap();

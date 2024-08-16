@@ -2,14 +2,15 @@ use std::f32::consts::TAU;
 
 use crate::prelude::*;
 
-mod during_hold;
 mod on_hold;
+mod simulate;
+mod update;
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(on_hold::on_hold);
     app.get_schedule_mut(PhysicsSchedule)
         .unwrap()
-        .add_systems(during_hold::hold.in_set(AvianPickupSystem::HoldObject));
+        .add_systems(simulate::simulate.in_set(AvianPickupSystem::HoldObject));
 }
 
 pub(super) mod prelude {
@@ -48,8 +49,10 @@ impl Default for ShadowParams {
 pub(crate) struct GrabParams {
     contact_amount: f32,
     time_to_arrive: f32,
-    /// Todo: this is never read
+    /// Time until error starts accumulating
     error_time: f32,
+    /// The distance between the object and the target position
+    error: f32,
 }
 
 impl Default for GrabParams {
@@ -58,6 +61,7 @@ impl Default for GrabParams {
             contact_amount: 0.0,
             time_to_arrive: 0.0,
             error_time: 0.0,
+            error: 0.0,
         }
     }
 }
