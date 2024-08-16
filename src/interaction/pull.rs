@@ -60,7 +60,7 @@ fn find_object(
     let can_hold = prop.toi <= config.trace_length;
     if can_hold {
         cooldown.hold();
-        commands.trigger_targets(OnHold, actor_entity);
+        commands.trigger_targets(OnHold(rigid_body_entity), actor_entity);
     } else if cooldown.right.finished() {
         let object_transform = object_transform.compute_transform();
         let direction = origin.translation - object_transform.translation;
@@ -68,7 +68,7 @@ fn find_object(
         let pull_impulse = direction * config.pull_force * mass_adjustment;
         cooldown.pull();
         impulse.apply_impulse(pull_impulse);
-        *state = AvianPickupActorState::Pulling(prop.entity);
+        *state = AvianPickupActorState::Pulling(rigid_body_entity);
     }
 }
 

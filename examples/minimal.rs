@@ -1,11 +1,13 @@
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{color::palettes::tailwind, prelude::*};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
+            WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),
             AvianPickupPlugin::default(),
@@ -59,17 +61,20 @@ fn setup(
     ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
-    commands.spawn((
-        Name::new("Box"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(box_shape)),
-            material: dynamic_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.0, 0.0),
-            ..default()
-        },
-        RigidBody::Dynamic,
-        Collider::from(box_shape),
-    ));
+    commands
+        .spawn((
+            Name::new("Box"),
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(box_shape)),
+                material: dynamic_material.clone(),
+                transform: Transform::from_xyz(0.0, 2.0, 0.0),
+                ..default()
+            },
+            RigidBody::Dynamic,
+        ))
+        .with_children(|parent| {
+            parent.spawn(Collider::from(box_shape));
+        });
 }
 
 fn handle_input(

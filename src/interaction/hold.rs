@@ -17,7 +17,7 @@ pub(super) mod prelude {
 }
 
 #[derive(Debug, Event)]
-pub(crate) struct OnHold;
+pub(crate) struct OnHold(pub(crate) Entity);
 
 #[derive(Debug, Copy, Clone, Component)]
 pub(crate) struct ShadowParams {
