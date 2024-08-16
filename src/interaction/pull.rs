@@ -5,6 +5,7 @@ mod find_in_cone;
 mod find_in_trace;
 
 use self::{can_pull::*, find_in_cone::*, find_in_trace::*};
+use super::hold::OnHold;
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(find_object)
@@ -19,6 +20,7 @@ pub(crate) struct PullObject;
 /// Inspired by [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2497)
 fn find_object(
     trigger: Trigger<PullObject>,
+    mut commands: Commands,
     spatial_query: SpatialQuery,
     mut q_actor: Query<(
         &GlobalTransform,
@@ -58,8 +60,7 @@ fn find_object(
     let can_hold = prop.toi <= config.trace_length;
     if can_hold {
         cooldown.hold();
-        info!("Start Holding");
-        *state = AvianPickupActorState::Holding(prop.entity);
+        commands.trigger_targets(OnHold, actor_entity);
     } else if cooldown.right.finished() {
         let object_transform = object_transform.compute_transform();
         let direction = origin.translation - object_transform.translation;

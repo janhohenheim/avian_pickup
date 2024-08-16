@@ -3,8 +3,10 @@ use std::f32::consts::TAU;
 use crate::prelude::*;
 
 mod during_hold;
+mod on_hold;
 
 pub(super) fn plugin(app: &mut App) {
+    app.observe(on_hold::on_hold);
     app.get_schedule_mut(PhysicsSchedule)
         .unwrap()
         .add_systems(during_hold::hold.in_set(AvianPickupSystem::HoldObject));
@@ -13,6 +15,9 @@ pub(super) fn plugin(app: &mut App) {
 pub(super) mod prelude {
     pub(crate) use super::{GrabParams, ShadowParams};
 }
+
+#[derive(Debug, Event)]
+pub(crate) struct OnHold;
 
 #[derive(Debug, Copy, Clone, Component)]
 pub(crate) struct ShadowParams {

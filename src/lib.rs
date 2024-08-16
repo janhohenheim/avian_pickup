@@ -10,6 +10,7 @@ mod cooldown;
 mod input;
 mod interaction;
 mod math;
+mod prop;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
@@ -17,7 +18,13 @@ pub mod prelude {
     pub(crate) use bevy::prelude::*;
 
     pub(crate) use crate::cooldown::prelude::*;
-    pub use crate::{actor::prelude::*, input::prelude::*, AvianPickupPlugin, AvianPickupSystem};
+    pub use crate::{
+        actor::prelude::*,
+        input::prelude::*,
+        prop::PreferredPickupRotation,
+        AvianPickupPlugin,
+        AvianPickupSystem,
+    };
 }
 
 /// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable
@@ -66,6 +73,7 @@ impl Plugin for AvianPickupPlugin {
             actor::plugin,
             interaction::plugin,
             cooldown::plugin,
+            prop::plugin,
         ));
     }
 }
