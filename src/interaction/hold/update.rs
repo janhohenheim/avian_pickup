@@ -1,22 +1,20 @@
 use bevy::prelude::*;
 
 use super::{GrabParams, ShadowParams};
-use crate::{prelude::*, prop::PickupMass};
-
-pub(super) fn plugin(app: &mut App) {}
+use crate::prelude::*;
 
 /// CGrabController::UpdateObject
 fn update_object(
-    mut q_prop: Query<&Position>,
-    mut q_actor: Query<(&AvianPickupActorState, &mut GrabParams, &ShadowParams)>,
+    _q_prop: Query<&Position>,
+    _q_actor: Query<(&AvianPickupActorState, &mut GrabParams, &ShadowParams)>,
 ) {
-    let max_error = 0.3048; // 12 inches in the source engine
+    let _max_error = 0.3048; // 12 inches in the source engine
 }
 
 /// CGrabController::ComputeError(),
 /// TODO: run this before `update_object`!
 fn update_error(
-    mut q_prop: Query<&Position>,
+    q_prop: Query<&Position>,
     mut q_actor: Query<(&AvianPickupActorState, &mut GrabParams, &ShadowParams)>,
 ) {
     for (&state, mut grab, shadow) in q_actor.iter_mut() {

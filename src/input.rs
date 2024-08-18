@@ -25,12 +25,13 @@ pub(super) fn plugin(app: &mut App) {
     reflect(Serialize, Deserialize)
 )]
 pub struct AvianPickupInput {
-    /// The entity of the [`AvianPickupActor`] that triggered the event.
+    /// The entity of the [`AvianPickupActor`] that the event is related to.
     pub actor: Entity,
-    /// The kind of input that triggered the event.
+    /// The kind of input that the event represents.
     pub kind: AvianPickupInputKind,
 }
 
+/// The kind of input that the [`AvianPickupInput`] represents.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Reflect)]
 #[reflect(Debug, PartialEq)]
 #[cfg_attr(

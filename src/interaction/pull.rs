@@ -1,6 +1,6 @@
 use crate::{
     prelude::*,
-    verb::{Holding, Pulling, SetVerb, Verb},
+    verb::{Pulling, SetVerb, Verb},
 };
 
 mod can_pull;
