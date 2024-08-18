@@ -11,7 +11,7 @@ pub(super) fn plugin(app: &mut App) {
         // TODO: idk about the order
         (simulate::simulate, on_hold::on_hold)
             .chain()
-            .in_set(AvianPickupSystem::HandleVerb),
+            .in_set(HandleVerbSystem::Hold),
     );
 }
 

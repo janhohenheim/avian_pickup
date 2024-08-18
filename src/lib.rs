@@ -25,7 +25,7 @@ pub mod prelude {
         AvianPickupPlugin,
         AvianPickupSystem,
     };
-    pub(crate) use crate::{cooldown::prelude::*, prop::NonPickupMass};
+    pub(crate) use crate::{cooldown::prelude::*, prop::NonPickupMass, HandleVerbSystem};
 }
 
 /// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable
@@ -57,17 +57,28 @@ impl Plugin for AvianPickupPlugin {
                 This usually done by adding `PhysicsPlugins` to your `App`.",
         );
 
-        physics_schedule.configure_sets(
-            (
-                AvianPickupSystem::First,
-                AvianPickupSystem::HandleVerb,
-                AvianPickupSystem::ResetIdle,
-                AvianPickupSystem::TickTimers,
-                AvianPickupSystem::Last,
+        physics_schedule
+            .configure_sets(
+                (
+                    AvianPickupSystem::First,
+                    AvianPickupSystem::HandleVerb,
+                    AvianPickupSystem::ResetIdle,
+                    AvianPickupSystem::TickTimers,
+                    AvianPickupSystem::Last,
+                )
+                    .chain()
+                    .in_set(PhysicsStepSet::First),
             )
-                .chain()
-                .in_set(PhysicsStepSet::First),
-        );
+            .configure_sets(
+                (
+                    HandleVerbSystem::Pull,
+                    HandleVerbSystem::Hold,
+                    HandleVerbSystem::Drop,
+                    HandleVerbSystem::Throw,
+                )
+                    .chain()
+                    .in_set(AvianPickupSystem::HandleVerb),
+            );
 
         app.add_plugins((
             input::plugin,
@@ -101,4 +112,12 @@ pub enum AvianPickupSystem {
     TickTimers,
     /// Runs at the end of the [`AvianPickupSystem`]. Empty by default.
     Last,
+}
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
+pub(crate) enum HandleVerbSystem {
+    Pull,
+    Hold,
+    Drop,
+    Throw,
 }

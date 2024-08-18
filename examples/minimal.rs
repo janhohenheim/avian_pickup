@@ -78,7 +78,7 @@ fn setup(
 }
 
 fn handle_input(
-    mut commands: Commands,
+    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
     key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
 ) {
@@ -86,13 +86,22 @@ fn handle_input(
         return;
     };
     if key_input.just_pressed(MouseButton::Left) {
-        commands.trigger_targets(AvianPickupInput::JustPressedL, actor);
+        avian_pickup_input_writer.send(AvianPickupInput {
+            kind: AvianPickupInputKind::JustPressedL,
+            actor,
+        });
     }
     if key_input.just_pressed(MouseButton::Right) {
-        commands.trigger_targets(AvianPickupInput::JustPressedR, actor);
+        avian_pickup_input_writer.send(AvianPickupInput {
+            kind: AvianPickupInputKind::JustPressedR,
+            actor,
+        });
     }
     if key_input.pressed(MouseButton::Right) {
-        commands.trigger_targets(AvianPickupInput::PressedR, actor);
+        avian_pickup_input_writer.send(AvianPickupInput {
+            kind: AvianPickupInputKind::PressedR,
+            actor,
+        });
     }
 }
 

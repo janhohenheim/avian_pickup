@@ -6,7 +6,7 @@ use crate::{
 };
 
 pub(super) mod prelude {
-    pub use super::AvianPickupInput;
+    pub use super::{AvianPickupInput, AvianPickupInputKind};
 }
 
 pub(super) fn plugin(app: &mut App) {

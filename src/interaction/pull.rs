@@ -12,7 +12,7 @@ use self::{can_pull::*, find_in_cone::*, find_in_trace::*};
 pub(super) fn plugin(app: &mut App) {
     app.get_schedule_mut(PhysicsSchedule)
         .unwrap()
-        .add_systems(find_object.in_set(AvianPickupSystem::HandleVerb))
+        .add_systems(find_object.in_set(HandleVerbSystem::Pull))
         .add_systems(flush_pulling_state.in_set(AvianPickupSystem::ResetIdle));
 }
 
