@@ -27,7 +27,7 @@ fn setup(
     let dynamic_material = materials.add(Color::from(tailwind::EMERALD_300));
 
     commands.spawn((
-        Name::new("Camera"),
+        Name::new("Player Camera"),
         Camera3dBundle {
             transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_at(-Vec3::Z, Vec3::Y),
             ..default()

@@ -66,7 +66,8 @@ fn find_object(
         } else {
             if cooldown.right.finished() {
                 let object_transform = object_transform.compute_transform();
-                let direction = origin.translation - object_transform.translation;
+                let direction =
+                    (origin.translation - object_transform.translation).normalize_or_zero();
                 let mass_adjustment = adjust_impulse_for_mass(mass);
                 let pull_impulse = direction * config.pull_force * mass_adjustment;
                 cooldown.pull();
