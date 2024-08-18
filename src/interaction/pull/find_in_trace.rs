@@ -8,6 +8,8 @@ pub(super) fn find_prop_in_trace(
     config: &AvianPickupActor,
 ) -> Option<Prop> {
     const MAGIC_FACTOR_ASK_VALVE: f32 = 4.0;
+    // trace_length already has `METERS_PER_INCH` baked in by being in SI units,
+    // so no need to multiply the magic factor by `METERS_PER_INCH` here
     let test_length = config.trace_length * MAGIC_FACTOR_ASK_VALVE;
     let hit = spatial_query.cast_ray(
         origin.translation,

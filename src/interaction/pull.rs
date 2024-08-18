@@ -63,13 +63,15 @@ fn find_object(
             commands
                 .entity(actor)
                 .add(SetVerb::new(Verb::Hold(rigid_body_entity)));
-        } else if cooldown.right.finished() {
-            let object_transform = object_transform.compute_transform();
-            let direction = origin.translation - object_transform.translation;
-            let mass_adjustment = adjust_impulse_for_mass(mass);
-            let pull_impulse = direction * config.pull_force * mass_adjustment;
-            cooldown.pull();
-            impulse.apply_impulse(pull_impulse);
+        } else {
+            if cooldown.right.finished() {
+                let object_transform = object_transform.compute_transform();
+                let direction = origin.translation - object_transform.translation;
+                let mass_adjustment = adjust_impulse_for_mass(mass);
+                let pull_impulse = direction * config.pull_force * mass_adjustment;
+                cooldown.pull();
+                impulse.apply_impulse(pull_impulse);
+            }
             *state = AvianPickupActorState::Pulling(rigid_body_entity);
         }
     }
