@@ -8,13 +8,7 @@ pub(super) fn on_hold(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
     mut q_actor: Query<(&mut AvianPickupActorState, &mut GrabParams, &Holding)>,
-    mut q_prop: Query<(
-        Option<&PreferredPickupRotation>,
-        Option<&PreferredPickupDistance>,
-        Option<&PickupMass>,
-        &mut Mass,
-        &Rotation,
-    )>,
+    mut q_prop: Query<(Option<&PickupMass>, &mut Mass)>,
 ) {
     let actor = trigger.entity();
     let (mut state, mut grab, holding) = q_actor.get_mut(actor).unwrap();
@@ -22,12 +16,7 @@ pub(super) fn on_hold(
     *state = AvianPickupActorState::Holding(prop);
     // Safety: All props are rigid bodies, so they are guaranteed to have a
     // `Rotation` and `Rotation`.
-    let (preferred_rotation, preferred_distance, pickup_mass, mut mass, rotation) =
-        q_prop.get_mut(prop).unwrap();
-    let target_rotation = preferred_rotation
-        .map(|preferred| preferred.0)
-        .unwrap_or(rotation.0);
-    let target_distance = preferred_distance.copied().unwrap_or_default().0;
+    let (pickup_mass, mut mass) = q_prop.get_mut(prop).unwrap();
     let new_mass = pickup_mass.copied().unwrap_or_default().0;
     commands.entity(prop).insert(NonPickupMass(mass.0));
     mass.0 = new_mass;

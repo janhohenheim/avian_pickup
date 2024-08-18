@@ -1,32 +1,25 @@
 use super::{GrabParams, ShadowParams};
-use crate::prelude::*;
+use crate::{prelude::*, verb::Holding};
 
 /// Basically GrabController::Simulate
 pub(super) fn simulate(
     time: Res<Time>,
-    mut q_object: Query<(
+    mut q_prop: Query<(
         &Mass,
         &mut LinearVelocity,
         &mut AngularVelocity,
         &GlobalTransform,
     )>,
-    mut q_actor: Query<(
-        &AvianPickupActorState,
-        &GlobalTransform,
-        &mut GrabParams,
-        &ShadowParams,
-    )>,
+    mut q_actor: Query<(&GlobalTransform, &mut GrabParams, &ShadowParams, &Holding)>,
 ) {
-    for (&state, transform, mut grab, shadow) in q_actor.iter_mut() {
-        let AvianPickupActorState::Holding(entity) = state else {
-            continue;
-        };
+    for (transform, mut grab, shadow, holding) in q_actor.iter_mut() {
+        let prop = holding.0;
         let _transform = transform.compute_transform();
         let dt = time.delta_seconds();
 
         // Unwrap cannot fail: rigid bodies are guarateed to have a
         // `Mass`, `LinearVelocity`, `AngularVelocity`, and `GlobalTransform`
-        let (mass, mut velocity, mut angvel, object_transform) = q_object.get_mut(entity).unwrap();
+        let (mass, mut velocity, mut angvel, object_transform) = q_prop.get_mut(prop).unwrap();
         let object_transform = object_transform.compute_transform();
 
         // imo InContactWithHeavyObject will always be false,
