@@ -1,22 +1,18 @@
-use crate::prelude::*;
+use crate::{prelude::*, verb::Dropping};
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(drop);
+    app.get_schedule_mut(PhysicsSchedule)
+        .unwrap()
+        .add_systems(drop.in_set(AvianPickupSystem::HandleVerb));
 }
 
-#[derive(Debug, Event)]
-pub(crate) struct DropObject;
-
-fn drop(
-    trigger: Trigger<DropObject>,
-    mut q_state: Query<(&mut AvianPickupActorState, &mut Cooldown)>,
-) {
-    let actor_entity = trigger.entity();
-    let (mut state, mut cooldown) = q_state.get_mut(actor_entity).unwrap();
-    if !cooldown.right.finished() {
-        return;
+fn drop(mut q_state: Query<(&mut AvianPickupActorState, &mut Cooldown), With<Dropping>>) {
+    for (mut state, mut cooldown) in q_state.iter_mut() {
+        if !cooldown.right.finished() {
+            continue;
+        }
+        *state = AvianPickupActorState::Idle;
+        info!("Drop!");
+        cooldown.drop();
     }
-    *state = AvianPickupActorState::Idle;
-    info!("Drop!");
-    cooldown.drop();
 }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::{GrabParams, OnHold, ShadowParams};
+use super::{GrabParams, ShadowParams};
 use crate::{prelude::*, prop::PickupMass};
 
 pub(super) fn plugin(app: &mut App) {}

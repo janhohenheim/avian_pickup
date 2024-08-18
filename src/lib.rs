@@ -11,6 +11,7 @@ mod input;
 mod interaction;
 mod math;
 mod prop;
+mod verb;
 
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
@@ -20,7 +21,7 @@ pub mod prelude {
     pub use crate::{
         actor::prelude::*,
         input::prelude::*,
-        prop::{PickupMass, PreferredPickupRotation, PreferredPickupDistance},
+        prop::{PickupMass, PreferredPickupDistance, PreferredPickupRotation},
         AvianPickupPlugin,
         AvianPickupSystem,
     };
@@ -59,7 +60,7 @@ impl Plugin for AvianPickupPlugin {
         physics_schedule.configure_sets(
             (
                 AvianPickupSystem::First,
-                AvianPickupSystem::HoldObject,
+                AvianPickupSystem::HandleVerb,
                 AvianPickupSystem::ResetIdle,
                 AvianPickupSystem::TickTimers,
                 AvianPickupSystem::Last,
@@ -74,6 +75,7 @@ impl Plugin for AvianPickupPlugin {
             interaction::plugin,
             cooldown::plugin,
             prop::plugin,
+            verb::plugin,
         ));
     }
 }
@@ -89,7 +91,7 @@ pub enum AvianPickupSystem {
     /// [`AvianPickupActorState::Holding`](crate::prelude::AvianPickupActorState::Holding)
     /// in order to keep it in place in front of the
     /// [`AvianPickupActor`](crate::prelude::AvianPickupActor).
-    HoldObject,
+    HandleVerb,
     /// Resets the
     /// [`AvianPickupActorState`](crate::prelude::AvianPickupActorState) to
     /// [`AvianPickupActorState::Idle`](crate::prelude::AvianPickupActorState::Idle)

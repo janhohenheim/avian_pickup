@@ -7,18 +7,17 @@ mod simulate;
 mod update;
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(on_hold::on_hold);
-    app.get_schedule_mut(PhysicsSchedule)
-        .unwrap()
-        .add_systems(simulate::simulate.in_set(AvianPickupSystem::HoldObject));
+    app.get_schedule_mut(PhysicsSchedule).unwrap().add_systems(
+        // TODO: idk about the order
+        (simulate::simulate, on_hold::on_hold)
+            .chain()
+            .in_set(AvianPickupSystem::HandleVerb),
+    );
 }
 
 pub(super) mod prelude {
     pub(crate) use super::{GrabParams, ShadowParams};
 }
-
-#[derive(Debug, Event)]
-pub(crate) struct OnHold(pub(crate) Entity);
 
 #[derive(Debug, Copy, Clone, Component)]
 pub(crate) struct ShadowParams {

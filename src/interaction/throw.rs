@@ -1,18 +1,20 @@
-use crate::prelude::*;
+use crate::{cooldown, prelude::*, verb::Throwing};
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(throw);
+    app.get_schedule_mut(PhysicsSchedule)
+        .unwrap()
+        .add_systems(throw.in_set(AvianPickupSystem::HandleVerb));
 }
 
-#[derive(Debug, Event)]
+#[derive(Debug, Component)]
 pub(crate) struct ThrowObject;
 
-fn throw(trigger: Trigger<ThrowObject>, mut q_cooldown: Query<&mut Cooldown>) {
-    let actor_entity = trigger.entity();
-    let cooldown = q_cooldown.get_mut(actor_entity).unwrap();
-    if !cooldown.left.finished() {
-        return;
+fn throw(mut q_actor: Query<&mut Cooldown, With<Throwing>>) {
+    for cooldown in q_actor.iter_mut() {
+        if !cooldown.left.finished() {
+            continue;
+        }
+        // Todo: cooldown.throw();
+        info!("Throw!");
     }
-    // Todo: cooldown.throw();
-    info!("Throw!");
 }
