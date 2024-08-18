@@ -7,9 +7,17 @@ mod simulate;
 mod update;
 
 pub(super) fn plugin(app: &mut App) {
+    app.observe(on_hold::on_hold);
     app.get_schedule_mut(PhysicsSchedule).unwrap().add_systems(
-        // TODO: idk about the order
-        (simulate::simulate, on_hold::on_hold)
+        (
+            // This updates `error_time`, so we run it first to make sure 
+            // we look at the current time
+            simulate::simulate,
+            // update_error must always be before update_object
+            update::update_error,
+            // Sets `error_time` to 0
+            update::update_object,
+        )
             .chain()
             .in_set(HandleVerbSystem::Hold),
     );

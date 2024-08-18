@@ -3,17 +3,8 @@ use bevy::prelude::*;
 use super::{GrabParams, ShadowParams};
 use crate::prelude::*;
 
-/// CGrabController::UpdateObject
-fn update_object(
-    _q_prop: Query<&Position>,
-    _q_actor: Query<(&AvianPickupActorState, &mut GrabParams, &ShadowParams)>,
-) {
-    let _max_error = 0.3048; // 12 inches in the source engine
-}
-
 /// CGrabController::ComputeError(),
-/// TODO: run this before `update_object`!
-fn update_error(
+pub(super) fn update_error(
     q_prop: Query<&Position>,
     mut q_actor: Query<(&AvianPickupActorState, &mut GrabParams, &ShadowParams)>,
 ) {
@@ -40,4 +31,12 @@ fn update_error(
         grab.error = grab.error.lerp(error, grab.error_time);
         grab.error_time = 0.0;
     }
+}
+
+/// CGrabController::UpdateObject
+pub(super) fn update_object(
+    _q_prop: Query<&Position>,
+    _q_actor: Query<(&AvianPickupActorState, &mut GrabParams, &ShadowParams)>,
+) {
+    let _max_error = 0.3048; // 12 inches in the source engine
 }
