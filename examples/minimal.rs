@@ -18,6 +18,13 @@ fn main() {
         .run();
 }
 
+#[derive(Debug, PhysicsLayer)]
+enum CollisionLayer {
+    Player,
+    Prop,
+    Terrain,
+}
+
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -32,9 +39,17 @@ fn setup(
             transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_at(-Vec3::Z, Vec3::Y),
             ..default()
         },
-        AvianPickupActor::default(),
+        AvianPickupActor {
+            prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
+            terrain_filter: SpatialQueryFilter::from_mask(CollisionLayer::Terrain),
+            ..default()
+        },
         RigidBody::Kinematic,
         Collider::capsule(0.3, 1.2),
+        CollisionLayers::new(
+            CollisionLayer::Player,
+            [CollisionLayer::Prop, CollisionLayer::Terrain],
+        ),
     ));
 
     commands.spawn((
@@ -60,23 +75,28 @@ fn setup(
         },
         RigidBody::Static,
         Collider::from(ground_shape),
+        CollisionLayers::new(
+            CollisionLayer::Terrain,
+            [CollisionLayer::Player, CollisionLayer::Prop],
+        ),
     ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
-    commands
-        .spawn((
-            Name::new("Box"),
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(box_shape)),
-                material: dynamic_material.clone(),
-                transform: Transform::from_xyz(0.0, 2.0, 0.0),
-                ..default()
-            },
-            RigidBody::Dynamic,
-        ))
-        .with_children(|parent| {
-            parent.spawn(Collider::from(box_shape));
-        });
+    commands.spawn((
+        Name::new("Box"),
+        PbrBundle {
+            mesh: meshes.add(Mesh::from(box_shape)),
+            material: dynamic_material.clone(),
+            transform: Transform::from_xyz(0.0, 2.0, 0.0),
+            ..default()
+        },
+        RigidBody::Dynamic,
+        Collider::from(box_shape),
+        CollisionLayers::new(
+            CollisionLayer::Prop,
+            [CollisionLayer::Player, CollisionLayer::Terrain],
+        ),
+    ));
 }
 
 fn handle_input(

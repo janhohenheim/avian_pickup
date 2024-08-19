@@ -33,7 +33,9 @@ pub(super) mod prelude {
 
 #[derive(Debug, Copy, Clone, Component)]
 pub(crate) struct ShadowParams {
+    /// Global target position of the held prop
     target_position: Vec3,
+    /// Global target rotation of the held prop
     target_rotation: Quat,
     max_angular: f32,
     max_damp_angular: f32,

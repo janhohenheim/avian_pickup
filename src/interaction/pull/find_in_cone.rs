@@ -18,7 +18,7 @@ pub(super) fn find_prop_in_cone(
         &box_collider,
         origin.translation,
         origin.rotation,
-        &config.spatial_query_filter,
+        &config.prop_filter,
         |entity| {
             if !q_sensor.contains(entity) {
                 colliders.push(entity);
@@ -46,13 +46,9 @@ pub(super) fn find_prop_in_cone(
         }
 
         // Make sure it isn't occluded!
-        if let Some(hit) = spatial_query.cast_ray(
-            origin.translation,
-            los,
-            dist,
-            true,
-            &config.spatial_query_filter,
-        ) {
+        if let Some(hit) =
+            spatial_query.cast_ray(origin.translation, los, dist, true, &config.prop_filter)
+        {
             if hit.entity == collider {
                 nearest_dist = dist;
                 canditate.replace(Prop {

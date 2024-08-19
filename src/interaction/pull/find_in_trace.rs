@@ -17,7 +17,7 @@ pub(super) fn find_prop_in_trace(
         origin.forward(),
         test_length,
         true,
-        &config.spatial_query_filter,
+        &config.prop_filter,
         &|entity| !q_sensor.contains(entity),
     );
 
@@ -37,7 +37,7 @@ pub(super) fn find_prop_in_trace(
             origin.forward(),
             test_length,
             false,
-            &config.spatial_query_filter,
+            &config.prop_filter,
         );
         if let Some(hit) = hit {
             Prop {

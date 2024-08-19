@@ -46,15 +46,18 @@ pub(super) fn plugin(app: &mut App) {
     reflect(Serialize, Deserialize)
 )]
 pub struct AvianPickupActor {
-    /// The spatial query filter to use when looking for objects to pick up.
+    /// The spatial query filter to use when looking for objects to pick up.\
     /// Default: All entities
     ///
     /// For your convenience, the following entities are always implicitly
     /// ignored:
-    /// - The actor's entity
     /// - All colliders that do not belong to a [`RigidBody::Dynamic`]
     /// - All [`Sensor`]s
-    pub spatial_query_filter: SpatialQueryFilter,
+    pub prop_filter: SpatialQueryFilter,
+    /// The spatial query filter to use when looking for terrain that will block
+    /// the picked up prop.\
+    /// Default: All entities
+    pub terrain_filter: SpatialQueryFilter,
     /// How far an object can be pulled from in meters. Default: 3 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
@@ -100,7 +103,8 @@ pub enum AvianPickupActorState {
 impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
-            spatial_query_filter: default(),
+            prop_filter: default(),
+            terrain_filter: default(),
             trace_length: 3.,
             cone: 0.97,
             max_mass: 35.0,
@@ -116,10 +120,7 @@ impl Component for AvianPickupActor {
         hooks.on_add(|mut world, targeted_entity, _component_id| {
             {
                 let mut config = world.get_mut::<AvianPickupActor>(targeted_entity).unwrap();
-                config
-                    .spatial_query_filter
-                    .excluded_entities
-                    .insert(targeted_entity);
+                config.prop_filter.excluded_entities.insert(targeted_entity);
             }
             let mut commands = world.commands();
             commands.entity(targeted_entity).insert((

@@ -39,11 +39,12 @@ pub(super) fn update_error(
 /// CGrabController::UpdateObject
 pub(super) fn update_object(
     mut commands: Commands,
+    spatial_query: SpatialQuery,
     mut q_actor: Query<(
         Entity,
         &AvianPickupActor,
-        &mut GrabParams,
-        &ShadowParams,
+        &GrabParams,
+        &mut ShadowParams,
         &Holding,
         &Position,
         &Rotation,
@@ -52,7 +53,6 @@ pub(super) fn update_object(
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistance>,
         Option<&ClampPickupPitch>,
-        &Position,
         &Rotation,
     )>,
 
@@ -60,7 +60,7 @@ pub(super) fn update_object(
     q_collider: Query<(&Transform, &Collider), Without<Sensor>>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, _config, grab, _shadow, holding, actor_position, actor_rotation) in
+    for (actor, config, grab, mut shadow, holding, actor_position, actor_rotation) in
         q_actor.iter_mut()
     {
         if grab.error > max_error {
@@ -69,13 +69,15 @@ pub(super) fn update_object(
         }
 
         let prop = holding.0;
-        let (preferred_rotation, preferred_distance, clamp_pitch, prop_position, prop_rotation) =
+        let (preferred_rotation, preferred_distance, clamp_pitch, prop_rotation) =
             q_prop.get_mut(prop).unwrap();
         let clamp_pitch = clamp_pitch.copied().unwrap_or_default();
 
-        let actor_pitch = actor_rotation.to_euler(EulerRot::YXZ).1;
-        let _actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
-        let forward = Transform::from_rotation(actor_rotation.0).forward();
+        let (actor_yaw, actor_pitch, actor_roll) = actor_rotation.to_euler(EulerRot::YXZ);
+        let actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
+        let clamped_rotation =
+            Quat::from_euler(EulerRot::YXZ, actor_yaw, actor_to_prop_pitch, actor_roll);
+        let forward = Transform::from_rotation(clamped_rotation).forward();
         // We can't cast a ray wrt an entire rigid body out of the box,
         // so we manually collect all colliders in the hierarchy and
         // construct a compound collider.
@@ -98,16 +100,42 @@ pub(super) fn update_object(
         // The 2013 code now additionally does `min_distance = (min_distance * 2) + 24
         // inches` That seems straight up bizarre, so I refuse to do that.
         let preferred_distance = preferred_distance.copied().unwrap_or_default().0;
-        // The 2013 code does `distance = preferred_distance + min_distance``
+        // The 2013 code does `max_distance = preferred_distance + min_distance`
         // which means that `preferred_distance` is the distance between the prop's
-        // edge and the actors's edge. Not wrong, but I think it's more intuitive
-        // to have the preferred distance be the distance between the prop's and
-        // actor's origins.
-        let distance = preferred_distance.max(min_distance);
+        // edge and the actors's edge. Expect psyche, actually `min_distance` gets
+        // deduced again at some point! I think it's more intuitive to have the
+        // preferred distance be the distance between the prop's and
+        // actor's origins if possible instead.
+        let max_distance = preferred_distance.max(min_distance);
 
-        let _target_rotation = preferred_rotation
+        let terrain_hit = spatial_query.cast_ray(
+            actor_position.0,
+            forward,
+            max_distance,
+            true,
+            &config.terrain_filter,
+        );
+        let distance = if let Some(terrain_hit) = terrain_hit {
+            let fraction = terrain_hit.time_of_impact / max_distance;
+            if fraction < 0.5 {
+                min_distance
+            } else {
+                max_distance
+            }
+        } else {
+            max_distance
+        };
+        // Pretty sure we don't need to go through the CalcClosestPointOnLine song and
+        // dance since we already have made sure that the prop has a sensible minimum
+        // distance
+        let target_position = actor_position.0 + forward * distance;
+
+        let target_rotation = preferred_rotation
             .map(|preferred| preferred.0)
             .unwrap_or(prop_rotation.0);
+
+        shadow.target_position = target_position;
+        shadow.target_rotation = target_rotation;
     }
 }
 
