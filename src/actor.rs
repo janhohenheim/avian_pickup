@@ -84,7 +84,7 @@ pub struct AvianPickupActor {
     /// determined by [`terrain_filter`](Self::terrain_filter).\
     /// If the actor is a rigid body, the distance used in that case is
     /// `max(collider_radius, min_distance)`.\
-    /// Default: 0.0 m
+    /// Default: 0.5 m
     pub min_distance: Scalar,
 }
 
@@ -118,7 +118,7 @@ impl Default for AvianPickupActor {
             cone: 0.97,
             max_mass: 35.0,
             pull_force: 100.0,
-            min_distance: 0.0,
+            min_distance: 0.5,
         }
     }
 }

@@ -158,19 +158,18 @@ fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Di
     const MAX_TOI: f32 = f32::INFINITY;
     // Needs to be false to not just get the origin back
     const SOLID: bool = false;
-    info!(
-        "rotation: {:?}, dir: {:?}",
-        rotation.to_euler(EulerRot::YXZ),
-        dir
-    );
     let hit = collider.cast_ray(TRANSLATION, rotation, origin, dir.into(), MAX_TOI, SOLID);
-    let (toi, _normal) = hit.expect(
-        "Casting a ray from inside a collider did not hit the collider itself.\n\
-        This means the compound collider we constructed is malformed.\n\
-        This is a bug. Please report it on `avian_pickup`s GitHub page.",
-    );
-    info!("toi: {:?}", toi);
-    toi
+
+    if let Some((toi, _normal)) = hit {
+        toi
+    } else {
+        // This should not be necessary, but it seems like a parry
+        // bug sometimes causes the hit to be `None` even though that should
+        // be impossible: https://discord.com/channels/691052431525675048/1124043933886976171/1275214643341561970
+        let aabb = collider.aabb(origin, rotation);
+        let longest_extent = (aabb.max / 2.).length();
+        longest_extent
+    }
 }
 
 #[cfg(test)]
