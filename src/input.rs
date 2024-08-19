@@ -58,7 +58,7 @@ fn set_verbs_according_to_input(
             Option<&AvianPickupActorState>,
             Option<&Cooldown>,
             Has<GlobalTransform>,
-            Has<RigidBody>,
+            Has<Collider>,
         ),
         With<AvianPickupActor>,
     >,
@@ -68,8 +68,7 @@ fn set_verbs_according_to_input(
         let kind = event.kind;
         let actor = event.actor;
         unhandled_actors.remove(&actor);
-        let Ok((_entity, state, cooldown, has_transform, has_rigid_body)) = q_actor.get(actor)
-        else {
+        let Ok((_entity, state, cooldown, has_transform, has_collider)) = q_actor.get(actor) else {
             error!(
                 "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
             );
@@ -79,7 +78,7 @@ fn set_verbs_according_to_input(
         // Doing these checks now so that later systems can just call `unwrap`
         let checks = [
             (has_transform, "GlobalTransform"),
-            (has_rigid_body, "RigidBody"),
+            (has_collider, "Collider"),
         ];
         for (has_component, component_name) in checks.iter() {
             if !has_component {

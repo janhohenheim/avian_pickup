@@ -34,6 +34,7 @@ fn setup(
         },
         AvianPickupActor::default(),
         RigidBody::Kinematic,
+        Collider::capsule(0.3, 1.2),
     ));
 
     commands.spawn((

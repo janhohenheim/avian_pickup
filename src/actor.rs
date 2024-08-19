@@ -21,7 +21,7 @@ pub(super) fn plugin(app: &mut App) {
 /// For a first-person game, add this to the camera entity that is under the
 /// player control.
 ///
-/// Requires the entity to also hold [`TransformBundle`].
+/// Requires the entity to also hold [`TransformBundle`] and a [`Collider`].
 ///
 /// # Example
 /// ```
@@ -33,6 +33,8 @@ pub(super) fn plugin(app: &mut App) {
 ///         Name::new("Player Camera"),
 ///         Camera3dBundle::default(),
 ///         AvianPickupActor::default(),
+///         Rigidbody::Kinematic,
+///         Collider::capsule(0.3, 1.2),
 ///     ));
 /// }
 /// ```
@@ -47,17 +49,10 @@ pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for objects to pick up.
     /// Default: All entities
     ///
-    /// For your convenience, the following entities will be added to the filter
-    /// automatically when the component is added:
-    /// - The [`AvianPickupActor`], if it is a [`Collider`]
-    /// - All descendants of the [`AvianPickupActor`] that are [`Collider`]s
-    ///
-    /// If the [`AvianPickupActor`] is a [`ColliderConstructorHierarchy`], the
-    /// entities will be added when the colliders have actually been
-    /// constructed.
-    ///
+    /// For your convenience, the actor's entity is automatically added to the
+    /// filter's `excluded_entities` set when this component is added.  
     /// In addition, all colliders that do not belong to a
-    /// [`RigidBody::Dynamic`] will implicitly be filtered out.
+    /// [`RigidBody::Dynamic`] will always be implicitly filtered out.
     pub spatial_query_filter: SpatialQueryFilter,
     /// How far an object can be pulled from in meters. Default: 3 m
     ///
@@ -128,6 +123,10 @@ impl Component for AvianPickupActor {
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(|mut world, targeted_entity, _component_id| {
+            {
+                let mut config = world.get_mut::<AvianPickupActor>(targeted_entity).unwrap();
+                config.spatial_query_filter.excluded_entities.insert(targeted_entity);
+            }
             let mut commands = world.commands();
             commands.entity(targeted_entity).insert((
                 AvianPickupActorState::default(),
