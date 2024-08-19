@@ -1,8 +1,9 @@
-use avian3d::math::Vector;
+use avian3d::{math::Vector, sync::ancestor_marker::AncestorMarker};
 use bevy::prelude::*;
 
 use super::{GrabParams, ShadowParams};
 use crate::{
+    math::rigid_body_compound_collider,
     prelude::*,
     verb::{Holding, SetVerb, Verb},
 };
@@ -44,6 +45,7 @@ pub(super) fn update_object(
         &mut GrabParams,
         &ShadowParams,
         &Holding,
+        &Position,
         &Rotation,
     )>,
     mut q_prop: Query<(
@@ -53,27 +55,35 @@ pub(super) fn update_object(
         &Position,
         &Rotation,
     )>,
+
+    q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
+    q_collider: Query<(&Position, &Rotation, &Collider), Without<Sensor>>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, _config, grab, _shadow, holding, actor_rotation) in q_actor.iter_mut() {
+    for (actor, _config, grab, _shadow, holding, actor_position, actor_rotation) in
+        q_actor.iter_mut()
+    {
         if grab.error > max_error {
             commands.entity(actor).add(SetVerb::new(Verb::Drop));
             continue;
         }
 
         let prop = holding.0;
-        let (preferred_rotation, preferred_distance, clamp_pitch, _position, rotation) =
+        let (preferred_rotation, preferred_distance, clamp_pitch, prop_position, prop_rotation) =
             q_prop.get_mut(prop).unwrap();
         let clamp_pitch = clamp_pitch.copied().unwrap_or_default();
 
         let actor_pitch = actor_rotation.to_euler(EulerRot::YXZ).1;
         let _actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
         let forward = Transform::from_rotation(actor_rotation.0).forward();
-        //let radial = collide_get_extent(forward);
+        let compound_collider =
+            rigid_body_compound_collider(prop, *actor_position, &q_collider_ancestor, &q_collider);
+        let radial = collide_get_extent(&compound_collider, Vec3::ZERO, prop_rotation.0, -forward);
+        info!("radial: {:?}", radial);
 
         let _target_rotation = preferred_rotation
             .map(|preferred| preferred.0)
-            .unwrap_or(rotation.0);
+            .unwrap_or(prop_rotation.0);
         let _target_distance = preferred_distance.copied().unwrap_or_default().0;
     }
 }
@@ -85,9 +95,14 @@ pub(super) fn update_object(
 fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Dir3) -> Vec3 {
     const TRANSLATION: Vec3 = Vec3::ZERO;
     // We cast from inside the collider, so we don't care about a max TOI
-    const MAX_TOI: f32 = f32::MAX;
+    const MAX_TOI: f32 = f32::INFINITY;
     // Needs to be false to not just get the origin back
     const SOLID: bool = false;
+    info!(
+        "translation: {:?}, rotation: {:?}, origin: {:?}, dir: {:?}",
+        TRANSLATION, rotation, origin, dir
+    );
+    info!("collider: {:?}", collider);
     let hit = collider.cast_ray(TRANSLATION, rotation, origin, dir.into(), MAX_TOI, SOLID);
     let (toi, _normal) = hit.expect("Casting a ray from inside a collider did not hit the collider itself. This seems like a bug in Avian.");
     dir * toi
