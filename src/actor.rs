@@ -50,7 +50,7 @@ pub struct AvianPickupActor {
     /// Default: All entities
     ///
     /// For your convenience, the actor's entity is automatically added to the
-    /// filter's `excluded_entities` set when this component is added.  
+    /// filter's `excluded_entities` set when this component is added.\
     /// In addition, all colliders that do not belong to a
     /// [`RigidBody::Dynamic`] will always be implicitly filtered out.
     pub spatial_query_filter: SpatialQueryFilter,
@@ -115,7 +115,10 @@ impl Component for AvianPickupActor {
         hooks.on_add(|mut world, targeted_entity, _component_id| {
             {
                 let mut config = world.get_mut::<AvianPickupActor>(targeted_entity).unwrap();
-                config.spatial_query_filter.excluded_entities.insert(targeted_entity);
+                config
+                    .spatial_query_filter
+                    .excluded_entities
+                    .insert(targeted_entity);
             }
             let mut commands = world.commands();
             commands.entity(targeted_entity).insert((

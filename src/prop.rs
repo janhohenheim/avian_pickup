@@ -6,7 +6,12 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 pub(super) mod prelude {
-    pub use super::{ClampPickupPitch, PreferredPickupDistance, PreferredPickupRotation, PickupMass};
+    pub use super::{
+        ClampPickupPitch,
+        PickupMass,
+        PreferredPickupDistance,
+        PreferredPickupRotation,
+    };
 }
 
 /// Insert this on an object to set its rotation when picked up.
@@ -24,12 +29,12 @@ pub(super) mod prelude {
 )]
 pub struct PreferredPickupRotation(pub Quat);
 
-/// Insert this on an object to clamp its pitch relative to the 
+/// Insert this on an object to clamp its pitch relative to the
 /// [`AvianPickupActor`](crate::prelude::AvianPickupActor)'s
 /// forward direction when picked up.
-/// 
+///
 /// If an object has no `ClampPickupPitch`, it will be held with a minimum pitch
-/// of -75 degrees and a maximum pitch of 75 degrees, each converted to radians. 
+/// of -75 degrees and a maximum pitch of 75 degrees, each converted to radians.
 #[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
@@ -39,11 +44,11 @@ pub struct PreferredPickupRotation(pub Quat);
 )]
 pub struct ClampPickupPitch {
     /// The minimum pitch the held object can have in radians with respect to
-    /// the actor's forward direction.  
+    /// the actor's forward direction.\
     ///  Default: (-75.0).to_radians()
     pub min: f32,
     /// The maximum pitch the held object can have in radians with respect to
-    /// the actor's forward direction.  
+    /// the actor's forward direction.\
     /// Default: 75.0.to_radians()
     pub max: f32,
 }
