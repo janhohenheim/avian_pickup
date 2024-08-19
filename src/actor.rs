@@ -85,7 +85,7 @@ pub struct AvianPickupActor {
     /// [`PreferredPickupDistance`](crate::prop::PreferredPickupDistance),
     /// but will fall back to this when there is terrain in the way as
     /// determined by [`terrain_filter`](Self::terrain_filter).\
-    /// If the actor has a collider, the distance used in that case is
+    /// If the actor is a rigid body, the distance used in that case is
     /// `max(collider_radius, min_distance)`.\
     /// Default: 0.0 m
     pub min_distance: Scalar,
