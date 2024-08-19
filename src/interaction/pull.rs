@@ -70,8 +70,9 @@ fn find_object(
             let pull_impulse = direction * config.pull_force * mass_adjustment;
             cooldown.pull();
             impulse.apply_impulse(pull_impulse);
-
-            *state = AvianPickupActorState::Pulling(rigid_body_entity);
+            if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {
+                *state = AvianPickupActorState::Pulling(rigid_body_entity);
+            }
         }
     }
 }
@@ -92,8 +93,8 @@ struct Prop {
     pub toi: f32,
 }
 
-fn flush_pulling_state(mut q_state: Query<(Mut<AvianPickupActorState>, &Cooldown)>) {
-    for (mut state, cooldown) in q_state.iter_mut() {
+fn flush_pulling_state(mut q_state: Query<(Mut<AvianPickupActorState>, Has<Pulling>, &Cooldown)>) {
+    for (mut state, has_pulling, cooldown) in q_state.iter_mut() {
         // Okay, so the basic idea is this:
         // Pulling happens in discrete impulses every n milliseconds.
         // New pulls happen regularly, but we should also reset to idle at some point.
@@ -103,11 +104,10 @@ fn flush_pulling_state(mut q_state: Query<(Mut<AvianPickupActorState>, &Cooldown
         // probably not what a user observing the state component would expect.
         // So, instead we set it to idle only if the cooldown is finished.
         //
-        // The reason we check for `is_changed` is that we run in `PostUpdate` by
-        // default, so we would change a newly set `Pulling` state to `Idle`
-        // immediately.
-        if !state.is_changed()
-            && matches!(state.as_ref(), AvianPickupActorState::Pulling(..))
+        // The reason we check for `!has_pulling` is that a missing `Pulling` means
+        // that no input was given to start / continue pulling during `Update`.
+        if matches!(state.as_ref(), AvianPickupActorState::Pulling(..))
+            && !has_pulling
             && cooldown.right.finished()
         {
             *state = AvianPickupActorState::Idle;
