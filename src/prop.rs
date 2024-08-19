@@ -20,6 +20,38 @@ pub(super) fn plugin(app: &mut App) {
 )]
 pub struct PreferredPickupRotation(pub Quat);
 
+/// Insert this on an object to clamp its pitch relative to the 
+/// [`AvianPickupActor`](crate::prelude::AvianPickupActor)'s
+/// forward direction when picked up.
+/// 
+/// If an object has no `ClampPickupPitch`, it will be held with a minimum pitch
+/// of -75 degrees and a maximum pitch of 75 degrees, each converted to radians. 
+#[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
+#[reflect(Debug, Component, PartialEq, Default)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct ClampPickupPitch {
+    /// The minimum pitch the held object can have in radians with respect to
+    /// the actor's forward direction.  
+    ///  Default: (-75.0).to_radians()
+    pub min: f32,
+    /// The maximum pitch the held object can have in radians with respect to
+    /// the actor's forward direction.  
+    /// Default: 75.0.to_radians()
+    pub max: f32,
+}
+impl Default for ClampPickupPitch {
+    fn default() -> Self {
+        Self {
+            min: (-75.0_f32).to_radians(),
+            max: 75.0_f32.to_radians(),
+        }
+    }
+}
+
 /// Insert this on an object to set its distance from the
 /// [`AvianPickupActor`](crate::prelude::AvianPickupActor) when picked up.
 ///

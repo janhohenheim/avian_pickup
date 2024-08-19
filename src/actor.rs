@@ -73,14 +73,6 @@ pub struct AvianPickupActor {
     ///
     /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
     pub pull_force: Scalar,
-    /// The minimum pitch the held object can have in radians with respect to
-    /// the actor's forward direction.  
-    ///  Default: (-75.0).to_radians()
-    pub min_pitch: f32,
-    /// The maximum pitch the held object can have in radians with respect to
-    /// the actor's forward direction.  
-    /// Default: 75.0.to_radians()
-    pub max_pitch: f32,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -112,8 +104,6 @@ impl Default for AvianPickupActor {
             cone: 0.97,
             max_mass: 35.0,
             pull_force: 100.0,
-            min_pitch: (-75.0_f32).to_radians(),
-            max_pitch: 75.0_f32.to_radians(),
         }
     }
 }

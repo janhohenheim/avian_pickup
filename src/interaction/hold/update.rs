@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use super::{GrabParams, ShadowParams};
 use crate::{
     prelude::*,
+    prop::ClampPickupPitch,
     verb::{Holding, SetVerb, Verb},
 };
 
@@ -49,25 +50,28 @@ pub(super) fn update_object(
     mut q_prop: Query<(
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistance>,
-        Option<&PickupMass>,
+        Option<&ClampPickupPitch>,
         &Position,
         &Rotation,
     )>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, config, grab, _shadow, holding, actor_rotation) in q_actor.iter_mut() {
+    for (actor, _config, grab, _shadow, holding, actor_rotation) in q_actor.iter_mut() {
         if grab.error > max_error {
             commands.entity(actor).add(SetVerb::new(Verb::Drop));
             continue;
         }
+
+        let prop = holding.0;
+        let (preferred_rotation, preferred_distance, clamp_pitch, _position, rotation) =
+            q_prop.get_mut(prop).unwrap();
+        let clamp_pitch = clamp_pitch.copied().unwrap_or_default();
+
         let actor_pitch = actor_rotation.to_euler(EulerRot::YXZ).1;
-        let _actor_to_prop_pitch = actor_pitch.clamp(config.min_pitch, config.max_pitch);
+        let _actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
         let forward = Transform::from_rotation(actor_rotation.0).forward();
         collide_get_extent(forward);
 
-        let prop = holding.0;
-        let (preferred_rotation, preferred_distance, _pickup_mass, _position, rotation) =
-            q_prop.get_mut(prop).unwrap();
         let _target_rotation = preferred_rotation
             .map(|preferred| preferred.0)
             .unwrap_or(rotation.0);
