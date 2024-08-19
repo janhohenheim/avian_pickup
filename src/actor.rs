@@ -1,3 +1,5 @@
+//! TODO
+
 use avian3d::{math::Scalar, prelude::*};
 use bevy::{
     ecs::component::{ComponentHooks, StorageType},
@@ -78,6 +80,15 @@ pub struct AvianPickupActor {
     ///
     /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
     pub pull_force: Scalar,
+    /// The minimum distance an object must be from the player when picked up.
+    /// Usually, the prop will try to stay at
+    /// [`PreferredPickupDistance`](crate::prop::PreferredPickupDistance),
+    /// but will fall back to this when there is terrain in the way as
+    /// determined by [`terrain_filter`](Self::terrain_filter).\
+    /// If the actor has a collider, the distance used in that case is
+    /// `max(collider_radius, min_distance)`.\
+    /// Default: 0.0 m
+    pub min_distance: Scalar,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -110,6 +121,7 @@ impl Default for AvianPickupActor {
             cone: 0.97,
             max_mass: 35.0,
             pull_force: 100.0,
+            min_distance: 0.0,
         }
     }
 }
@@ -119,10 +131,6 @@ impl Component for AvianPickupActor {
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(|mut world, targeted_entity, _component_id| {
-            {
-                let mut config = world.get_mut::<AvianPickupActor>(targeted_entity).unwrap();
-                config.prop_filter.excluded_entities.insert(targeted_entity);
-            }
             let mut commands = world.commands();
             commands.entity(targeted_entity).insert((
                 AvianPickupActorState::default(),

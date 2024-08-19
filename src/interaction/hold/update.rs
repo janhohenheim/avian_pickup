@@ -46,8 +46,7 @@ pub(super) fn update_object(
         &GrabParams,
         &mut ShadowParams,
         &Holding,
-        &Position,
-        &Rotation,
+        &GlobalTransform,
     )>,
     mut q_prop: Query<(
         Option<&PreferredPickupRotation>,
@@ -60,20 +59,19 @@ pub(super) fn update_object(
     q_collider: Query<(&Transform, &Collider), Without<Sensor>>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, config, grab, mut shadow, holding, actor_position, actor_rotation) in
-        q_actor.iter_mut()
-    {
+    for (actor, config, grab, mut shadow, holding, actor_transform) in q_actor.iter_mut() {
         if grab.error > max_error {
             commands.entity(actor).add(SetVerb::new(Verb::Drop));
             continue;
         }
+        let actor_transform = actor_transform.compute_transform();
 
         let prop = holding.0;
         let (preferred_rotation, preferred_distance, clamp_pitch, prop_rotation) =
             q_prop.get_mut(prop).unwrap();
         let clamp_pitch = clamp_pitch.copied().unwrap_or_default();
 
-        let (actor_yaw, actor_pitch, actor_roll) = actor_rotation.to_euler(EulerRot::YXZ);
+        let (actor_yaw, actor_pitch, actor_roll) = actor_transform.rotation.to_euler(EulerRot::YXZ);
         let actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
         let clamped_rotation =
             Quat::from_euler(EulerRot::YXZ, actor_yaw, actor_to_prop_pitch, actor_roll);
@@ -89,12 +87,17 @@ pub(super) fn update_object(
         let prop_radius_wrt_direction =
             collide_get_extent(&prop_collider, Vec3::ZERO, prop_rotation.0, -forward);
         let actor_collider = rigid_body_compound_collider(actor, &q_collider_ancestor, &q_collider);
-        let Some(actor_collider) = actor_collider else {
-            error!("AvianPickupActor does not have a collider in its hierarchy. Ignoring.");
-            continue;
+        let actor_radius_wrt_direction = if let Some(actor_collider) = actor_collider {
+            let min_distance_to_not_penetrate = collide_get_extent(
+                &actor_collider,
+                Vec3::ZERO,
+                actor_transform.rotation,
+                forward,
+            );
+            min_distance_to_not_penetrate.max(config.min_distance)
+        } else {
+            config.min_distance
         };
-        let actor_radius_wrt_direction =
-            collide_get_extent(&actor_collider, Vec3::ZERO, actor_rotation.0, forward);
 
         let min_distance = prop_radius_wrt_direction + actor_radius_wrt_direction;
         // The 2013 code now additionally does `min_distance = (min_distance * 2) + 24
@@ -109,7 +112,7 @@ pub(super) fn update_object(
         let max_distance = preferred_distance.max(min_distance);
 
         let terrain_hit = spatial_query.cast_ray(
-            actor_position.0,
+            actor_transform.translation,
             forward,
             max_distance,
             true,
@@ -128,8 +131,11 @@ pub(super) fn update_object(
         // Pretty sure we don't need to go through the CalcClosestPointOnLine song and
         // dance since we already have made sure that the prop has a sensible minimum
         // distance
-        let target_position = actor_position.0 + forward * distance;
+        let target_position = actor_transform.translation + forward * distance;
 
+        // TODO:
+        // - Apply this rotation relative to the player
+        // - Don't fall back to the current, but the initial rotation
         let target_rotation = preferred_rotation
             .map(|preferred| preferred.0)
             .unwrap_or(prop_rotation.0);
