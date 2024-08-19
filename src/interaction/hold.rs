@@ -10,13 +10,17 @@ pub(super) fn plugin(app: &mut App) {
     app.observe(on_hold::on_hold);
     app.get_schedule_mut(PhysicsSchedule).unwrap().add_systems(
         (
-            // This updates `error_time`, so we run it first to make sure 
-            // we look at the current time
-            simulate::simulate,
-            // update_error must always be before update_object
+            // Updates the error that `update_object` uses
             update::update_error,
             // Sets `error_time` to 0
             update::update_object,
+            // This updates `error_time`, so the `error_time` will always lag one frame behind.
+            // Dunno if that's intentional or a bug. Thanks, Valve?
+            // We are running this after `update_object` because otherwise the
+            // target position and rotation are outdated, which sound worse.
+            // Does anyone know whether `Simulate` or `ItemPreFrame` run first
+            // in the Source engine? Answers on a postcard, please.
+            simulate::simulate,
         )
             .chain()
             .in_set(HandleVerbSystem::Hold),

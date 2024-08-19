@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
 use super::{GrabParams, ShadowParams};
-use crate::{prelude::*, verb::Holding};
+use crate::{
+    prelude::*,
+    verb::{Holding, SetVerb, Verb},
+};
 
 /// CGrabController::ComputeError(),
 pub(super) fn update_error(
@@ -33,6 +36,15 @@ pub(super) fn update_error(
 
 /// CGrabController::UpdateObject
 pub(super) fn update_object(
+    mut commands: Commands,
+    mut q_actor: Query<(
+        Entity,
+        &AvianPickupActor,
+        &mut GrabParams,
+        &ShadowParams,
+        &Holding,
+        &Rotation,
+    )>,
     mut q_prop: Query<(
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistance>,
@@ -40,15 +52,16 @@ pub(super) fn update_object(
         &Position,
         &Rotation,
     )>,
-    mut q_actor: Query<(
-        &AvianPickupActorState,
-        &mut GrabParams,
-        &ShadowParams,
-        &Holding,
-    )>,
 ) {
-    let _max_error = 0.3048; // 12 inches in the source engine
-    for (_state, _grab, _shadow, holding) in q_actor.iter_mut() {
+    let max_error = 0.3048; // 12 inches in the source engine
+    for (actor, config, grab, _shadow, holding, actor_rotation) in q_actor.iter_mut() {
+        if grab.error > max_error {
+            commands.entity(actor).add(SetVerb::new(Verb::Drop));
+            continue;
+        }
+        let actor_pitch = actor_rotation.to_euler(EulerRot::YXZ).1;
+        let actor_to_prop_pitch = actor_pitch.clamp(config.min_pitch, config.max_pitch);
+
         let prop = holding.0;
         let (preferred_rotation, preferred_distance, _pickup_mass, _position, rotation) =
             q_prop.get_mut(prop).unwrap();

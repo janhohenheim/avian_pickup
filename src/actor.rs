@@ -1,4 +1,4 @@
-use avian3d::prelude::*;
+use avian3d::{math::Scalar, prelude::*};
 use bevy::{
     ecs::component::{ComponentHooks, StorageType},
     prelude::*,
@@ -62,7 +62,7 @@ pub struct AvianPickupActor {
     /// How far an object can be pulled from in meters. Default: 3 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
-    pub trace_length: f32,
+    pub trace_length: Scalar,
     /// Changes how wide the pickup range is, lower numbers are wider. This is a
     /// dot product value. Default: 0.97
     ///
@@ -72,12 +72,20 @@ pub struct AvianPickupActor {
     /// kg
     ///
     /// Corresponds to Source's [`physcannon_maxmass`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_maxmass).
-    pub max_mass: f32,
+    pub max_mass: Scalar,
     /// How much force to be used when pulling objects to the player.
     /// Default: 100.0 N
     ///
     /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
-    pub pull_force: f32,
+    pub pull_force: Scalar,
+    /// The minimum pitch the held object can have in radians with respect to
+    /// the actor's forward direction.  
+    ///  Default: (-75.0).to_radians()
+    pub min_pitch: f32,
+    /// The maximum pitch the held object can have in radians with respect to
+    /// the actor's forward direction.  
+    /// Default: 75.0.to_radians()
+    pub max_pitch: f32,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -111,6 +119,8 @@ impl Default for AvianPickupActor {
             cone: 0.97,
             max_mass: 35.0,
             pull_force: 100.0,
+            min_pitch: (-75.0_f32).to_radians(),
+            max_pitch: 75.0_f32.to_radians(),
         }
     }
 }
