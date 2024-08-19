@@ -1,4 +1,4 @@
-use avian3d::{math::Vector, sync::ancestor_marker::AncestorMarker};
+use avian3d::sync::ancestor_marker::AncestorMarker;
 use bevy::prelude::*;
 
 use super::{GrabParams, ShadowParams};
@@ -152,11 +152,33 @@ fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Di
     const MAX_TOI: f32 = f32::INFINITY;
     // Needs to be false to not just get the origin back
     const SOLID: bool = false;
+    info!(
+        "rotation: {:?}, dir: {:?}",
+        rotation.to_euler(EulerRot::YXZ),
+        dir
+    );
     let hit = collider.cast_ray(TRANSLATION, rotation, origin, dir.into(), MAX_TOI, SOLID);
     let (toi, _normal) = hit.expect(
         "Casting a ray from inside a collider did not hit the collider itself.\n\
         This means the compound collider we constructed is malformed.\n\
         This is a bug. Please report it on `avian_pickup`s GitHub page.",
     );
+    info!("toi: {:?}", toi);
     toi
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_collide_get_extent() {
+        let collider = Collider::capsule(0.3, 1.2);
+        let rot = Quat::from_euler(EulerRot::YXZ, -0.014999974, -0.07314853, 0.);
+        let dir = Vec3::new(0.014959301, -0.073083326, -0.9972137)
+            .try_into()
+            .unwrap();
+        let extent = collide_get_extent(&collider, Vec3::ZERO, rot, dir);
+        assert_eq!(extent, 0.3);
+    }
 }

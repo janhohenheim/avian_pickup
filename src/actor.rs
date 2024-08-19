@@ -26,6 +26,7 @@ pub(super) fn plugin(app: &mut App) {
 /// # Example
 /// ```
 /// # use avian_pickup::prelude::*;
+/// # use avian3d::prelude::*;
 /// # use bevy::prelude::*;
 ///
 /// fn setup_camera(mut commands: Commands) {

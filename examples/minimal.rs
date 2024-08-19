@@ -1,6 +1,6 @@
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
-use bevy::{color::palettes::tailwind, prelude::*};
+use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 fn main() {
@@ -13,7 +13,7 @@ fn main() {
             AvianPickupPlugin::default(),
         ))
         .add_systems(Startup, setup)
-        .add_systems(Update, handle_input)
+        .add_systems(Update, (handle_input, rotate_camera))
         .add_systems(PhysicsSchedule, debug.in_set(AvianPickupSystem::Last))
         .run();
 }
@@ -124,6 +124,22 @@ fn handle_input(
             kind: AvianPickupInputKind::PressedR,
             actor,
         });
+    }
+}
+
+fn rotate_camera(
+    mut mouse_motion: EventReader<MouseMotion>,
+    mut camera: Query<&mut Transform, With<Camera>>,
+) {
+    let Ok(mut transform) = camera.get_single_mut() else {
+        return;
+    };
+    for motion in mouse_motion.read() {
+        let yaw = -motion.delta.x * 0.003;
+        let pitch = -motion.delta.y * 0.002;
+        // Order of rotations is important, see <https://gamedev.stackexchange.com/a/136175/103059>
+        transform.rotate_y(yaw);
+        transform.rotate_local_x(pitch);
     }
 }
 
