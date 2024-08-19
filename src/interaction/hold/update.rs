@@ -57,7 +57,7 @@ pub(super) fn update_object(
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: Query<(&Position, &Rotation, &Collider), Without<Sensor>>,
+    q_collider: Query<(&Transform, &Collider), Without<Sensor>>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, _config, grab, _shadow, holding, actor_position, actor_rotation) in
@@ -77,9 +77,12 @@ pub(super) fn update_object(
         let _actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
         let forward = Transform::from_rotation(actor_rotation.0).forward();
         let compound_collider =
-            rigid_body_compound_collider(prop, *actor_position, &q_collider_ancestor, &q_collider);
+            rigid_body_compound_collider(prop, &q_collider_ancestor, &q_collider);
+        let Some(compound_collider) = compound_collider else {
+            error!("Held prop does not have a collider in its hierarchy. Ignoring.");
+            continue;
+        };
         let radial = collide_get_extent(&compound_collider, Vec3::ZERO, prop_rotation.0, -forward);
-        info!("radial: {:?}", radial);
 
         let _target_rotation = preferred_rotation
             .map(|preferred| preferred.0)
@@ -92,18 +95,19 @@ pub(super) fn update_object(
 /// but we can only do that for convex shapes in parry. Notably, compound shapes
 /// made of convex shapes are not supported.\
 /// So, we instead just cast a ray in the direction and get the hit point.
+/// Since the original code multiplies the directoin by the dot product of
+/// the direction and the support point, it looks like the result is the same.
 fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Dir3) -> Vec3 {
     const TRANSLATION: Vec3 = Vec3::ZERO;
     // We cast from inside the collider, so we don't care about a max TOI
     const MAX_TOI: f32 = f32::INFINITY;
     // Needs to be false to not just get the origin back
     const SOLID: bool = false;
-    info!(
-        "translation: {:?}, rotation: {:?}, origin: {:?}, dir: {:?}",
-        TRANSLATION, rotation, origin, dir
-    );
-    info!("collider: {:?}", collider);
     let hit = collider.cast_ray(TRANSLATION, rotation, origin, dir.into(), MAX_TOI, SOLID);
-    let (toi, _normal) = hit.expect("Casting a ray from inside a collider did not hit the collider itself. This seems like a bug in Avian.");
+    let (toi, _normal) = hit.expect(
+        "Casting a ray from inside a collider did not hit the collider itself.\n\
+        This means the compound collider we constructed is malformed.\n\
+        This is a bug. Please report it on `avian_pickup`s GitHub page.",
+    );
     dir * toi
 }
