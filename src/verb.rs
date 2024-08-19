@@ -87,7 +87,9 @@ fn set_verb(
         None => {
             commands
                 .entity(actor)
-                .remove::<(Throwing, Dropping, Pulling, Holding)>();
+                // Do *not* remove `Holding` here, as it can only be replaced by either `Throwing`
+                // or `Dropping`.
+                .remove::<(Throwing, Dropping, Pulling)>();
         }
     }
 }

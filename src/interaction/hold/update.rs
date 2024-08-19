@@ -57,7 +57,6 @@ pub(super) fn update_object(
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, config, grab, _shadow, holding, actor_rotation) in q_actor.iter_mut() {
         if grab.error > max_error {
-            info!("error: {}, max_error: {}", grab.error, max_error);
             commands.entity(actor).add(SetVerb::new(Verb::Drop));
             continue;
         }
