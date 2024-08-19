@@ -5,6 +5,10 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<(PreferredPickupRotation, PickupMass)>();
 }
 
+pub(super) mod prelude {
+    pub use super::{ClampPickupPitch, PreferredPickupDistance, PreferredPickupRotation, PickupMass};
+}
+
 /// Insert this on an object to set its rotation when picked up.
 /// Useful for e.g. making sure that a telephone you pick up is always held
 /// facing the player.
@@ -94,5 +98,7 @@ impl Default for PickupMass {
     }
 }
 
+/// The cached mass that an object had before it was picked up
+/// that will be restored when it is dropped.
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub(crate) struct NonPickupMass(pub Scalar);

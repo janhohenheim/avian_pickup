@@ -5,12 +5,12 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
-mod actor;
+pub mod actor;
 mod cooldown;
-mod input;
+pub mod input;
 mod interaction;
 mod math;
-mod prop;
+pub mod prop;
 mod verb;
 
 /// Everything you need to get started with Avian Pickup.
@@ -21,7 +21,7 @@ pub mod prelude {
     pub use crate::{
         actor::prelude::*,
         input::prelude::*,
-        prop::{PickupMass, PreferredPickupDistance, PreferredPickupRotation},
+        prop::prelude::*,
         AvianPickupPlugin,
         AvianPickupSystem,
     };

@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use super::{GrabParams, ShadowParams};
 use crate::{
     prelude::*,
-    prop::ClampPickupPitch,
     verb::{Holding, SetVerb, Verb},
 };
 
