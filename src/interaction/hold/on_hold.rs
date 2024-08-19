@@ -8,7 +8,7 @@ pub(super) fn on_hold(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
     mut q_actor: Query<(&mut AvianPickupActorState, &mut GrabParams, &Holding)>,
-    mut q_prop: Query<(Option<&PickupMass>, &mut Mass)>,
+    mut q_prop: Query<(Option<&PickupMass>, Option<&mut NonPickupMass>, &mut Mass)>,
 ) {
     let actor = trigger.entity();
     let (mut state, mut grab, holding) = q_actor.get_mut(actor).unwrap();
@@ -16,9 +16,15 @@ pub(super) fn on_hold(
     *state = AvianPickupActorState::Holding(prop);
     // Safety: All props are rigid bodies, so they are guaranteed to have a
     // `Rotation` and `Rotation`.
-    let (pickup_mass, mut mass) = q_prop.get_mut(prop).unwrap();
+    let (pickup_mass, non_pickup_mass, mut mass) = q_prop.get_mut(prop).unwrap();
     let new_mass = pickup_mass.copied().unwrap_or_default().0;
-    commands.entity(prop).insert(NonPickupMass(mass.0));
+    if let Some(mut non_pickup_mass) = non_pickup_mass {
+        non_pickup_mass.0 = mass.0;
+    } else {
+        // This has some overhead, even if it only overwrites the existing component,
+        // so let's try to avoid it if possible
+        commands.entity(prop).insert(NonPickupMass(mass.0));
+    }
     mass.0 = new_mass;
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me
