@@ -30,10 +30,6 @@ pub(super) fn update_error(
             // but idk.
             error *= 0.5;
         }
-        info!(
-            "last_error: {}, error: {}, speed: {}, time: {}",
-            grab.error, error, speed, grab.error_time
-        );
         grab.error = grab.error.lerp(error, grab.error_time);
         grab.error_time = 0.0;
     }
