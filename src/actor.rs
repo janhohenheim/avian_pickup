@@ -107,8 +107,6 @@ pub enum AvianPickupActorState {
     Pulling(Entity),
     /// The actor is holding an object.
     Holding(Entity),
-    /// The actor is throwing an object.
-    Throwing(Entity),
 }
 
 impl Default for AvianPickupActor {

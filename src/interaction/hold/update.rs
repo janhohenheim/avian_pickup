@@ -1,3 +1,4 @@
+use avian3d::math::Vector;
 use bevy::prelude::*;
 
 use super::{GrabParams, ShadowParams};
@@ -56,11 +57,14 @@ pub(super) fn update_object(
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, config, grab, _shadow, holding, actor_rotation) in q_actor.iter_mut() {
         if grab.error > max_error {
+            info!("error: {}, max_error: {}", grab.error, max_error);
             commands.entity(actor).add(SetVerb::new(Verb::Drop));
             continue;
         }
         let actor_pitch = actor_rotation.to_euler(EulerRot::YXZ).1;
-        let actor_to_prop_pitch = actor_pitch.clamp(config.min_pitch, config.max_pitch);
+        let _actor_to_prop_pitch = actor_pitch.clamp(config.min_pitch, config.max_pitch);
+        let forward = Transform::from_rotation(actor_rotation.0).forward();
+        collide_get_extent(forward);
 
         let prop = holding.0;
         let (preferred_rotation, preferred_distance, _pickup_mass, _position, rotation) =
@@ -70,4 +74,11 @@ pub(super) fn update_object(
             .unwrap_or(rotation.0);
         let _target_distance = preferred_distance.copied().unwrap_or_default().0;
     }
+}
+
+fn collide_get_extent(dir: Dir3) {
+    let collider = Collider::cuboid(1.0, 1.0, 1.0);
+    let support_map = collider.shape().as_support_map().unwrap();
+    let extent = support_map.support_point(&default(), &Vector::from(-dir).into());
+    info!("extent: {extent:?}");
 }

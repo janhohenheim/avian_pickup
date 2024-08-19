@@ -1,3 +1,4 @@
+use avian3d::prelude::*;
 use bevy::{prelude::*, utils::HashSet};
 
 use crate::{
@@ -55,18 +56,20 @@ fn set_verbs_according_to_input(
         (
             Entity,
             Option<&AvianPickupActorState>,
-            Has<Cooldown>,
+            Option<&Cooldown>,
             Has<GlobalTransform>,
+            Has<RigidBody>,
         ),
         With<AvianPickupActor>,
     >,
 ) {
     let mut unhandled_actors: HashSet<_> = q_actor.iter().map(|(entity, ..)| entity).collect();
-    for &event in r_input.read() {
+    'outer: for &event in r_input.read() {
         let kind = event.kind;
         let actor = event.actor;
         unhandled_actors.remove(&actor);
-        let Ok((_entity, state, has_cooldown, has_transform)) = q_actor.get(actor) else {
+        let Ok((_entity, state, cooldown, has_transform, has_rigid_body)) = q_actor.get(actor)
+        else {
             error!(
                 "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
             );
@@ -75,15 +78,15 @@ fn set_verbs_according_to_input(
 
         // Doing these checks now so that later systems can just call `unwrap`
         let checks = [
-            (has_cooldown, "Cooldown"),
             (has_transform, "GlobalTransform"),
+            (has_rigid_body, "RigidBody"),
         ];
         for (has_component, component_name) in checks.iter() {
             if !has_component {
                 error!(
                     "`AvianPickupEvent` was triggered on an entity without `{component_name}`. Ignoring."
                 );
-                continue;
+                continue 'outer;
             }
         }
         let Some(&state) = state else {
@@ -93,10 +96,17 @@ fn set_verbs_according_to_input(
             continue;
         };
 
+        let Some(cooldown) = cooldown else {
+            error!("`AvianPickupEvent` was triggered on an entity without `Cooldown`. Ignoring.");
+            continue;
+        };
+
         let verb = match kind {
-            AvianPickupInputKind::JustPressedL => Some(Verb::Throw),
+            AvianPickupInputKind::JustPressedL if cooldown.left.finished() => Some(Verb::Throw),
+            AvianPickupInputKind::JustPressedL => None,
             AvianPickupInputKind::JustPressedR
-                if matches!(state, AvianPickupActorState::Holding(..)) =>
+                if matches!(state, AvianPickupActorState::Holding(..))
+                    && cooldown.right.finished() =>
             {
                 Some(Verb::Drop)
             }
@@ -104,7 +114,8 @@ fn set_verbs_according_to_input(
                 if matches!(
                     state,
                     AvianPickupActorState::Idle | AvianPickupActorState::Pulling(..)
-                ) {
+                ) && cooldown.right.finished()
+                {
                     Some(Verb::Pull)
                 } else {
                     None

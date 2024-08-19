@@ -8,9 +8,6 @@ pub(super) fn plugin(app: &mut App) {
 
 fn drop(mut q_state: Query<(&mut AvianPickupActorState, &mut Cooldown), With<Dropping>>) {
     for (mut state, mut cooldown) in q_state.iter_mut() {
-        if !cooldown.right.finished() {
-            continue;
-        }
         *state = AvianPickupActorState::Idle;
         info!("Drop!");
         cooldown.drop();

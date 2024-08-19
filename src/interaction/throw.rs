@@ -7,10 +7,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn throw(mut q_actor: Query<&mut Cooldown, With<Throwing>>) {
-    for cooldown in q_actor.iter_mut() {
-        if !cooldown.left.finished() {
-            continue;
-        }
+    for _cooldown in q_actor.iter_mut() {
         // Todo: cooldown.throw();
         info!("Throw!");
     }
