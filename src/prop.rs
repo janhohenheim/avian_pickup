@@ -63,6 +63,7 @@ impl Default for ClampPickupPitch {
 
 /// Insert this on an object to set its distance from the
 /// [`AvianPickupActor`](crate::prelude::AvianPickupActor) when picked up.
+/// "distance" refers to the distance between the player and the object's OBBs.
 ///
 /// If an object has no `PreferredPickupDistance`, it will be held at 1.5 meters
 /// from the player.

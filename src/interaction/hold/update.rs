@@ -69,7 +69,7 @@ pub(super) fn update_object(
         let actor_pitch = actor_rotation.to_euler(EulerRot::YXZ).1;
         let _actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
         let forward = Transform::from_rotation(actor_rotation.0).forward();
-        collide_get_extent(forward);
+        //let radial = collide_get_extent(forward);
 
         let _target_rotation = preferred_rotation
             .map(|preferred| preferred.0)
@@ -78,9 +78,17 @@ pub(super) fn update_object(
     }
 }
 
-fn collide_get_extent(dir: Dir3) {
-    let collider = Collider::cuboid(1.0, 1.0, 1.0);
-    let support_map = collider.shape().as_support_map().unwrap();
-    let extent = support_map.support_point(&default(), &Vector::from(-dir).into());
-    info!("extent: {extent:?}");
+/// The original code gets the support point of the collider in the direction,
+/// but we can only do that for convex shapes in parry. Notably, compound shapes
+/// made of convex shapes are not supported.\
+/// So, we instead just cast a ray in the direction and get the hit point.
+fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Dir3) -> Vec3 {
+    const TRANSLATION: Vec3 = Vec3::ZERO;
+    // We cast from inside the collider, so we don't care about a max TOI
+    const MAX_TOI: f32 = f32::MAX;
+    // Needs to be false to not just get the origin back
+    const SOLID: bool = false;
+    let hit = collider.cast_ray(TRANSLATION, rotation, origin, dir.into(), MAX_TOI, SOLID);
+    let (toi, _normal) = hit.expect("Casting a ray from inside a collider did not hit the collider itself. This seems like a bug in Avian.");
+    dir * toi
 }

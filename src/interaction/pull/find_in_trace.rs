@@ -6,17 +6,19 @@ pub(super) fn find_prop_in_trace(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
+    q_sensor: &Query<(), With<Sensor>>,
 ) -> Option<Prop> {
     const MAGIC_FACTOR_ASK_VALVE: f32 = 4.0;
     // trace_length already has `METERS_PER_INCH` baked in by being in SI units,
     // so no need to multiply the magic factor by `METERS_PER_INCH` here
     let test_length = config.trace_length * MAGIC_FACTOR_ASK_VALVE;
-    let hit = spatial_query.cast_ray(
+    let hit = spatial_query.cast_ray_predicate(
         origin.translation,
         origin.forward(),
         test_length,
         true,
         &config.spatial_query_filter,
+        &|entity| !q_sensor.contains(entity),
     );
 
     if let Some(hit) = hit {

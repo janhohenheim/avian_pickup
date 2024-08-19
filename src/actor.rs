@@ -49,10 +49,11 @@ pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for objects to pick up.
     /// Default: All entities
     ///
-    /// For your convenience, the actor's entity is automatically added to the
-    /// filter's `excluded_entities` set when this component is added.\
-    /// In addition, all colliders that do not belong to a
-    /// [`RigidBody::Dynamic`] will always be implicitly filtered out.
+    /// For your convenience, the following entities are always implicitly
+    /// ignored:
+    /// - The actor's entity
+    /// - All colliders that do not belong to a [`RigidBody::Dynamic`]
+    /// - All [`Sensor`]s
     pub spatial_query_filter: SpatialQueryFilter,
     /// How far an object can be pulled from in meters. Default: 3 m
     ///
