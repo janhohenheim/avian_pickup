@@ -17,7 +17,7 @@ pub(super) fn plugin(app: &mut App) {
             // This updates `error_time`, so the `error_time` will always lag one frame behind.
             // Dunno if that's intentional or a bug. Thanks, Valve?
             // We are running this after `update_object` because otherwise the
-            // target position and rotation are outdated, which sound worse.
+            // target position and rotation are outdated, which sounds worse.
             // Does anyone know whether `Simulate` or `ItemPreFrame` run first
             // in the Source engine? Answers on a postcard, please.
             simulate::simulate,
