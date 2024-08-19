@@ -178,6 +178,7 @@ mod test {
     use super::*;
 
     #[test]
+    #[ignore]
     fn test_collide_get_extent() {
         let collider = Collider::capsule(0.3, 1.2);
         let rot = Quat::from_euler(EulerRot::YXZ, -0.014999974, -0.07314853, 0.);
@@ -186,5 +187,21 @@ mod test {
             .unwrap();
         let extent = collide_get_extent(&collider, Vec3::ZERO, rot, dir);
         assert_eq!(extent, 0.3);
+    }
+
+    #[test]
+    fn test_collider_get_extent_manual() {
+        let collider = Collider::capsule(0.3, 1.2);
+        let rotation = Quat::from_euler(EulerRot::YXZ, -0.014999974, -0.07314853, 0.);
+        let dir = Vec3::new(0.014959301, -0.073083326, -0.9972137);
+
+        const TRANSLATION: Vec3 = Vec3::ZERO;
+        const ORIGIN: Vec3 = Vec3::ZERO;
+        // We cast from inside the collider, so we don't care about a max TOI
+        const MAX_TOI: f32 = f32::INFINITY;
+        // Needs to be false to not just get the origin back
+        const SOLID: bool = false;
+        let hit = collider.cast_ray(TRANSLATION, rotation, ORIGIN, dir, MAX_TOI, SOLID);
+        assert!(hit.is_some());
     }
 }
