@@ -108,7 +108,7 @@ pub enum AvianPickupSystem {
     /// [`AvianPickupActorState::Idle`](crate::prelude::AvianPickupActorState::Idle)
     /// if needed
     ResetIdle,
-    /// Performs spatial queries.
+    /// Advances internal cooldown timers.
     TickTimers,
     /// Runs at the end of the [`AvianPickupSystem`]. Empty by default.
     Last,
