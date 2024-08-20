@@ -303,7 +303,7 @@ checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
 [[package]]
 name = "avian3d"
 version = "0.1.2"
-source = "git+https://github.com/Jondolf/avian?branch=main#4d082a79fd30078e5b536ae23656f690091ae285"
+source = "git+https://github.com/Jondolf/avian#f2dec36955719a080918b935be026f8a6d7af3fc"
 dependencies = [
  "avian_derive",
  "bevy",
@@ -322,7 +322,7 @@ dependencies = [
 [[package]]
 name = "avian_derive"
 version = "0.1.0"
-source = "git+https://github.com/Jondolf/avian?branch=main#4d082a79fd30078e5b536ae23656f690091ae285"
+source = "git+https://github.com/Jondolf/avian#f2dec36955719a080918b935be026f8a6d7af3fc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -336,6 +336,7 @@ dependencies = [
  "avian3d",
  "bevy",
  "bevy-inspector-egui",
+ "bevy_transform_interpolation",
  "serde",
 ]
 
@@ -1148,6 +1149,14 @@ dependencies = [
  "bevy_reflect",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "bevy_transform_interpolation"
+version = "0.1.0"
+source = "git+https://github.com/Jondolf/bevy_transform_interpolation#93b7036f754aa86ec03fb1b728677163c82fbf88"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]

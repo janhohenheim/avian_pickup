@@ -1,9 +1,10 @@
-use core::f32;
+use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_transform_interpolation::*;
 
 fn main() {
     App::new()
@@ -13,6 +14,11 @@ fn main() {
             PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),
             AvianPickupPlugin::default(),
+            TransformInterpolationPlugin {
+                global_translation_interpolation: true,
+                global_rotation_interpolation: true,
+                global_scale_interpolation: true,
+            },
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, (handle_input, rotate_camera))
@@ -121,7 +127,7 @@ fn rotate_camera(
         transform.rotate_y(delta_yaw);
 
         // Add pitch
-        const PITCH_LIMIT: f32 = f32::consts::FRAC_PI_2 - 0.01;
+        const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
         let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
         let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
         transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
