@@ -35,6 +35,7 @@ fn setup(
             ..default()
         },
         AvianPickupActor::default(),
+        RigidBody::Kinematic,
     ));
 
     commands.spawn((
