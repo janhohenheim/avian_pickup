@@ -27,7 +27,6 @@ pub(super) fn set_velocities(
         let (mut velocity, mut angvel, position, rotation) = q_prop.get_mut(prop).unwrap();
 
         let delta_position = shadow.target_position - position.0;
-        info!("position: {:?}", position.0);
 
         let delta_rotation = shadow.target_rotation * rotation.0.inverse();
         let (axis, angle) = delta_rotation.to_axis_angle();

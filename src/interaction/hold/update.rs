@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 use super::{GrabParams, ShadowParams};
 use crate::{
-    math::rigid_body_compound_collider,
+    math::{rigid_body_compound_collider, GetBestGlobalTransform},
     prelude::*,
     prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},
@@ -50,8 +50,8 @@ pub(super) fn update_object(
         &GrabParams,
         &mut ShadowParams,
         &Holding,
-        &GlobalTransform,
     )>,
+    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &Rotation,
         Option<&PrePickupRotation>,
@@ -64,13 +64,13 @@ pub(super) fn update_object(
     q_collider: Query<(&Transform, &Collider), Without<Sensor>>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, config, grab, mut shadow, holding, actor_transform) in q_actor.iter_mut() {
+    for (actor, config, grab, mut shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
         if grab.error > max_error {
             commands.entity(actor).add(SetVerb::new(Verb::Drop(prop)));
             continue;
         }
-        let actor_transform = actor_transform.compute_transform();
+        let actor_transform = q_actor_transform.get_best_global_transform(actor);
 
         // Safety: All props are rigid bodies, so they are guaranteed to have a
         // `Rotation`.

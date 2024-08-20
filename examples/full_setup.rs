@@ -4,6 +4,7 @@ use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_transform_interpolation::*;
 
 fn main() {
     App::new()
@@ -13,11 +14,28 @@ fn main() {
             PhysicsPlugins::default(),
             //PhysicsDebugPlugin::default(),
             AvianPickupPlugin::default(),
+            TransformInterpolationPlugin {
+                global_translation_interpolation: true,
+                global_rotation_interpolation: true,
+                global_scale_interpolation: true,
+            },
         ))
         .add_systems(Startup, setup)
-        .add_systems(Update, (handle_input, rotate_camera))
+        .add_systems(Update, (read_pickup_input, read_camera_input))
+        .add_systems(
+            PhysicsSchedule,
+            rotate_camera.in_set(AvianPickupSystem::First),
+        )
         .add_systems(PhysicsSchedule, debug.in_set(AvianPickupSystem::Last))
         .run();
+}
+
+#[derive(Debug, PhysicsLayer)]
+enum ColliderLayer {
+    Default,
+    Player,
+    Prop,
+    Terrain,
 }
 
 fn setup(
@@ -34,7 +52,21 @@ fn setup(
             transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_at(-Vec3::Z, Vec3::Y),
             ..default()
         },
-        AvianPickupActor::default(),
+        AvianPickupActor {
+            prop_filter: SpatialQueryFilter::from_mask(ColliderLayer::Prop),
+            terrain_filter: SpatialQueryFilter::from_mask(ColliderLayer::Terrain),
+            ..default()
+        },
+        RotateCamera::default(),
+        Collider::capsule(0.3, 1.2),
+        CollisionLayers::new(
+            ColliderLayer::Player,
+            [
+                ColliderLayer::Default,
+                ColliderLayer::Prop,
+                ColliderLayer::Terrain,
+            ],
+        ),
     ));
 
     commands.spawn((
@@ -61,6 +93,14 @@ fn setup(
         },
         RigidBody::Static,
         Collider::from(ground_shape),
+        CollisionLayers::new(
+            ColliderLayer::Terrain,
+            [
+                ColliderLayer::Default,
+                ColliderLayer::Prop,
+                ColliderLayer::Player,
+            ],
+        ),
     ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
@@ -74,10 +114,18 @@ fn setup(
         },
         RigidBody::Dynamic,
         Collider::from(box_shape),
+        CollisionLayers::new(
+            ColliderLayer::Prop,
+            [
+                ColliderLayer::Default,
+                ColliderLayer::Terrain,
+                ColliderLayer::Player,
+            ],
+        ),
     ));
 }
 
-fn handle_input(
+fn read_pickup_input(
     mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
     key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
@@ -105,17 +153,30 @@ fn handle_input(
     }
 }
 
-fn rotate_camera(
+#[derive(Debug, Default, Component)]
+struct RotateCamera(Vec2);
+
+fn read_camera_input(
     mut mouse_motion: EventReader<MouseMotion>,
-    mut camera: Query<&mut Transform, With<Camera>>,
+    mut rotate_camera: Query<&mut RotateCamera>,
 ) {
-    let Ok(mut transform) = camera.get_single_mut() else {
-        return;
-    };
-    for motion in mouse_motion.read() {
+    for mut rotate in rotate_camera.iter_mut() {
+        rotate.0 = Vec2::ZERO;
+        for motion in mouse_motion.read() {
+            rotate.0 += motion.delta;
+        }
+    }
+}
+
+fn rotate_camera(time: Res<Time>, mut camera: Query<(&mut Transform, &RotateCamera)>) {
+    let dt = time.delta_seconds();
+    let x_sensitive = 0.08;
+    let y_sensitive = 0.05;
+    for (mut transform, rotate) in camera.iter_mut() {
+        let motion = rotate.0;
         // The factors are just arbitrary mouse sensitivity values.
-        let delta_yaw = -motion.delta.x * 0.003;
-        let delta_pitch = -motion.delta.y * 0.002;
+        let delta_yaw = -motion.x * dt * x_sensitive;
+        let delta_pitch = -motion.y * dt * y_sensitive;
 
         // Add yaw
         transform.rotate_y(delta_yaw);

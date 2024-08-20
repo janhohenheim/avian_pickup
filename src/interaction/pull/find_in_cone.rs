@@ -6,8 +6,7 @@ pub(super) fn find_prop_in_cone(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
-    q_transform: &Query<&GlobalTransform>,
-    q_sensor: &Query<(), With<Sensor>>,
+    q_collider: &Query<&Position, Without<Sensor>>,
 ) -> Option<Prop> {
     const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0 * METERS_PER_INCH;
     let mut nearest_dist = config.trace_length + MAGIC_OFFSET_ASK_VALVE;
@@ -20,7 +19,7 @@ pub(super) fn find_prop_in_cone(
         origin.rotation,
         &config.prop_filter,
         |entity| {
-            if !q_sensor.contains(entity) {
+            if q_collider.contains(entity) {
                 colliders.push(entity);
             }
             true
@@ -29,8 +28,8 @@ pub(super) fn find_prop_in_cone(
     let mut canditate = None;
 
     for collider in colliders {
-        // Unwrap cannot fail: colliders are guarateed to have a `GlobalTransform`
-        let object_translation = q_transform.get(collider).unwrap().translation();
+        // Safety: this collection only contains entities that are contained in `q_collider`
+        let object_translation = q_collider.get(collider).unwrap().0;
 
         // Closer than other objects
         let los = object_translation - origin.translation;

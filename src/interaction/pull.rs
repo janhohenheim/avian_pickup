@@ -1,4 +1,5 @@
 use crate::{
+    math::GetBestGlobalTransform,
     prelude::*,
     verb::{Pulling, SetVerb, Verb},
 };
@@ -23,31 +24,30 @@ fn find_object(
     mut q_actor: Query<
         (
             Entity,
-            &GlobalTransform,
             &AvianPickupActor,
             &mut AvianPickupActorState,
             &mut Cooldown,
         ),
         With<Pulling>,
     >,
-    q_collider: Query<&ColliderParent>,
-    mut q_rigid_body: Query<(&RigidBody, &Mass, &mut ExternalImpulse, &GlobalTransform)>,
-    q_transform: Query<&GlobalTransform>,
-    q_sensor: Query<(), With<Sensor>>,
+    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
+    q_collider_parent: Query<&ColliderParent>,
+    mut q_rigid_body: Query<(&RigidBody, &Mass, &mut ExternalImpulse, &Position)>,
+    q_collider: Query<&Position, Without<Sensor>>,
 ) {
-    for (actor, origin, config, mut state, mut cooldown) in q_actor.iter_mut() {
-        let origin = origin.compute_transform();
-        let prop = find_prop_in_trace(&spatial_query, origin, config, &q_sensor)
-            .or_else(|| find_prop_in_cone(&spatial_query, origin, config, &q_transform, &q_sensor));
+    for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
+        let actor_transform = q_actor_transform.get_best_global_transform(actor);
+        let prop = find_prop_in_trace(&spatial_query, actor_transform, config, &q_collider)
+            .or_else(|| find_prop_in_cone(&spatial_query, actor_transform, config, &q_collider));
 
         let Some(prop) = prop else {
             continue;
         };
 
-        // unwrap cannot fail: all colliders have a `ColliderParent`
-        let rigid_body_entity = q_collider.get(prop.entity).unwrap().get();
+        // Safety: all colliders have a `ColliderParent`
+        let rigid_body_entity = q_collider_parent.get(prop.entity).unwrap().get();
 
-        let Ok((&rigid_body, &mass, mut impulse, object_transform)) =
+        let Ok((&rigid_body, &mass, mut impulse, prop_position)) =
             q_rigid_body.get_mut(rigid_body_entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
@@ -65,8 +65,7 @@ fn find_object(
                 .entity(actor)
                 .add(SetVerb::new(Verb::Hold(rigid_body_entity)));
         } else {
-            let object_transform = object_transform.compute_transform();
-            let direction = (origin.translation - object_transform.translation).normalize_or_zero();
+            let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
             let pull_impulse = direction * config.pull_force * mass_adjustment;
             cooldown.pull();
