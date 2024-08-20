@@ -112,12 +112,15 @@ fn rotate_camera(
         return;
     };
     for motion in mouse_motion.read() {
+        // The factors are just arbitrary mouse sensitivity values.
         let delta_yaw = -motion.delta.x * 0.003;
         let delta_pitch = -motion.delta.y * 0.002;
-        // Order of rotations is important, see <https://gamedev.stackexchange.com/a/136175/103059>
-        transform.rotate_y(delta_yaw);
-        const PITCH_LIMIT: f32 = f32::consts::FRAC_PI_2 - 0.01;
 
+        // Add yaw
+        transform.rotate_y(delta_yaw);
+
+        // Add pitch
+        const PITCH_LIMIT: f32 = f32::consts::FRAC_PI_2 - 0.01;
         let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
         let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
         transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
