@@ -1,3 +1,5 @@
+use std::f32::consts::{PI, TAU};
+
 use super::ShadowParams;
 use crate::{prelude::*, verb::Holding};
 
@@ -25,20 +27,17 @@ pub(super) fn set_velocities(
         let delta_position = shadow.target_position - position.0;
 
         let delta_rotation = shadow.target_rotation * rotation.0.inverse();
+        let (axis, angle) = delta_rotation.to_axis_angle();
         // This will sometimes rotate the long way around, so we need to fix that
-        let delta_rotation = if delta_rotation.w < 0.0 {
-            -delta_rotation
-        } else {
-            delta_rotation
-        };
+        let angle = if angle > PI { angle - TAU } else { angle };
+        let delta_rotation_scaled_axis = axis * angle;
 
         velocity.0 = delta_position * inv_dt;
         if velocity.0.length_squared() > (shadow.max_speed * shadow.max_speed) {
             velocity.0 = velocity.0.normalize_or_zero() * shadow.max_speed;
         }
-        angvel.0 = delta_rotation.to_scaled_axis() * inv_dt;
+        angvel.0 = delta_rotation_scaled_axis * inv_dt;
         if angvel.0.length_squared() > (shadow.max_angular * shadow.max_angular) {
-            info!("Clamping angular velocity: {:?}", angvel.0);
             angvel.0 = angvel.0.normalize_or_zero() * shadow.max_angular;
         }
     }
