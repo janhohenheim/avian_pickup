@@ -108,9 +108,9 @@ fn handle_input(
 
 fn rotate_camera(
     mut mouse_motion: EventReader<MouseMotion>,
-    mut camera: Query<&mut Transform, With<Camera>>,
+    mut camera: Query<&mut Rotation, With<Camera>>,
 ) {
-    let Ok(mut transform) = camera.get_single_mut() else {
+    let Ok(mut rotation) = camera.get_single_mut() else {
         return;
     };
     for motion in mouse_motion.read() {
@@ -119,13 +119,13 @@ fn rotate_camera(
         let delta_pitch = -motion.delta.y * 0.002;
 
         // Add yaw
-        transform.rotate_y(delta_yaw);
+        rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
 
         // Add pitch
         const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-        let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+        let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
         let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-        transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+        rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
     }
 }
 
