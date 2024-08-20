@@ -129,6 +129,6 @@ fn rotate_camera(
 
 fn debug(q_state: Query<&AvianPickupActorState, Changed<AvianPickupActorState>>) {
     for state in q_state.iter() {
-        info!("{:?}", state);
+        info!("{state:?}");
     }
 }
