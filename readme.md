@@ -3,7 +3,7 @@
 A plugin for implementing picking up dynamic rigid bodies in Avian physics.
 Modeled after Half Life 2's gravity gun.
 
-> [!WARNING]  
+> **Warning**
 > I'm not done implementing this yet. Stay tuned.
 
 ## Version Compatibility
