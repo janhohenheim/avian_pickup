@@ -8,7 +8,7 @@ pub(super) fn set_velocities(
         &mut LinearVelocity,
         &mut AngularVelocity,
         &Position,
-        &Rotation,
+        &mut Rotation,
     )>,
     mut q_actor: Query<(&ShadowParams, &Holding)>,
 ) {
@@ -23,7 +23,14 @@ pub(super) fn set_velocities(
         let (mut velocity, mut angvel, position, rotation) = q_prop.get_mut(prop).unwrap();
 
         let delta_position = shadow.target_position - position.0;
+
         let delta_rotation = shadow.target_rotation * rotation.0.inverse();
+        // This will sometimes rotate the long way around, so we need to fix that
+        let delta_rotation = if delta_rotation.w < 0.0 {
+            -delta_rotation
+        } else {
+            delta_rotation
+        };
 
         velocity.0 = delta_position * inv_dt;
         if velocity.0.length_squared() > (shadow.max_speed * shadow.max_speed) {
@@ -31,6 +38,7 @@ pub(super) fn set_velocities(
         }
         angvel.0 = delta_rotation.to_scaled_axis() * inv_dt;
         if angvel.0.length_squared() > (shadow.max_angular * shadow.max_angular) {
+            info!("Clamping angular velocity: {:?}", angvel.0);
             angvel.0 = angvel.0.normalize_or_zero() * shadow.max_angular;
         }
     }
