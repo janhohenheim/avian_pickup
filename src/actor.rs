@@ -16,7 +16,7 @@ pub(super) mod prelude {
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<AvianPickupActor>();
+    app.register_type::<(AvianPickupActor, AvianPickupActorState)>();
 }
 
 /// Tag component for an actor that is able to pick up object.

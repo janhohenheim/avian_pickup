@@ -4,7 +4,12 @@ use avian3d::math::Scalar;
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<(PreferredPickupRotation, PickupMass)>();
+    app.register_type::<(
+        PreferredPickupRotation,
+        ClampPickupPitch,
+        PreferredPickupDistance,
+        PickupMass,
+    )>();
 }
 
 pub(super) mod prelude {

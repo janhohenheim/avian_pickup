@@ -60,13 +60,13 @@ pub(super) fn update_object(
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, config, grab, mut shadow, holding, actor_transform) in q_actor.iter_mut() {
+        let prop = holding.0;
         if grab.error > max_error {
-            commands.entity(actor).add(SetVerb::new(Verb::Drop));
+            commands.entity(actor).add(SetVerb::new(Verb::Drop(prop)));
             continue;
         }
         let actor_transform = actor_transform.compute_transform();
 
-        let prop = holding.0;
         let (preferred_rotation, preferred_distance, clamp_pitch, prop_rotation) =
             q_prop.get_mut(prop).unwrap();
         let clamp_pitch = clamp_pitch.copied().unwrap_or_default();

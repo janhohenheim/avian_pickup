@@ -25,7 +25,6 @@ pub(crate) fn rigid_body_compound_collider(
     if colliders.is_empty() {
         None
     } else {
-        info!("Compound collider: {:?}", colliders);
         Some(Collider::compound(colliders))
     }
 }

@@ -6,8 +6,9 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(throw.in_set(HandleVerbSystem::Throw));
 }
 
-fn throw(mut q_actor: Query<&mut Cooldown, With<Throwing>>) {
-    for _cooldown in q_actor.iter_mut() {
+fn throw(mut q_actor: Query<(&mut Cooldown, &Throwing)>) {
+    for (_cooldown, throw) in q_actor.iter_mut() {
+        let _prop = throw.0;
         // Todo: cooldown.throw();
         info!("Throw!");
     }

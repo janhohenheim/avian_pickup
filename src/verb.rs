@@ -7,17 +7,17 @@ pub(super) fn plugin(_app: &mut App) {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Verb {
-    Throw,
-    Drop,
+    Throw(Option<Entity>),
+    Drop(Entity),
     Pull,
     Hold(Entity),
 }
 
 #[derive(Debug, Clone, Copy, Component)]
-pub(crate) struct Throwing;
+pub(crate) struct Throwing(pub(crate) Option<Entity>);
 
 #[derive(Debug, Clone, Copy, Component)]
-pub(crate) struct Dropping;
+pub(crate) struct Dropping(pub(crate) Entity);
 
 #[derive(Debug, Clone, Copy, Component)]
 pub(crate) struct Pulling;
@@ -47,49 +47,76 @@ fn set_verb(
 ) {
     // Safety: we are only querying optional components.
     let (throwing, dropping, pulling, holding) = q_actor.get(actor).unwrap();
+    let mut commands = commands.entity(actor);
     match verb {
-        Some(Verb::Throw) => {
-            if throwing {
-                return;
+        Some(Verb::Throw(prop)) => {
+            if !throwing {
+                commands.insert(Throwing(prop));
             }
-            commands
-                .entity(actor)
-                .insert(Throwing)
-                .remove::<(Dropping, Pulling, Holding)>();
-        }
-        Some(Verb::Drop) => {
             if dropping {
-                return;
+                commands.remove::<Dropping>();
             }
-            commands
-                .entity(actor)
-                .insert(Dropping)
-                .remove::<(Throwing, Pulling, Holding)>();
+            if pulling {
+                commands.remove::<Pulling>();
+            }
+            if holding {
+                commands.remove::<Holding>();
+            }
+        }
+        Some(Verb::Drop(prop)) => {
+            if !dropping {
+                commands.insert(Dropping(prop));
+            }
+            if throwing {
+                commands.remove::<Throwing>();
+            }
+            if pulling {
+                commands.remove::<Pulling>();
+            }
+            if holding {
+                commands.remove::<Holding>();
+            }
         }
         Some(Verb::Pull) => {
-            if pulling {
-                return;
+            if !pulling {
+                commands.insert(Pulling);
             }
-            commands
-                .entity(actor)
-                .insert(Pulling)
-                .remove::<(Throwing, Dropping, Holding)>();
+            if throwing {
+                commands.remove::<Throwing>();
+            }
+            if dropping {
+                commands.remove::<Dropping>();
+            }
+            if holding {
+                commands.remove::<Holding>();
+            }
         }
         Some(Verb::Hold(prop)) => {
-            if holding {
-                return;
+            if !holding {
+                commands.insert(Holding(prop));
             }
-            commands
-                .entity(actor)
-                .insert(Holding(prop))
-                .remove::<(Throwing, Dropping, Pulling)>();
+            if throwing {
+                commands.remove::<Throwing>();
+            }
+            if dropping {
+                commands.remove::<Dropping>();
+            }
+            if pulling {
+                commands.remove::<Pulling>();
+            }
         }
         None => {
-            commands
-                .entity(actor)
-                // Do *not* remove `Holding` here, as it can only be replaced by either `Throwing`
-                // or `Dropping`.
-                .remove::<(Throwing, Dropping, Pulling)>();
+            // Do *not* remove `Holding` here, as it can only be replaced by either
+            // `Throwing` or `Dropping`.
+            if throwing {
+                commands.remove::<Throwing>();
+            }
+            if dropping {
+                commands.remove::<Dropping>();
+            }
+            if pulling {
+                commands.remove::<Pulling>();
+            }
         }
     }
 }
