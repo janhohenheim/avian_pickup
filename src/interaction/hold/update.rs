@@ -154,7 +154,9 @@ pub(super) fn update_object(
         // The 2013 code uses the non-clamped code here, resulting in the prop
         // rotating when looking further up than the clamp allows.
         // Looks weird imo, so we use the clamped rotation.
-        let target_rotation = clamped_rotation * actor_space_rotation;
+        let clamped_actor_transform = actor_transform.with_rotation(clamped_rotation);
+        let target_rotation =
+            prop_rotation_from_actor_space(actor_space_rotation, clamped_actor_transform);
 
         shadow.target_rotation = target_rotation;
     }
@@ -199,6 +201,14 @@ fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Di
     let aabb = collider.aabb(origin, rotation);
 
     (aabb.max / 2.).length()
+}
+
+/// TransformAnglesFromPlayerSpace
+fn prop_rotation_from_actor_space(rot: Quat, actor: Transform) -> Quat {
+    let actor_matrix = actor.compute_affine();
+    let rot_to_actor = Transform::from_rotation(rot).compute_affine();
+    let out_affine = actor_matrix * rot_to_actor;
+    Quat::from_affine3(&out_affine)
 }
 
 #[cfg(test)]

@@ -22,6 +22,8 @@ pub(super) mod prelude {
 }
 
 /// Insert this on an object to set its rotation when picked up.
+/// The rotation is in the actor's local space, i.e. the prop will rotate along
+/// with the actor in order to maintain this rotation.\
 /// Useful for e.g. making sure that a telephone you pick up is always held
 /// facing the player.
 ///

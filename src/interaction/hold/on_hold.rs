@@ -44,7 +44,7 @@ pub(super) fn on_hold(
         commands.entity(prop).insert(NonPickupMass(mass.0));
     }
 
-    let actor_space_rotation = actor_transform.rotation.inverse() * rotation.0;
+    let actor_space_rotation = prop_rotation_to_actor_space(rotation.0, actor_transform);
     if let Some(mut pre_pickup_rotation) = pre_pickup_rotation {
         pre_pickup_rotation.0 = actor_space_rotation;
     } else {
@@ -66,4 +66,12 @@ pub(super) fn on_hold(
     // discussions on Discord, that code seems to align the prop to
     // the coordinate axes if it is closer than 30 degrees to them.
     // Does not seem to be that useful.
+}
+
+/// TransformAnglesToPlayerSpace
+fn prop_rotation_to_actor_space(rot: Quat, actor: Transform) -> Quat {
+    let world_to_actor = actor.compute_affine().inverse();
+    let rot_to_world = Transform::from_rotation(rot).compute_affine();
+    let local_affine = world_to_actor * rot_to_world;
+    Quat::from_affine3(&local_affine)
 }
