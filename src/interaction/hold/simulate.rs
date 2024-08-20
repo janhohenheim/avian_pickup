@@ -135,24 +135,23 @@ fn compute_controller(
     if current_speed_sq < 1e-6 {
         velocity = Vec3::ZERO;
     } else if max_damp_speed > 0.0 {
-        // max_damp_speed = 4
-        let mut acceleration_damping = velocity * -1.0; // vel = (8, 0, 0) -> accel_d = (-8, 0, 0)
-        let speed = current_speed_sq.sqrt(); // speed = 8
+        let mut acceleration_damping = velocity * -1.0;
+        let speed = current_speed_sq.sqrt();
         if speed > max_damp_speed {
-            let some_factor_idk = max_damp_speed / speed; // some_fac = 4 / 8 = 0.5
-            acceleration_damping *= some_factor_idk; // accel_d = (-4, 0, 0)
+            let some_factor_idk = max_damp_speed / speed;
+            acceleration_damping *= some_factor_idk;
         }
-        velocity += acceleration_damping; // vel = (4, 0, 0)
+        velocity += acceleration_damping;
     }
 
     if max_speed > 0.0 {
-        let mut acceleration = delta * scale_delta; // accel = (8, 0, 0)
-        let speed = delta.length() * scale_delta; // speed = 8
+        let mut acceleration = delta * scale_delta;
+        let speed = delta.length() * scale_delta;
         if speed > max_speed {
-            let some_factor_idk = max_speed / speed; // some_fac = 4 / 8 = 0.5
-            acceleration *= some_factor_idk; // accel = (4, 0, 0)
+            let some_factor_idk = max_speed / speed;
+            acceleration *= some_factor_idk;
         }
-        velocity += acceleration; // vel = (4, 0, 0)
+        velocity += acceleration;
     }
     velocity
 }
