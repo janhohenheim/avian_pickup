@@ -163,7 +163,13 @@ fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Di
     // bug sometimes causes the hit to be `None` even though that should
     // be impossible: https://discord.com/channels/691052431525675048/1124043933886976171/1275214643341561970
     const ARBITRARY_Z_ROTATION: f32 = 5e-4;
-    for offset in [0., ARBITRARY_Z_ROTATION, -ARBITRARY_Z_ROTATION] {
+    for offset in [
+        0.,
+        ARBITRARY_Z_ROTATION,
+        -ARBITRARY_Z_ROTATION,
+        2.0 * ARBITRARY_Z_ROTATION,
+        -2.0 * ARBITRARY_Z_ROTATION,
+    ] {
         let rotation = rotation * Quat::from_rotation_z(offset);
         let hit = collider.cast_ray(TRANSLATION, rotation, origin, dir.into(), MAX_TOI, SOLID);
         if let Some((toi, _normal)) = hit {
