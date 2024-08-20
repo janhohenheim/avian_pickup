@@ -3,7 +3,16 @@ use bevy::{
     prelude::*,
 };
 
-pub(super) fn plugin(_app: &mut App) {}
+pub(super) fn plugin(app: &mut App) {
+    app.observe(on_add_dropping);
+    app.observe(on_remove_dropping);
+    app.observe(on_add_throwing);
+    app.observe(on_remove_throwing);
+    app.observe(on_add_holding);
+    app.observe(on_remove_holding);
+    app.observe(on_add_pulling);
+    app.observe(on_remove_pulling);
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Verb {
@@ -106,18 +115,45 @@ fn set_verb(
             }
         }
         None => {
+            // `Throwing` and `Dropping` clean up after themselves.
+            // `Holding` should never be just removed, but only replaced by `Throwing` or
+            // `Dropping`. `Pulling` in the meantime should only be present
+            // while we are holding a button -> we can remove it here.
             if pulling {
                 commands.remove::<Pulling>();
             }
-            if holding {
-                commands.remove::<Holding>();
-            }
-            if throwing {
-                commands.remove::<Throwing>();
-            }
-            if dropping {
-                commands.remove::<Dropping>();
-            }
         }
     }
+}
+
+fn on_add_pulling(_trigger: Trigger<OnAdd, Pulling>) {
+    info!("Added: Pulling");
+}
+
+fn on_remove_pulling(_trigger: Trigger<OnRemove, Pulling>) {
+    info!("Removed: Pulling");
+}
+
+fn on_add_holding(_trigger: Trigger<OnAdd, Holding>) {
+    info!("Added: Holding");
+}
+
+fn on_remove_holding(_trigger: Trigger<OnRemove, Holding>) {
+    info!("Removed: Holding");
+}
+
+fn on_add_throwing(_trigger: Trigger<OnAdd, Throwing>) {
+    info!("Added: Throwing");
+}
+
+fn on_remove_throwing(_trigger: Trigger<OnRemove, Throwing>) {
+    info!("Removed: Throwing");
+}
+
+fn on_add_dropping(_trigger: Trigger<OnAdd, Dropping>) {
+    info!("Added: Dropping");
+}
+
+fn on_remove_dropping(_trigger: Trigger<OnRemove, Dropping>) {
+    info!("Removed: Dropping");
 }

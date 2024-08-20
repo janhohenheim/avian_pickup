@@ -4,7 +4,7 @@ use bevy::{prelude::*, utils::HashSet};
 
 use crate::{
     prelude::{AvianPickupActor, AvianPickupActorState, Cooldown},
-    verb::{self, SetVerb, Verb},
+    verb::{SetVerb, Verb},
 };
 
 pub(super) mod prelude {
@@ -127,9 +127,7 @@ fn set_verbs_according_to_input(
                 }
             }
         };
-        if let Some(verb) = verb {
-            commands.entity(actor).add(SetVerb::new(verb));
-        }
+        commands.entity(actor).add(SetVerb::new(verb));
     }
     for &actor in unhandled_actors.iter() {
         commands.entity(actor).add(SetVerb::new(None));
