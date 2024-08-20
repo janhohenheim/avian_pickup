@@ -143,7 +143,7 @@ pub(super) fn update_object(
         let target_position = actor_transform.translation + forward * distance;
         shadow.target_position = target_position;
 
-        let Some(target_rotation) = preferred_rotation
+        let Some(actor_space_rotation) = preferred_rotation
             .map(|preferred| preferred.0)
             .or_else(|| pre_pickup_rotation.map(|pre| pre.0))
         else {
@@ -151,21 +151,12 @@ pub(super) fn update_object(
             continue;
         };
         // orient the prop wrt the actor
-        let relative_rotation = target_rotation * clamped_rotation.inverse();
-        info!(
-            "Target rotation: {:?}",
-            target_rotation.to_euler(EulerRot::YXZ)
-        );
-        info!(
-            "Clamped rotation: {:?}",
-            clamped_rotation.to_euler(EulerRot::YXZ)
-        );
-        info!(
-            "Relative rotation: {:?}",
-            relative_rotation.to_euler(EulerRot::YXZ)
-        );
+        // The 2013 code uses the non-clamped code here, resulting in the prop
+        // rotating when looking further up than the clamp allows.
+        // Looks weird imo, so we use the clamped rotation.
+        let target_rotation = clamped_rotation * actor_space_rotation;
 
-        shadow.target_rotation = relative_rotation;
+        shadow.target_rotation = target_rotation;
     }
 }
 

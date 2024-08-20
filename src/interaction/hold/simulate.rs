@@ -9,6 +9,7 @@ pub(super) fn simulate(
         &mut LinearVelocity,
         &mut AngularVelocity,
         &GlobalTransform,
+        &mut Rotation,
     )>,
     mut q_actor: Query<(&GlobalTransform, &mut GrabParams, &ShadowParams, &Holding)>,
 ) {
@@ -19,7 +20,8 @@ pub(super) fn simulate(
 
         // Unwrap cannot fail: rigid bodies are guarateed to have a
         // `Mass`, `LinearVelocity`, `AngularVelocity`, and `GlobalTransform`
-        let (mass, mut velocity, mut angvel, object_transform) = q_prop.get_mut(prop).unwrap();
+        let (mass, mut velocity, mut angvel, object_transform, mut rot) =
+            q_prop.get_mut(prop).unwrap();
         let object_transform = object_transform.compute_transform();
 
         // imo InContactWithHeavyObject will always be false,
@@ -40,6 +42,7 @@ pub(super) fn simulate(
             grab.time_to_arrive,
             dt,
         );
+        rot.0 = shadow.target_rotation;
 
         // Slide along the current contact points to fix bouncing problems
         *velocity = phys_compute_slide_direction(*velocity, *angvel, *mass);
@@ -87,20 +90,18 @@ fn compute_shadow_controller(
     let _last_position = transform.translation + linear_velocity.0 * dt;
 
     let delta_rotation = params.target_rotation * transform.rotation.inverse();
-    info!(
-        "Delta rotation: {:?}",
-        delta_rotation.to_euler(EulerRot::YXZ)
-    );
 
     let delta_angles = delta_rotation.to_scaled_axis();
-    *angular_velocity = compute_controller(
-        angular_velocity.0,
-        delta_angles,
-        params.max_angular,
-        params.max_damp_angular,
-        fraction_time,
-    )
-    .into();
+    /*
+        *angular_velocity = compute_controller(
+            angular_velocity.0,
+            delta_angles,
+            params.max_angular,
+            params.max_damp_angular,
+            fraction_time,
+        )
+        .into();
+    */
 
     seconds_to_arrival
 }

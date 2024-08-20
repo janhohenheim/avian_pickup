@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use super::GrabParams;
 use crate::{
+    actor,
     prelude::*,
     prop::{PickupMass, PrePickupRotation},
     verb::Holding,
@@ -11,7 +12,12 @@ use crate::{
 pub(super) fn on_hold(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
-    mut q_actor: Query<(&mut AvianPickupActorState, &mut GrabParams, &Holding)>,
+    mut q_actor: Query<(
+        &GlobalTransform,
+        &mut AvianPickupActorState,
+        &mut GrabParams,
+        &Holding,
+    )>,
     mut q_prop: Query<(
         &Rotation,
         &mut Mass,
@@ -21,7 +27,8 @@ pub(super) fn on_hold(
     )>,
 ) {
     let actor = trigger.entity();
-    let (mut state, mut grab, holding) = q_actor.get_mut(actor).unwrap();
+    let (actor_transform, mut state, mut grab, holding) = q_actor.get_mut(actor).unwrap();
+    let actor_transform = actor_transform.compute_transform();
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     // Safety: All props are rigid bodies, so they are guaranteed to have a
@@ -36,10 +43,14 @@ pub(super) fn on_hold(
         // so let's try to avoid it if possible
         commands.entity(prop).insert(NonPickupMass(mass.0));
     }
+
+    let actor_space_rotation = actor_transform.rotation.inverse() * rotation.0;
     if let Some(mut pre_pickup_rotation) = pre_pickup_rotation {
-        pre_pickup_rotation.0 = rotation.0;
+        pre_pickup_rotation.0 = actor_space_rotation;
     } else {
-        commands.entity(prop).insert(PrePickupRotation(rotation.0));
+        commands
+            .entity(prop)
+            .insert(PrePickupRotation(actor_space_rotation));
     }
 
     mass.0 = new_mass;
