@@ -4,7 +4,6 @@ use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_transform_interpolation::*;
 
 fn main() {
     App::new()
@@ -14,11 +13,6 @@ fn main() {
             PhysicsPlugins::default(),
             //PhysicsDebugPlugin::default(),
             AvianPickupPlugin::default(),
-            TransformInterpolationPlugin {
-                global_translation_interpolation: true,
-                global_rotation_interpolation: true,
-                global_scale_interpolation: true,
-            },
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, (read_pickup_input, read_camera_input))
@@ -57,6 +51,7 @@ fn setup(
             terrain_filter: SpatialQueryFilter::from_mask(ColliderLayer::Terrain),
             ..default()
         },
+        RigidBody::Kinematic,
         RotateCamera::default(),
         Collider::capsule(0.3, 1.2),
         CollisionLayers::new(
@@ -168,24 +163,24 @@ fn read_camera_input(
     }
 }
 
-fn rotate_camera(time: Res<Time>, mut camera: Query<(&mut Transform, &RotateCamera)>) {
+fn rotate_camera(time: Res<Time>, mut camera: Query<(&mut Rotation, &RotateCamera)>) {
     let dt = time.delta_seconds();
     let x_sensitive = 0.08;
     let y_sensitive = 0.05;
-    for (mut transform, rotate) in camera.iter_mut() {
-        let motion = rotate.0;
+    for (mut rotation, motion) in camera.iter_mut() {
+        let motion = motion.0;
         // The factors are just arbitrary mouse sensitivity values.
         let delta_yaw = -motion.x * dt * x_sensitive;
         let delta_pitch = -motion.y * dt * y_sensitive;
 
-        // Add yaw
-        transform.rotate_y(delta_yaw);
+        // Add yaw (global rotation)
+        rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
 
-        // Add pitch
+        // Add pitch (local rotation)
         const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-        let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+        let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
         let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-        transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+        rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
     }
 }
 
