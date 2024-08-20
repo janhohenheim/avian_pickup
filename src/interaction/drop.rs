@@ -6,6 +6,7 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(drop.in_set(HandleVerbSystem::Drop));
 }
 
+/// DetachObject
 fn drop(
     mut commands: Commands,
     mut q_actor: Query<(Entity, &mut AvianPickupActorState, &mut Cooldown, &Dropping)>,
@@ -31,5 +32,8 @@ fn drop(
         mass.0 = non_pickup_mass.0;
         velocity.0 = Vec3::ZERO;
         angvel.0 = Vec3::ZERO;
+        // TODO: let the user know this prop was dropped through an event or
+        // observer. Do events sent in a fixed timestep get propagated
+        // to `PostUpdate` even when two fixed update loops passed?
     }
 }

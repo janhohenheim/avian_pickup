@@ -5,11 +5,24 @@ use bevy::{
 
 pub(super) fn plugin(_app: &mut App) {}
 
+/// This marks a state transition coming from either
+/// an external [`AvianPickupInput`](crate::prelude::AvianPickupInput)
+/// or an a state transition as dictated by the handling of the current state.
+/// Not to be confused with
+/// [`AvianPickupActorState`](crate::prelude::AvianPickupActorState),
+/// as that one is the user-facing way of communicating what the current state
+/// is.
+///
+/// This type itself is just an usher for the actual marker components.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Verb {
+    /// Insert [`Throwing`] component and clear others
     Throw(Option<Entity>),
+    /// Insert [`Dropping`] component and clear others
     Drop(Entity),
+    /// Insert [`Pulling`] component and clear others
     Pull,
+    /// Insert [`Holding`] component and clear others
     Hold(Entity),
 }
 
@@ -25,6 +38,7 @@ pub(crate) struct Pulling;
 #[derive(Debug, Clone, Copy, Component)]
 pub(crate) struct Holding(pub(crate) Entity);
 
+/// Sets or clears the [`Verb`] of an actor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct SetVerb(pub(crate) Option<Verb>);
 
