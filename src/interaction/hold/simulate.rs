@@ -1,8 +1,35 @@
 use super::{GrabParams, ShadowParams};
 use crate::{prelude::*, verb::Holding};
 
-/// Basically GrabController::Simulate
 pub(super) fn simulate(
+    time: Res<Time>,
+    mut q_prop: Query<(
+        &Mass,
+        &mut LinearVelocity,
+        &mut AngularVelocity,
+        &GlobalTransform,
+        &mut Rotation,
+    )>,
+    mut q_actor: Query<(&mut GrabParams, &ShadowParams, &Holding)>,
+) {
+    for (mut grab, shadow, holding) in q_actor.iter_mut() {
+        let prop = holding.0;
+        let dt = time.delta_seconds();
+        let inv_dt = dt.recip();
+        let (mass, mut velocity, mut angvel, object_transform, mut rot) =
+            q_prop.get_mut(prop).unwrap();
+        let object_transform = object_transform.compute_transform();
+
+        let delta_position = shadow.target_position - object_transform.translation;
+        let delta_rotation = shadow.target_rotation * object_transform.rotation.inverse();
+
+        velocity.0 = delta_position * inv_dt;
+        angvel.0 = delta_rotation.to_scaled_axis() * inv_dt;
+    }
+}
+
+/// Basically GrabController::Simulate
+pub(super) fn _simulate(
     time: Res<Time>,
     mut q_prop: Query<(
         &Mass,
@@ -42,6 +69,7 @@ pub(super) fn simulate(
             grab.time_to_arrive,
             dt,
         );
+        info!("velocity: {:?}", velocity.0);
         rot.0 = shadow.target_rotation;
 
         // Slide along the current contact points to fix bouncing problems

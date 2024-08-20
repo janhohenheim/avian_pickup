@@ -44,6 +44,7 @@ fn setup(
             point_light: PointLight {
                 color: Color::WHITE,
                 intensity: 2_000_000.0,
+                shadows_enabled: true,
                 ..default()
             },
             ..default()
