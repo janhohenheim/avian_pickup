@@ -1,3 +1,5 @@
+use core::f32;
+
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
@@ -18,13 +20,6 @@ fn main() {
         .run();
 }
 
-#[derive(Debug, PhysicsLayer)]
-enum CollisionLayer {
-    Player,
-    Prop,
-    Terrain,
-}
-
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -39,17 +34,7 @@ fn setup(
             transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_at(-Vec3::Z, Vec3::Y),
             ..default()
         },
-        AvianPickupActor {
-            prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
-            terrain_filter: SpatialQueryFilter::from_mask(CollisionLayer::Terrain),
-            ..default()
-        },
-        RigidBody::Kinematic,
-        Collider::capsule(0.3, 1.2),
-        CollisionLayers::new(
-            CollisionLayer::Player,
-            [CollisionLayer::Prop, CollisionLayer::Terrain],
-        ),
+        AvianPickupActor::default(),
     ));
 
     commands.spawn((
@@ -75,10 +60,6 @@ fn setup(
         },
         RigidBody::Static,
         Collider::from(ground_shape),
-        CollisionLayers::new(
-            CollisionLayer::Terrain,
-            [CollisionLayer::Player, CollisionLayer::Prop],
-        ),
     ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
@@ -92,10 +73,6 @@ fn setup(
         },
         RigidBody::Dynamic,
         Collider::from(box_shape),
-        CollisionLayers::new(
-            CollisionLayer::Prop,
-            [CollisionLayer::Player, CollisionLayer::Terrain],
-        ),
     ));
 }
 
@@ -135,11 +112,15 @@ fn rotate_camera(
         return;
     };
     for motion in mouse_motion.read() {
-        let yaw = -motion.delta.x * 0.003;
-        let pitch = -motion.delta.y * 0.002;
+        let delta_yaw = -motion.delta.x * 0.003;
+        let delta_pitch = -motion.delta.y * 0.002;
         // Order of rotations is important, see <https://gamedev.stackexchange.com/a/136175/103059>
-        transform.rotate_y(yaw);
-        transform.rotate_local_x(pitch);
+        transform.rotate_y(delta_yaw);
+        const PITCH_LIMIT: f32 = f32::consts::FRAC_PI_2 - 0.01;
+
+        let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+        let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+        transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
     }
 }
 
