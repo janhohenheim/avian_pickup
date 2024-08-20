@@ -27,10 +27,11 @@ pub(super) fn set_velocities(
         let (mut velocity, mut angvel, position, rotation) = q_prop.get_mut(prop).unwrap();
 
         let delta_position = shadow.target_position - position.0;
+        info!("position: {:?}", position.0);
 
         let delta_rotation = shadow.target_rotation * rotation.0.inverse();
         let (axis, angle) = delta_rotation.to_axis_angle();
-        // This will sometimes rotate the long way around, so we need to fix that
+        // This is needed because otherwise we will sometimes rotate the long way around
         let angle = if angle > PI { angle - TAU } else { angle };
         let delta_rotation_scaled_axis = axis * angle;
 
