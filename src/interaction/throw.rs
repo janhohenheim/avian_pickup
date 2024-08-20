@@ -15,8 +15,8 @@ fn throw(mut commands: Commands, mut q_actor: Query<(Entity, &mut Cooldown, &Thr
         commands.entity(actor).remove::<Throwing>();
         // TODO: Yeet object. This is also handled in DetachObject
 
-        // TODO: let the user know this prop was dropped through an event or observer. 
-        // Do events sent in a fixed timestep get propagated to `PostUpdate` even when 
-        // two fixed update loops passed?
+        // TODO: let the user know this prop was dropped through an event or
+        // observer. Do events sent in a fixed timestep get propagated
+        // to `PostUpdate` even when two fixed update loops passed?
     }
 }

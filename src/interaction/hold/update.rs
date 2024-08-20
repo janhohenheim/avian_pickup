@@ -180,8 +180,8 @@ fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Di
     // Absolute last resort: just fall back to the AABB's longest extent.
     // This *must* work, but it's longer than necessary and expensive.
     let aabb = collider.aabb(origin, rotation);
-    let longest_extent = (aabb.max / 2.).length();
-    longest_extent
+
+    (aabb.max / 2.).length()
 }
 
 #[cfg(test)]
