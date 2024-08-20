@@ -14,13 +14,7 @@ pub(super) fn plugin(app: &mut App) {
             update::update_error,
             // Sets `error_time` to 0
             update::update_object,
-            // This updates `error_time`, so the `error_time` will always lag one frame behind.
-            // Dunno if that's intentional or a bug. Thanks, Valve?
-            // We are running this after `update_object` because otherwise the
-            // target position and rotation are outdated, which sounds worse.
-            // Does anyone know whether `Simulate` or `ItemPreFrame` run first
-            // in the Source engine? Answers on a postcard, please.
-            simulate::simulate,
+            simulate::set_velocities,
         )
             .chain()
             .in_set(HandleVerbSystem::Hold),
@@ -38,11 +32,7 @@ pub(crate) struct ShadowParams {
     /// Global target rotation of the held prop
     target_rotation: Quat,
     max_angular: f32,
-    max_damp_angular: f32,
     max_speed: f32,
-    max_damp_speed: f32,
-    // damp_factor = 1
-    // teleport_distance = 0
 }
 
 impl Default for ShadowParams {
@@ -51,17 +41,13 @@ impl Default for ShadowParams {
             target_position: Vec3::ZERO,
             target_rotation: Quat::IDENTITY,
             max_angular: TAU * 10.0,
-            max_damp_angular: 0.0,
             max_speed: 25.4,
-            max_damp_speed: 25.4 * 2.,
         }
     }
 }
 
 #[derive(Debug, Copy, Clone, Component)]
 pub(crate) struct GrabParams {
-    contact_amount: f32,
-    time_to_arrive: f32,
     /// Time until error starts accumulating
     error_time: f32,
     /// The distance between the object and the target position
@@ -71,8 +57,6 @@ pub(crate) struct GrabParams {
 impl Default for GrabParams {
     fn default() -> Self {
         Self {
-            contact_amount: 0.0,
-            time_to_arrive: 0.0,
             error_time: 0.0,
             error: 0.0,
         }

@@ -11,11 +11,14 @@ use crate::{
 
 /// CGrabController::ComputeError(),
 pub(super) fn update_error(
+    time: Res<Time>,
     q_prop: Query<&Position>,
     mut q_actor: Query<(&mut GrabParams, &ShadowParams, &Holding)>,
 ) {
+    let dt = time.delta_seconds();
     for (mut grab, shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
+        grab.error_time += dt;
         if grab.error_time <= 0.0 {
             continue;
         }

@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 use super::GrabParams;
 use crate::{
-    actor,
     prelude::*,
     prop::{PickupMass, PrePickupRotation},
     verb::Holding,
