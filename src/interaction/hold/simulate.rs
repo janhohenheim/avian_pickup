@@ -87,6 +87,10 @@ fn compute_shadow_controller(
     let _last_position = transform.translation + linear_velocity.0 * dt;
 
     let delta_rotation = params.target_rotation * transform.rotation.inverse();
+    info!(
+        "Delta rotation: {:?}",
+        delta_rotation.to_euler(EulerRot::YXZ)
+    );
 
     let delta_angles = delta_rotation.to_scaled_axis();
     *angular_velocity = compute_controller(

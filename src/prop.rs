@@ -36,6 +36,9 @@ pub(super) mod prelude {
 )]
 pub struct PreferredPickupRotation(pub Quat);
 
+#[derive(Debug, Clone, Copy, PartialEq, Component)]
+pub(crate) struct PrePickupRotation(pub Quat);
+
 /// Insert this on an object to clamp its pitch relative to the
 /// [`AvianPickupActor`](crate::prelude::AvianPickupActor)'s
 /// forward direction when picked up.
@@ -112,6 +115,7 @@ impl Default for PickupMass {
 }
 
 /// The cached mass that an object had before it was picked up
-/// that will be restored when it is dropped.
+/// that will be restored again when it is dropped.
+/// In other words, this is the mass before and after the pickup.
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub(crate) struct NonPickupMass(pub Scalar);

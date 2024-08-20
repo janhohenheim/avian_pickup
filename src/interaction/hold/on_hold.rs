@@ -1,22 +1,33 @@
 use bevy::prelude::*;
 
 use super::GrabParams;
-use crate::{prelude::*, prop::PickupMass, verb::Holding};
+use crate::{
+    prelude::*,
+    prop::{PickupMass, PrePickupRotation},
+    verb::Holding,
+};
 
 /// CGrabController::AttachEntity
 pub(super) fn on_hold(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
     mut q_actor: Query<(&mut AvianPickupActorState, &mut GrabParams, &Holding)>,
-    mut q_prop: Query<(Option<&PickupMass>, Option<&mut NonPickupMass>, &mut Mass)>,
+    mut q_prop: Query<(
+        &Rotation,
+        &mut Mass,
+        Option<&PickupMass>,
+        Option<&mut NonPickupMass>,
+        Option<&mut PrePickupRotation>,
+    )>,
 ) {
     let actor = trigger.entity();
     let (mut state, mut grab, holding) = q_actor.get_mut(actor).unwrap();
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     // Safety: All props are rigid bodies, so they are guaranteed to have a
-    // `Rotation` and `Rotation`.
-    let (pickup_mass, non_pickup_mass, mut mass) = q_prop.get_mut(prop).unwrap();
+    // `Rotation` and `Mass`.
+    let (rotation, mut mass, pickup_mass, non_pickup_mass, pre_pickup_rotation) =
+        q_prop.get_mut(prop).unwrap();
     let new_mass = pickup_mass.copied().unwrap_or_default().0;
     if let Some(mut non_pickup_mass) = non_pickup_mass {
         non_pickup_mass.0 = mass.0;
@@ -25,6 +36,12 @@ pub(super) fn on_hold(
         // so let's try to avoid it if possible
         commands.entity(prop).insert(NonPickupMass(mass.0));
     }
+    if let Some(mut pre_pickup_rotation) = pre_pickup_rotation {
+        pre_pickup_rotation.0 = rotation.0;
+    } else {
+        commands.entity(prop).insert(PrePickupRotation(rotation.0));
+    }
+
     mass.0 = new_mass;
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me

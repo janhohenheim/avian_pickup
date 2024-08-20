@@ -5,6 +5,7 @@ use super::{GrabParams, ShadowParams};
 use crate::{
     math::rigid_body_compound_collider,
     prelude::*,
+    prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},
 };
 
@@ -49,10 +50,11 @@ pub(super) fn update_object(
         &GlobalTransform,
     )>,
     mut q_prop: Query<(
+        &Rotation,
+        Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistance>,
         Option<&ClampPickupPitch>,
-        &Rotation,
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
@@ -67,8 +69,15 @@ pub(super) fn update_object(
         }
         let actor_transform = actor_transform.compute_transform();
 
-        let (preferred_rotation, preferred_distance, clamp_pitch, prop_rotation) =
-            q_prop.get_mut(prop).unwrap();
+        // Safety: All props are rigid bodies, so they are guaranteed to have a
+        // `Rotation`.
+        let (
+            prop_rotation,
+            pre_pickup_rotation,
+            preferred_rotation,
+            preferred_distance,
+            clamp_pitch,
+        ) = q_prop.get_mut(prop).unwrap();
         let clamp_pitch = clamp_pitch.copied().unwrap_or_default();
 
         let (actor_yaw, actor_pitch, actor_roll) = actor_transform.rotation.to_euler(EulerRot::YXZ);
@@ -132,16 +141,31 @@ pub(super) fn update_object(
         // dance since we already have made sure that the prop has a sensible minimum
         // distance
         let target_position = actor_transform.translation + forward * distance;
-
-        // TODO:
-        // - Apply this rotation relative to the player
-        // - Don't fall back to the current, but the initial rotation
-        let target_rotation = preferred_rotation
-            .map(|preferred| preferred.0)
-            .unwrap_or(prop_rotation.0);
-
         shadow.target_position = target_position;
-        shadow.target_rotation = target_rotation;
+
+        let Some(target_rotation) = preferred_rotation
+            .map(|preferred| preferred.0)
+            .or_else(|| pre_pickup_rotation.map(|pre| pre.0))
+        else {
+            error!("Held prop does not have a preferred or pre-pickup rotation. Ignoring.");
+            continue;
+        };
+        // orient the prop wrt the actor
+        let relative_rotation = target_rotation * clamped_rotation.inverse();
+        info!(
+            "Target rotation: {:?}",
+            target_rotation.to_euler(EulerRot::YXZ)
+        );
+        info!(
+            "Clamped rotation: {:?}",
+            clamped_rotation.to_euler(EulerRot::YXZ)
+        );
+        info!(
+            "Relative rotation: {:?}",
+            relative_rotation.to_euler(EulerRot::YXZ)
+        );
+
+        shadow.target_rotation = relative_rotation;
     }
 }
 
