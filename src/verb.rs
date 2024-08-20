@@ -106,16 +106,17 @@ fn set_verb(
             }
         }
         None => {
-            // Do *not* remove `Holding` here, as it can only be replaced by either
-            // `Throwing` or `Dropping`.
+            if pulling {
+                commands.remove::<Pulling>();
+            }
+            if holding {
+                commands.remove::<Holding>();
+            }
             if throwing {
                 commands.remove::<Throwing>();
             }
             if dropping {
                 commands.remove::<Dropping>();
-            }
-            if pulling {
-                commands.remove::<Pulling>();
             }
         }
     }

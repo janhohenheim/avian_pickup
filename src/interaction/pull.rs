@@ -74,6 +74,7 @@ fn find_object(
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {
                 *state = AvianPickupActorState::Pulling(rigid_body_entity);
             }
+            commands.entity(actor).add(SetVerb::new(None));
         }
     }
 }
