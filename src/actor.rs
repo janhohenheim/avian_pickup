@@ -7,7 +7,7 @@ use bevy::{
 };
 
 use crate::{
-    interaction::{GrabParams, ShadowParams},
+    interaction::{HoldError, ShadowParams},
     prelude::Cooldown,
 };
 
@@ -146,7 +146,7 @@ impl Component for AvianPickupActor {
             commands.entity(targeted_entity).insert((
                 AvianPickupActorState::default(),
                 Cooldown::default(),
-                GrabParams::default(),
+                HoldError::default(),
                 ShadowParams::default(),
             ));
         });

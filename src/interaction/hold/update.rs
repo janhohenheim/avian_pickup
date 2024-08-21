@@ -1,7 +1,7 @@
 use avian3d::sync::ancestor_marker::AncestorMarker;
 use bevy::prelude::*;
 
-use super::{GrabParams, ShadowParams};
+use super::{HoldError, ShadowParams};
 use crate::{
     math::rigid_body_compound_collider,
     prelude::*,
@@ -13,7 +13,7 @@ use crate::{
 pub(super) fn update_error(
     time: Res<Time>,
     q_prop: Query<&Position>,
-    mut q_actor: Query<(&mut GrabParams, &ShadowParams, &Holding)>,
+    mut q_actor: Query<(&mut HoldError, &ShadowParams, &Holding)>,
 ) {
     let dt = time.delta_seconds();
     for (mut grab, shadow, holding) in q_actor.iter_mut() {
@@ -47,7 +47,7 @@ pub(super) fn update_object(
     mut q_actor: Query<(
         Entity,
         &AvianPickupActor,
-        &GrabParams,
+        &HoldError,
         &mut ShadowParams,
         &Holding,
         &Position,

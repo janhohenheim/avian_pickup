@@ -22,7 +22,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 pub(super) mod prelude {
-    pub(crate) use super::{GrabParams, ShadowParams};
+    pub(crate) use super::{HoldError, ShadowParams};
 }
 
 #[derive(Debug, Copy, Clone, Component)]
@@ -46,15 +46,17 @@ impl Default for ShadowParams {
     }
 }
 
+/// Cache for accumulating errors when holding an object.
+/// When this reaches a critical value, the object will be dropped.
 #[derive(Debug, Copy, Clone, Component)]
-pub(crate) struct GrabParams {
+pub(crate) struct HoldError {
     /// Time until error starts accumulating
     error_time: f32,
     /// The distance between the object and the target position
     error: f32,
 }
 
-impl Default for GrabParams {
+impl Default for HoldError {
     fn default() -> Self {
         Self {
             error_time: 0.0,

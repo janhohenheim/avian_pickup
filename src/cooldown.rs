@@ -23,6 +23,14 @@ pub(crate) struct Cooldown {
 }
 
 impl Cooldown {
+    pub(crate) fn throw(&mut self) {
+        // Happens to be the same as `drop`, but that's a coincidence
+        // Also, the CD does not differentiate between throwing a held object
+        // and throwing an object in front of us.
+        self.left = Timer::from_seconds(0.5, TimerMode::Once);
+        self.right = Timer::from_seconds(0.5, TimerMode::Once);
+    }
+
     pub(crate) fn drop(&mut self) {
         self.left = Timer::from_seconds(0.5, TimerMode::Once);
         self.right = Timer::from_seconds(0.5, TimerMode::Once);

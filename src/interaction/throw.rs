@@ -8,12 +8,15 @@ pub(super) fn plugin(app: &mut App) {
 
 /// DetachObject
 fn throw(mut commands: Commands, mut q_actor: Query<(Entity, &mut Cooldown, &Throwing)>) {
-    for (actor, _cooldown, throw) in q_actor.iter_mut() {
+    for (actor, mut cooldown, throw) in q_actor.iter_mut() {
         let _prop = throw.0;
-        // Todo: cooldown.throw();
         info!("Throw!");
         commands.entity(actor).remove::<Throwing>();
-        // TODO: Yeet object. This is also handled in DetachObject
+        // TODO: Yeet object. This is also handled in DetachObject through
+        // PrimaryAttack
+
+        // TODO: only CD when we actually threw something
+        cooldown.throw();
 
         // TODO: let the user know this prop was dropped through an event or
         // observer. Do events sent in a fixed timestep get propagated

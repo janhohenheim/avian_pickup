@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::GrabParams;
+use super::HoldError;
 use crate::{
     prelude::*,
     prop::{PickupMass, PrePickupRotation},
@@ -13,7 +13,7 @@ pub(super) fn on_hold(
     mut commands: Commands,
     mut q_actor: Query<(
         &mut AvianPickupActorState,
-        &mut GrabParams,
+        &mut HoldError,
         &Holding,
         &Position,
         &Rotation,
