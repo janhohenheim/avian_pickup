@@ -50,12 +50,14 @@ pub struct AvianPickupPlugin;
 
 impl Plugin for AvianPickupPlugin {
     fn build(&self, app: &mut App) {
-        // Run `expect` first so that other plugins can just call `unwrap`.
-        let _physics_schedule = app.get_schedule(PhysicsSchedule).expect(
-            "Failed to build `AvianPickupPlugin`:\
+        let physics_schedule = app.get_schedule(PhysicsSchedule);
+        if physics_schedule.is_none() {
+            panic!(
+                "Failed to build `AvianPickupPlugin`:\
                 Avian's `PhysicsSchedule` was not found. Make sure to add Avian's plugins *before* `AvianPickupPlugin`.\
-                This usually done by adding `PhysicsPlugins` to your `App`.",
-        );
+                This usually done by adding `PhysicsPlugins` to your `App`."
+            )
+        }
 
         app.configure_sets(
             PhysicsSchedule,
