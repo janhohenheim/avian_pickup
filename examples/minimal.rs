@@ -61,7 +61,7 @@ fn setup(
         Name::new("Ground"),
         PbrBundle {
             mesh: meshes.add(Mesh::from(ground_shape)),
-            material: materials.add(Color::WHITE),
+            material: terrain_material.clone(),
             ..default()
         },
         RigidBody::Static,

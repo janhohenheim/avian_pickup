@@ -6,11 +6,15 @@ pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 pub(crate) fn rigid_body_compound_collider(
     rigid_body: Entity,
     q_collider_ancestor: &Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: &Query<(&Transform, &Collider)>,
+    q_collider: &Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
+    filter: &SpatialQueryFilter,
 ) -> Option<Collider> {
     let mut colliders = Vec::new();
-    if let Ok((&_transform, col)) = q_collider.get(rigid_body) {
-        colliders.push((Vec3::ZERO, Quat::IDENTITY, col.clone()));
+    if let Ok((&_transform, col, layers)) = q_collider.get(rigid_body) {
+        let layers = layers.copied().unwrap_or_default();
+        if filter.test(rigid_body, layers) {
+            colliders.push((Vec3::ZERO, Quat::IDENTITY, col.clone()));
+        }
     }
     if let Ok(children) = q_collider_ancestor.get(rigid_body) {
         for child in children.iter() {
@@ -18,6 +22,7 @@ pub(crate) fn rigid_body_compound_collider(
                 *child,
                 q_collider_ancestor,
                 q_collider,
+                filter,
                 &mut colliders,
             );
         }
@@ -32,11 +37,15 @@ pub(crate) fn rigid_body_compound_collider(
 fn rigid_body_compound_collider_recursive(
     candidate: Entity,
     q_collider_ancestor: &Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: &Query<(&Transform, &Collider)>,
+    q_collider: &Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
+    filter: &SpatialQueryFilter,
     colliders: &mut Vec<(Vec3, Quat, Collider)>,
 ) {
-    if let Ok((&transform, collider)) = q_collider.get(candidate) {
-        colliders.push((transform.translation, transform.rotation, collider.clone()));
+    if let Ok((&transform, collider, layers)) = q_collider.get(candidate) {
+        let layers = layers.copied().unwrap_or_default();
+        if filter.test(candidate, layers) {
+            colliders.push((transform.translation, transform.rotation, collider.clone()));
+        }
     }
     if let Ok(children) = q_collider_ancestor.get(candidate) {
         for child in children.iter() {
@@ -44,6 +53,7 @@ fn rigid_body_compound_collider_recursive(
                 *child,
                 q_collider_ancestor,
                 q_collider,
+                filter,
                 colliders,
             );
         }

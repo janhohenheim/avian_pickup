@@ -47,16 +47,22 @@ pub(super) fn plugin(app: &mut App) {
 )]
 pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for objects to pick up.\
-    /// Default: All entities
+    /// Note that no matter what this filter says, only entities with a
+    /// [`RigidBody::Dynamic`] will be considered in the first place.\
     ///
-    /// For your convenience, the following entities are always implicitly
-    /// ignored:
-    /// - All colliders that do not belong to a [`RigidBody::Dynamic`]
+    /// Default: Include all entities
     pub prop_filter: SpatialQueryFilter,
     /// The spatial query filter to use when looking for terrain that will block
     /// picking up a prop behind it.\
-    /// Default: No entities
+    /// Default: Include no entities
     pub terrain_filter: SpatialQueryFilter,
+    /// The spatial query filter to use when looking colliders belonging to this
+    /// actor.\
+    /// This is used to filter out colliders that should not be
+    /// taken into account when calculating the actor's total rigid body
+    /// extent.\
+    /// Default: Include all entities
+    pub actor_filter: SpatialQueryFilter,
     /// How far an object can be pulled from in meters. Default: 3 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
@@ -125,6 +131,7 @@ impl Default for AvianPickupActor {
         Self {
             prop_filter: default(),
             terrain_filter: SpatialQueryFilter::default().with_mask(LayerMask::NONE),
+            actor_filter: default(),
             trace_length: 3.,
             cone: 0.97,
             max_mass: 35.0,

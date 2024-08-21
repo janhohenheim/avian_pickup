@@ -61,7 +61,7 @@ pub(super) fn update_object(
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: Query<(&Transform, &Collider)>,
+    q_collider: Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
@@ -91,14 +91,24 @@ pub(super) fn update_object(
         // We can't cast a ray wrt an entire rigid body out of the box,
         // so we manually collect all colliders in the hierarchy and
         // construct a compound collider.
-        let prop_collider = rigid_body_compound_collider(prop, &q_collider_ancestor, &q_collider);
+        let prop_collider = rigid_body_compound_collider(
+            prop,
+            &q_collider_ancestor,
+            &q_collider,
+            &config.prop_filter,
+        );
         let Some(prop_collider) = prop_collider else {
             error!("Held prop does not have a collider in its hierarchy. Ignoring.");
             continue;
         };
         let prop_radius_wrt_direction =
             collide_get_extent(&prop_collider, Vec3::ZERO, prop_rotation.0, -forward);
-        let actor_collider = rigid_body_compound_collider(actor, &q_collider_ancestor, &q_collider);
+        let actor_collider = rigid_body_compound_collider(
+            actor,
+            &q_collider_ancestor,
+            &q_collider,
+            &config.actor_filter,
+        );
         let actor_radius_wrt_direction = if let Some(actor_collider) = actor_collider {
             let min_distance_to_not_penetrate = collide_get_extent(
                 &actor_collider,
