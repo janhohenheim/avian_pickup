@@ -11,7 +11,7 @@ fn main() {
             DefaultPlugins,
             WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
-            //PhysicsDebugPlugin::default(),
+            PhysicsDebugPlugin::default(),
             AvianPickupPlugin::default(),
         ))
         .add_systems(Startup, setup)

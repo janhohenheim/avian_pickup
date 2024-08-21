@@ -133,29 +133,6 @@ pub(super) fn update_object(
         // actor's origins if possible instead.
         let max_distance = preferred_distance.max(min_distance);
 
-        let terrain_hit = spatial_query.cast_ray(
-            actor_transform.translation,
-            forward,
-            max_distance,
-            true,
-            &config.terrain_filter,
-        );
-        let distance = if let Some(terrain_hit) = terrain_hit {
-            let fraction = terrain_hit.time_of_impact / max_distance;
-            if fraction < 0.5 {
-                min_distance
-            } else {
-                max_distance
-            }
-        } else {
-            max_distance
-        };
-        // Pretty sure we don't need to go through the CalcClosestPointOnLine song and
-        // dance since we already have made sure that the prop has a sensible minimum
-        // distance
-        let target_position = actor_transform.translation + forward * distance;
-        shadow.target_position = target_position;
-
         let Some(actor_space_rotation) = preferred_rotation
             .map(|preferred| preferred.0)
             .or_else(|| pre_pickup_rotation.map(|pre| pre.0))
@@ -172,6 +149,41 @@ pub(super) fn update_object(
             prop_rotation_from_actor_space(actor_space_rotation, clamped_actor_transform);
 
         shadow.target_rotation = target_rotation;
+
+        // The cast needs to be longer to account for the fact that
+        // the prop might hit terrain with the side that is not facing
+        // the player. We are assuming the prop has the same radius
+        // "behind" it as it has in front of it. Also add a bit of
+        // padding to be safe.
+        let max_cast_toi = max_distance + min_distance + 0.5;
+
+        let terrain_hit = spatial_query.cast_shape(
+            &prop_collider,
+            actor_transform.translation,
+            target_rotation,
+            forward,
+            max_cast_toi,
+            true,
+            &config.terrain_filter,
+        );
+        let distance = if let Some(terrain_hit) = terrain_hit {
+            let fraction = terrain_hit.time_of_impact / max_distance;
+            info!("fraction: {}", fraction);
+            if fraction < 0.5 {
+                info!("min distance");
+                min_distance
+            } else {
+                info!("far terrain hit");
+                max_distance.min(terrain_hit.time_of_impact)
+            }
+        } else {
+            max_distance
+        };
+        // Pretty sure we don't need to go through the CalcClosestPointOnLine song and
+        // dance since we already have made sure that the prop has a sensible minimum
+        // distance
+        let target_position = actor_transform.translation + forward * distance;
+        shadow.target_position = target_position;
     }
 }
 
