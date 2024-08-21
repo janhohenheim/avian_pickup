@@ -86,11 +86,18 @@ pub struct AvianPickupActor {
     /// `max(collider_radius, min_distance)`.\
     /// Default: 0.5 m
     pub min_distance: Scalar,
-    /// A number >= 0 that indicates how much easing will be applied to the
-    /// held prop's velocity when the actor is moving.\
-    /// A value of 0 means no smoothing, i.e. the prop perfectly follows the actor.\
-    /// Default: 1.4
-    pub easing: Scalar,
+    /// A number >= 0 that indicates how much exponential easing will be applied
+    /// to the held prop's velocity when the actor is moving.\
+    /// A value of 0 means no smoothing, i.e. the prop perfectly follows the
+    /// actor.\
+    /// Default: 1.3
+    pub linear_velocity_easing: Scalar,
+    /// A number >= 0 that indicates how much exponential easing will be applied
+    /// to the held prop's angular velocity when the actor is rotating.\
+    /// A value of 0 means no smoothing, i.e. the prop perfectly follows the
+    /// actor's point of view.\
+    /// Default: 1.7
+    pub angular_velocity_easing: Scalar,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -124,7 +131,8 @@ impl Default for AvianPickupActor {
             max_mass: 35.0,
             pull_force: 100.0,
             min_distance: 0.5,
-            easing: 1.4,
+            linear_velocity_easing: 1.3,
+            angular_velocity_easing: 1.7,
         }
     }
 }
