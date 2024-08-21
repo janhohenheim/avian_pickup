@@ -10,10 +10,11 @@ mod find_in_trace;
 use self::{can_pull::*, find_in_cone::*, find_in_trace::*};
 
 pub(super) fn plugin(app: &mut App) {
-    app.get_schedule_mut(PhysicsSchedule)
-        .unwrap()
-        .add_systems(find_object.in_set(HandleVerbSystem::Pull))
-        .add_systems(flush_pulling_state.in_set(AvianPickupSystem::ResetIdle));
+    app
+        .add_systems(
+            PhysicsSchedule,find_object.in_set(HandleVerbSystem::Pull))
+        .add_systems(
+            PhysicsSchedule,flush_pulling_state.in_set(AvianPickupSystem::ResetIdle));
 }
 
 /// Inspired by [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2497)

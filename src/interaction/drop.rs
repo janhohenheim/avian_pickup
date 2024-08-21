@@ -1,9 +1,7 @@
 use crate::{prelude::*, verb::Dropping};
 
 pub(super) fn plugin(app: &mut App) {
-    app.get_schedule_mut(PhysicsSchedule)
-        .unwrap()
-        .add_systems(drop.in_set(HandleVerbSystem::Drop));
+    app.add_systems(PhysicsSchedule, drop.in_set(HandleVerbSystem::Drop));
 }
 
 /// DetachObject

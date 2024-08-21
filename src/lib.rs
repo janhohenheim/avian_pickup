@@ -51,34 +51,35 @@ pub struct AvianPickupPlugin;
 impl Plugin for AvianPickupPlugin {
     fn build(&self, app: &mut App) {
         // Run `expect` first so that other plugins can just call `unwrap`.
-        let physics_schedule = app.get_schedule_mut(PhysicsSchedule).expect(
+        let _physics_schedule = app.get_schedule(PhysicsSchedule).expect(
             "Failed to build `AvianPickupPlugin`:\
                 Avian's `PhysicsSchedule` was not found. Make sure to add Avian's plugins *before* `AvianPickupPlugin`.\
                 This usually done by adding `PhysicsPlugins` to your `App`.",
         );
 
-        physics_schedule
-            .configure_sets(
-                (
-                    AvianPickupSystem::First,
-                    AvianPickupSystem::HandleVerb,
-                    AvianPickupSystem::ResetIdle,
-                    AvianPickupSystem::TickTimers,
-                    AvianPickupSystem::Last,
-                )
-                    .chain()
-                    .in_set(PhysicsStepSet::First),
+        app.configure_sets(
+            PhysicsSchedule,
+            (
+                AvianPickupSystem::First,
+                AvianPickupSystem::HandleVerb,
+                AvianPickupSystem::ResetIdle,
+                AvianPickupSystem::TickTimers,
+                AvianPickupSystem::Last,
             )
-            .configure_sets(
-                (
-                    HandleVerbSystem::Pull,
-                    HandleVerbSystem::Hold,
-                    HandleVerbSystem::Drop,
-                    HandleVerbSystem::Throw,
-                )
-                    .chain()
-                    .in_set(AvianPickupSystem::HandleVerb),
-            );
+                .chain()
+                .in_set(PhysicsStepSet::First),
+        )
+        .configure_sets(
+            PhysicsSchedule,
+            (
+                HandleVerbSystem::Pull,
+                HandleVerbSystem::Hold,
+                HandleVerbSystem::Drop,
+                HandleVerbSystem::Throw,
+            )
+                .chain()
+                .in_set(AvianPickupSystem::HandleVerb),
+        );
 
         app.add_plugins((
             input::plugin,

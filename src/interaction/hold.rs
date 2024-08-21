@@ -8,7 +8,8 @@ mod update;
 
 pub(super) fn plugin(app: &mut App) {
     app.observe(on_hold::on_hold);
-    app.get_schedule_mut(PhysicsSchedule).unwrap().add_systems(
+    app.add_systems(
+        PhysicsSchedule,
         (
             // Updates the error that `update_object` uses
             update::update_error,

@@ -1,9 +1,7 @@
 use crate::{prelude::*, verb::Throwing};
 
 pub(super) fn plugin(app: &mut App) {
-    app.get_schedule_mut(PhysicsSchedule)
-        .unwrap()
-        .add_systems(throw.in_set(HandleVerbSystem::Throw));
+    app.add_systems(PhysicsSchedule, throw.in_set(HandleVerbSystem::Throw));
 }
 
 /// DetachObject
