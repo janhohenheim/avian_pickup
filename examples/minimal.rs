@@ -89,7 +89,7 @@ fn handle_input(
     key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
 ) {
-    for actor in actors.iter() {
+    for actor in &actors {
         if key_input.just_pressed(MouseButton::Left) {
             avian_pickup_input_writer.send(AvianPickupInput {
                 kind: AvianPickupInputKind::JustPressedL,
@@ -117,28 +117,27 @@ fn handle_input(
 fn rotate_camera(
     time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
-    mut camera: Query<&mut Rotation, With<Camera>>,
+    mut cameras: Query<&mut Rotation, With<Camera>>,
 ) {
-    let Ok(mut rotation) = camera.get_single_mut() else {
-        return;
-    };
-    let dt = time.delta_seconds();
-    // The factors are just arbitrary mouse sensitivity values.
-    // It's often nicer to have a faster horizontal sensitivity than vertical.
-    let mouse_sensitivity = Vec2::new(0.08, 0.05);
+    for mut rotation in &mut cameras {
+        let dt = time.delta_seconds();
+        // The factors are just arbitrary mouse sensitivity values.
+        // It's often nicer to have a faster horizontal sensitivity than vertical.
+        let mouse_sensitivity = Vec2::new(0.08, 0.05);
 
-    for motion in mouse_motion.read() {
-        let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
-        let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
+        for motion in mouse_motion.read() {
+            let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
+            let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
-        // Add yaw (global)
-        rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
+            // Add yaw (global)
+            rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
 
-        // Add pitch (local)
-        const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-        let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
-        let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-        rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+            // Add pitch (local)
+            const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
+            let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
+            let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+            rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+        }
     }
 }
 
