@@ -6,7 +6,7 @@ pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 pub(crate) fn rigid_body_compound_collider(
     rigid_body: Entity,
     q_collider_ancestor: &Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: &Query<(&Transform, &Collider), Without<Sensor>>,
+    q_collider: &Query<(&Transform, &Collider)>,
 ) -> Option<Collider> {
     let mut colliders = Vec::new();
     if let Ok((&_transform, col)) = q_collider.get(rigid_body) {
@@ -32,11 +32,11 @@ pub(crate) fn rigid_body_compound_collider(
 fn rigid_body_compound_collider_recursive(
     candidate: Entity,
     q_collider_ancestor: &Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: &Query<(&Transform, &Collider), Without<Sensor>>,
+    q_collider: &Query<(&Transform, &Collider)>,
     colliders: &mut Vec<(Vec3, Quat, Collider)>,
 ) {
-    if let Ok((&transform, col)) = q_collider.get(candidate) {
-        colliders.push((transform.translation, transform.rotation, col.clone()));
+    if let Ok((&transform, collider)) = q_collider.get(candidate) {
+        colliders.push((transform.translation, transform.rotation, collider.clone()));
     }
     if let Ok(children) = q_collider_ancestor.get(candidate) {
         for child in children.iter() {

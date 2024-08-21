@@ -6,24 +6,17 @@ pub(super) fn find_prop_in_cone(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
-    q_collider: &Query<&Position, Without<Sensor>>,
+    q_collider: &Query<&Position>,
 ) -> Option<Prop> {
     const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0 * METERS_PER_INCH;
     let mut nearest_dist = config.trace_length + MAGIC_OFFSET_ASK_VALVE;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
-    let mut colliders = Vec::new();
 
-    spatial_query.shape_intersections_callback(
+    let colliders = spatial_query.shape_intersections(
         &box_collider,
         origin.translation,
         origin.rotation,
         &config.prop_filter,
-        |entity| {
-            if q_collider.contains(entity) {
-                colliders.push(entity);
-            }
-            true
-        },
     );
     let mut canditate = None;
 

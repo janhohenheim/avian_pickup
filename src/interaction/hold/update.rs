@@ -61,7 +61,7 @@ pub(super) fn update_object(
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: Query<(&Transform, &Collider), Without<Sensor>>,
+    q_collider: Query<(&Transform, &Collider)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {

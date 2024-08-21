@@ -32,11 +32,11 @@ fn find_object(
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     q_collider_parent: Query<&ColliderParent>,
     mut q_rigid_body: Query<(&RigidBody, &Mass, &mut ExternalImpulse, &Position)>,
-    q_collider: Query<&Position, Without<Sensor>>,
+    q_collider: Query<&Position>,
 ) {
     for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
-        let prop = find_prop_in_trace(&spatial_query, actor_transform, config, &q_collider)
+        let prop = find_prop_in_trace(&spatial_query, actor_transform, config)
             .or_else(|| find_prop_in_cone(&spatial_query, actor_transform, config, &q_collider));
 
         let Some(prop) = prop else {

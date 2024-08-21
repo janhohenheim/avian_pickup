@@ -52,7 +52,6 @@ pub struct AvianPickupActor {
     /// For your convenience, the following entities are always implicitly
     /// ignored:
     /// - All colliders that do not belong to a [`RigidBody::Dynamic`]
-    /// - All [`Sensor`]s
     pub prop_filter: SpatialQueryFilter,
     /// The spatial query filter to use when looking for terrain that will block
     /// picking up a prop behind it.\
