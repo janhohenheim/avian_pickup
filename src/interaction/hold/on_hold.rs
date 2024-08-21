@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 use super::GrabParams;
 use crate::{
-    math::GetBestGlobalTransform,
     prelude::*,
     prop::{PickupMass, PrePickupRotation},
     verb::Holding,
@@ -12,8 +11,13 @@ use crate::{
 pub(super) fn on_hold(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
-    mut q_actor: Query<(&mut AvianPickupActorState, &mut GrabParams, &Holding)>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
+    mut q_actor: Query<(
+        &mut AvianPickupActorState,
+        &mut GrabParams,
+        &Holding,
+        &Position,
+        &Rotation,
+    )>,
     mut q_prop: Query<(
         &Rotation,
         &mut Mass,
@@ -23,8 +27,8 @@ pub(super) fn on_hold(
     )>,
 ) {
     let actor = trigger.entity();
-    let (mut state, mut grab, holding) = q_actor.get_mut(actor).unwrap();
-    let actor_transform = q_actor_transform.get_best_global_transform(actor);
+    let (mut state, mut grab, holding, position, rotation) = q_actor.get_mut(actor).unwrap();
+    let actor_transform = Transform::from_translation(position.0).with_rotation(rotation.0);
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     // Safety: All props are rigid bodies, so they are guaranteed to have a

@@ -1,5 +1,4 @@
 use crate::{
-    math::GetBestGlobalTransform,
     prelude::*,
     verb::{Pulling, SetVerb, Verb},
 };
@@ -27,16 +26,17 @@ fn find_object(
             &AvianPickupActor,
             &mut AvianPickupActorState,
             &mut Cooldown,
+            &Position,
+            &Rotation,
         ),
         With<Pulling>,
     >,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     q_collider_parent: Query<&ColliderParent>,
     mut q_rigid_body: Query<(&RigidBody, &Mass, &mut ExternalImpulse, &Position)>,
     q_collider: Query<&Position, Without<Sensor>>,
 ) {
-    for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
-        let actor_transform = q_actor_transform.get_best_global_transform(actor);
+    for (actor, config, mut state, mut cooldown, position, rotation) in q_actor.iter_mut() {
+        let actor_transform = Transform::from_translation(position.0).with_rotation(rotation.0);
         let prop = find_prop_in_trace(&spatial_query, actor_transform, config, &q_collider)
             .or_else(|| find_prop_in_cone(&spatial_query, actor_transform, config, &q_collider));
 

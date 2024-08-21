@@ -49,21 +49,3 @@ fn rigid_body_compound_collider_recursive(
         }
     }
 }
-
-pub(crate) trait GetBestGlobalTransform {
-    fn get_best_global_transform(&self, entity: Entity) -> Transform;
-}
-
-impl GetBestGlobalTransform
-    for Query<'_, '_, (&GlobalTransform, Option<&Position>, Option<&Rotation>)>
-{
-    fn get_best_global_transform(&self, entity: Entity) -> Transform {
-        let (global_transform, position, rotation) = self.get(entity).unwrap();
-        if let Some(position) = position {
-            if let Some(rotation) = rotation {
-                return Transform::from_translation(position.0).with_rotation(rotation.0);
-            }
-        }
-        global_transform.compute_transform()
-    }
-}

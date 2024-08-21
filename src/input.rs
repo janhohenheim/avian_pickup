@@ -1,5 +1,6 @@
 //! TODO
 
+use avian3d::prelude::*;
 use bevy::{prelude::*, utils::HashSet};
 
 use crate::{
@@ -58,7 +59,8 @@ fn set_verbs_according_to_input(
             Entity,
             Option<&AvianPickupActorState>,
             Option<&Cooldown>,
-            Has<GlobalTransform>,
+            Has<Position>,
+            Has<Rotation>,
         ),
         With<AvianPickupActor>,
     >,
@@ -68,7 +70,7 @@ fn set_verbs_according_to_input(
         let kind = event.kind;
         let actor = event.actor;
         unhandled_actors.remove(&actor);
-        let Ok((_entity, state, cooldown, has_transform)) = q_actor.get(actor) else {
+        let Ok((_entity, state, cooldown, has_position, has_rotation)) = q_actor.get(actor) else {
             error!(
                 "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
             );
@@ -76,11 +78,13 @@ fn set_verbs_according_to_input(
         };
 
         // Doing these checks now so that later systems can just call `unwrap`
-        let checks = [(has_transform, "GlobalTransform")];
+        let checks = [(has_position, "Position"), (has_rotation, "Rotation")];
         for (has_component, component_name) in checks.iter() {
             if !has_component {
                 error!(
-                    "`AvianPickupEvent` was triggered on an entity without `{component_name}`. Ignoring."
+                    "`AvianPickupEvent` was triggered on an entity without `{component_name}`. Ignoring.\n\
+                    To fix this, try making the `AvianPickupActor` a rigid body or a descendant of one.\n\
+                    Note that this can be done without adding a collider to the actor if you don't need one."
                 );
                 continue 'outer;
             }
