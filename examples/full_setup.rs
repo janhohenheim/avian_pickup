@@ -152,26 +152,32 @@ fn read_pickup_input(
 struct RotateCamera(Vec2);
 
 fn read_camera_input(
+    time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
     mut rotate_camera: Query<&mut RotateCamera>,
 ) {
+    let dt = time.delta_seconds();
+    let x_sensitive = 0.8;
+    let y_sensitive = 0.5;
     for mut rotate in rotate_camera.iter_mut() {
         rotate.0 = Vec2::ZERO;
         for motion in mouse_motion.read() {
-            rotate.0 += motion.delta;
+            let motion = motion.delta;
+            let delta_yaw = -motion.x * dt * x_sensitive;
+            let delta_pitch = -motion.y * dt * y_sensitive;
+            rotate.0.x = delta_yaw;
+            rotate.0.y = delta_pitch;
         }
     }
 }
 
-fn rotate_camera(time: Res<Time>, mut camera: Query<(&mut Rotation, &RotateCamera)>) {
-    let dt = time.delta_seconds();
-    let x_sensitive = 0.08;
-    let y_sensitive = 0.05;
-    for (mut rotation, motion) in camera.iter_mut() {
-        let motion = motion.0;
+fn rotate_camera(mut camera: Query<(&mut Rotation, &mut RotateCamera)>) {
+    for (mut rotation, mut motion) in camera.iter_mut() {
         // The factors are just arbitrary mouse sensitivity values.
-        let delta_yaw = -motion.x * dt * x_sensitive;
-        let delta_pitch = -motion.y * dt * y_sensitive;
+        let delta_yaw = motion.0.x;
+        let delta_pitch = motion.0.y;
+
+        *motion = RotateCamera::default();
 
         // Add yaw (global rotation)
         rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
