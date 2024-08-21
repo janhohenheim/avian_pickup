@@ -131,10 +131,10 @@ fn rotate_camera(
         let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
         let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
-        // Add yaw
+        // Add yaw (global)
         rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
 
-        // Add pitch
+        // Add pitch (local)
         const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
         let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
         let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
