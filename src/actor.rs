@@ -89,14 +89,14 @@ pub struct AvianPickupActor {
     /// A number >= 0 that indicates how much exponential easing will be applied
     /// to the held prop's velocity when the actor is moving.\
     /// A value of 0 means no smoothing, i.e. the prop perfectly follows the
-    /// actor.\
-    /// Default: 1.2
+    /// actor's position.\
+    /// Default: 0.0
     pub linear_velocity_easing: Scalar,
     /// A number >= 0 that indicates how much exponential easing will be applied
     /// to the held prop's angular velocity when the actor is rotating.\
     /// A value of 0 means no smoothing, i.e. the prop perfectly follows the
     /// actor's point of view.\
-    /// Default: 1.7
+    /// Default: 1.6
     pub angular_velocity_easing: Scalar,
 }
 
@@ -131,8 +131,8 @@ impl Default for AvianPickupActor {
             max_mass: 35.0,
             pull_force: 100.0,
             min_distance: 0.5,
-            linear_velocity_easing: 1.2,
-            angular_velocity_easing: 1.7,
+            linear_velocity_easing: 0.0,
+            angular_velocity_easing: 1.6,
         }
     }
 }
