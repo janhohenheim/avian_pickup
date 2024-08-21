@@ -57,8 +57,7 @@ pub(super) fn on_hold(
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me
 
-    // 1 second until error starts accumulating
-    grab.error_time = -1.0;
+    grab.reset();
 
     // The original code now does some stuff with `AlignAngles`, but it only
     // does so when `m_angleAlignment != 0`, which does not seem to be the

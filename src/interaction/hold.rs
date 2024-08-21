@@ -56,10 +56,17 @@ pub(crate) struct HoldError {
     error: f32,
 }
 
+impl HoldError {
+    pub(crate) fn reset(&mut self) {
+        *self = Self::default();
+    }
+}
+
 impl Default for HoldError {
     fn default() -> Self {
         Self {
-            error_time: 0.0,
+            // 1 second until error starts accumulating
+            error_time: -1.0,
             error: 0.0,
         }
     }
