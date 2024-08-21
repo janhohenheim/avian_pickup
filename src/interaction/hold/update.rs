@@ -16,27 +16,27 @@ pub(super) fn update_error(
     mut q_actor: Query<(&mut HoldError, &ShadowParams, &Holding)>,
 ) {
     let dt = time.delta_seconds();
-    for (mut grab, shadow, holding) in q_actor.iter_mut() {
+    for (mut hold_error, shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
-        grab.error_time += dt;
-        if grab.error_time <= 0.0 {
+        hold_error.error_time += dt;
+        if hold_error.error_time <= 0.0 {
             continue;
         }
         // Safety: All props are rigid bodies, so they are guaranteed to have a
         // `Position`.
         let position = q_prop.get(prop).unwrap();
         let mut error = (position.0 - shadow.target_position).length();
-        if grab.error_time > 1.0 {
-            grab.error_time = 1.0;
+        if hold_error.error_time > 1.0 {
+            hold_error.error_time = 1.0;
         }
-        let speed = error / grab.error_time;
+        let speed = error / hold_error.error_time;
         if speed > shadow.max_speed {
             // this seems like it would still result in a speed above max_speed
             // but idk.
             error *= 0.5;
         }
-        grab.error = grab.error.lerp(error, grab.error_time);
-        grab.error_time = 0.0;
+        hold_error.error = hold_error.error.lerp(error, hold_error.error_time);
+        hold_error.error_time = 0.0;
     }
 }
 
@@ -65,9 +65,9 @@ pub(super) fn update_object(
     q_collider: Query<(&Transform, &Collider), Without<Sensor>>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, config, grab, mut shadow, holding, position, rotation) in q_actor.iter_mut() {
+    for (actor, config, hold_error, mut shadow, holding, position, rotation) in q_actor.iter_mut() {
         let prop = holding.0;
-        if grab.error > max_error {
+        if hold_error.error > max_error {
             commands.entity(actor).add(SetVerb::new(Verb::Drop(prop)));
             continue;
         }

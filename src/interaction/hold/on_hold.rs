@@ -27,7 +27,7 @@ pub(super) fn on_hold(
     )>,
 ) {
     let actor = trigger.entity();
-    let (mut state, mut grab, holding, position, rotation) = q_actor.get_mut(actor).unwrap();
+    let (mut state, mut hold_error, holding, position, rotation) = q_actor.get_mut(actor).unwrap();
     let actor_transform = Transform::from_translation(position.0).with_rotation(rotation.0);
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
@@ -57,7 +57,7 @@ pub(super) fn on_hold(
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me
 
-    grab.reset();
+    hold_error.reset();
 
     // The original code now does some stuff with `AlignAngles`, but it only
     // does so when `m_angleAlignment != 0`, which does not seem to be the

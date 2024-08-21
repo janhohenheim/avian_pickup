@@ -4,6 +4,7 @@ use avian3d::prelude::*;
 use bevy::{prelude::*, utils::HashSet};
 
 use crate::{
+    interaction::{HoldError, ShadowParams},
     prelude::{AvianPickupActor, AvianPickupActorState, Cooldown},
     verb::{SetVerb, Verb},
 };
@@ -61,6 +62,8 @@ fn set_verbs_according_to_input(
             Option<&Cooldown>,
             Has<Position>,
             Has<Rotation>,
+            Has<ShadowParams>,
+            Has<HoldError>,
         ),
         With<AvianPickupActor>,
     >,
@@ -70,7 +73,9 @@ fn set_verbs_according_to_input(
         let kind = event.kind;
         let actor = event.actor;
         unhandled_actors.remove(&actor);
-        let Ok((_entity, state, cooldown, has_position, has_rotation)) = q_actor.get(actor) else {
+        let Ok((_entity, state, cooldown, has_position, has_rotation, has_shadow, has_error)) =
+            q_actor.get(actor)
+        else {
             error!(
                 "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
             );
@@ -89,6 +94,17 @@ fn set_verbs_according_to_input(
                 continue 'outer;
             }
         }
+        // Doing these checks now so that later systems can just call `unwrap`
+        let checks = [(has_shadow, "ShadowParams"), (has_error, "HoldError")];
+        for (has_component, component_name) in checks.iter() {
+            if !has_component {
+                error!(
+                    "`AvianPickupEvent` was triggered on an entity without `{component_name}`. Ignoring."
+                );
+                continue 'outer;
+            }
+        }
+
         let Some(&state) = state else {
             error!(
                 "`AvianPickupEvent` was triggered on an entity without `AvianPickupActorState`. Ignoring."
