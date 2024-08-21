@@ -26,8 +26,8 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let static_material = materials.add(Color::WHITE);
-    let dynamic_material = materials.add(Color::from(tailwind::EMERALD_300));
+    let terrain_material = materials.add(Color::WHITE);
+    let prop_material = materials.add(Color::from(tailwind::EMERALD_300));
 
     commands.spawn((
         Name::new("Player Camera"),
@@ -61,7 +61,7 @@ fn setup(
         Name::new("Ground"),
         PbrBundle {
             mesh: meshes.add(Mesh::from(ground_shape)),
-            material: static_material.clone(),
+            material: materials.add(Color::WHITE),
             ..default()
         },
         RigidBody::Static,
@@ -73,7 +73,7 @@ fn setup(
         Name::new("Box"),
         PbrBundle {
             mesh: meshes.add(Mesh::from(box_shape)),
-            material: dynamic_material.clone(),
+            material: prop_material.clone(),
             transform: Transform::from_xyz(0.0, 2.0, 0.0),
             ..default()
         },
