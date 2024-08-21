@@ -55,8 +55,8 @@ pub struct AvianPickupActor {
     /// - All [`Sensor`]s
     pub prop_filter: SpatialQueryFilter,
     /// The spatial query filter to use when looking for terrain that will block
-    /// the picked up prop.\
-    /// Default: All entities
+    /// picking up a prop behind it.\
+    /// Default: No entities
     pub terrain_filter: SpatialQueryFilter,
     /// How far an object can be pulled from in meters. Default: 3 m
     ///
@@ -125,7 +125,7 @@ impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
             prop_filter: default(),
-            terrain_filter: default(),
+            terrain_filter: SpatialQueryFilter::default().with_mask(LayerMask::NONE),
             trace_length: 3.,
             cone: 0.97,
             max_mass: 35.0,

@@ -28,7 +28,8 @@ pub(super) fn find_prop_in_cone(
     let mut canditate = None;
 
     for collider in colliders {
-        // Safety: this collection only contains entities that are contained in `q_collider`
+        // Safety: this collection only contains entities that are contained in
+        // `q_collider`
         let object_translation = q_collider.get(collider).unwrap().0;
 
         // Closer than other objects
@@ -44,10 +45,29 @@ pub(super) fn find_prop_in_cone(
             continue;
         }
 
-        // Make sure it isn't occluded!
-        if let Some(hit) =
-            spatial_query.cast_ray(origin.translation, los, dist, true, &config.prop_filter)
-        {
+        // Make sure it isn't occluded by terrain
+        if let Some(hit) = spatial_query.cast_ray_predicate(
+            origin.translation,
+            los,
+            dist,
+            true,
+            &config.terrain_filter,
+            &|entity| q_collider.contains(entity),
+        ) {
+            if hit.entity != collider && hit.time_of_impact < dist {
+                continue;
+            }
+        }
+
+        // Make sure it isn't occluded by other props
+        if let Some(hit) = spatial_query.cast_ray_predicate(
+            origin.translation,
+            los,
+            dist,
+            true,
+            &config.prop_filter,
+            &|entity| q_collider.contains(entity),
+        ) {
             if hit.entity == collider {
                 nearest_dist = dist;
                 canditate.replace(Prop {

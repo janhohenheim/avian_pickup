@@ -21,6 +21,21 @@ pub(super) fn find_prop_in_trace(
         &|entity| q_collider.contains(entity),
     );
 
+    hit.filter(|hit| {
+        if let Some(terrain_hit) = spatial_query.cast_ray_predicate(
+            origin.translation,
+            origin.forward(),
+            test_length,
+            true,
+            &config.terrain_filter,
+            &|entity| q_collider.contains(entity),
+        ) {
+            terrain_hit.time_of_impact > hit.time_of_impact
+        } else {
+            true
+        }
+    });
+
     if let Some(hit) = hit {
         Prop {
             entity: hit.entity,
@@ -39,14 +54,26 @@ pub(super) fn find_prop_in_trace(
             false,
             &config.prop_filter,
         );
-        if let Some(hit) = hit {
-            Prop {
+        // There is no `cast_shape_predictate` in Avian, so filter out sensors manually
+        hit.filter(|hit| q_collider.contains(hit.entity))
+            .filter(|hit| {
+                if let Some(terrain_hit) = spatial_query.cast_shape(
+                    &fake_aabb_because_parry_cannot_do_aabb_casts,
+                    origin.translation,
+                    origin.rotation,
+                    origin.forward(),
+                    test_length,
+                    false,
+                    &config.terrain_filter,
+                ) {
+                    terrain_hit.time_of_impact > hit.time_of_impact
+                } else {
+                    true
+                }
+            })
+            .map(|hit| Prop {
                 entity: hit.entity,
                 toi: hit.time_of_impact,
-            }
-            .into()
-        } else {
-            None
-        }
+            })
     }
 }
