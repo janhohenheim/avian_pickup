@@ -64,7 +64,7 @@ fn setup(
         },
         AvianPickupActor {
             prop_filter: SpatialQueryFilter::from_mask(ColliderLayer::Prop),
-            terrain_filter: SpatialQueryFilter::from_mask(ColliderLayer::Terrain),
+            obstacle_filter: SpatialQueryFilter::from_mask(ColliderLayer::Terrain),
             actor_filter: SpatialQueryFilter::from_mask(ColliderLayer::Player),
             ..default()
         },
@@ -125,6 +125,12 @@ fn setup(
                 ColliderLayer::Player,
             ],
         ),
+        ClampPickupPitch {
+            // Make sure the box does not intersect with the player's capsule
+            // when looking down.
+            min: -50.0_f32.to_radians(),
+            ..default()
+        },
     ));
 }
 

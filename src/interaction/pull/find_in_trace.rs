@@ -25,7 +25,7 @@ pub(super) fn find_prop_in_trace(
             origin.forward(),
             test_length,
             true,
-            &config.terrain_filter,
+            &config.obstacle_filter,
         ) {
             terrain_hit.time_of_impact > hit.time_of_impact
         } else {
@@ -59,7 +59,7 @@ pub(super) fn find_prop_in_trace(
                 origin.forward(),
                 test_length,
                 false,
-                &config.terrain_filter,
+                &config.obstacle_filter,
             ) {
                 terrain_hit.time_of_impact > hit.time_of_impact
             } else {

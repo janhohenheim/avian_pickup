@@ -164,17 +164,18 @@ pub(super) fn update_object(
             forward,
             max_cast_toi,
             true,
-            &config.terrain_filter,
+            &config.obstacle_filter,
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
-            let fraction = terrain_hit.time_of_impact / max_distance;
-            info!("fraction: {}", fraction);
+            let toi = terrain_hit.time_of_impact;
+            let fraction = toi / max_distance;
             if fraction < 0.5 {
-                info!("min distance");
+                // not doing `max(min_distance, toi)` here because that would
+                // result in the prop being too close to the player
+                // better to intersect with the terrain than to the player.
                 min_distance
             } else {
-                info!("far terrain hit");
-                max_distance.min(terrain_hit.time_of_impact)
+                max_distance.min(toi)
             }
         } else {
             max_distance

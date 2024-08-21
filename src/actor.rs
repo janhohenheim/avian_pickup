@@ -55,7 +55,7 @@ pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for terrain that will block
     /// picking up a prop behind it.\
     /// Default: Include no entities
-    pub terrain_filter: SpatialQueryFilter,
+    pub obstacle_filter: SpatialQueryFilter,
     /// The spatial query filter to use when looking colliders belonging to this
     /// actor.\
     /// This is used to filter out colliders that should not be
@@ -130,7 +130,7 @@ impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
             prop_filter: default(),
-            terrain_filter: SpatialQueryFilter::default().with_mask(LayerMask::NONE),
+            obstacle_filter: SpatialQueryFilter::default().with_mask(LayerMask::NONE),
             actor_filter: default(),
             trace_length: 3.,
             cone: 0.97,

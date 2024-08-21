@@ -55,12 +55,12 @@ pub(crate) struct PrePickupRotation(pub Quat);
     reflect(Serialize, Deserialize)
 )]
 pub struct ClampPickupPitch {
-    /// The minimum pitch the held object can have in radians with respect to
-    /// the actor's forward direction.\
-    ///  Default: (-75.0).to_radians()
+    /// The minimum pitch the held object can have in radians while following
+    /// the actor's pitch.
+    /// Default: (-75.0).to_radians()
     pub min: f32,
-    /// The maximum pitch the held object can have in radians with respect to
-    /// the actor's forward direction.\
+    /// The maximum pitch the held object can have in radians while following
+    /// the actor's pitch.\
     /// Default: 75.0.to_radians()
     pub max: f32,
 }

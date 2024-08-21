@@ -44,7 +44,7 @@ pub(super) fn find_prop_in_cone(
             los,
             dist,
             true,
-            &config.terrain_filter,
+            &config.obstacle_filter,
             &|entity| q_collider.contains(entity),
         ) {
             if hit.entity != collider && hit.time_of_impact < dist {
