@@ -37,20 +37,21 @@ pub(super) fn set_velocities(
         let angle = if angle > PI { angle - TAU } else { angle };
         let delta_rotation_scaled_axis = axis * angle;
 
-        let arbitrary_cutoff = 1e-7;
+        velocity.0 = (delta_position * inv_dt).clamp_length_max(shadow.max_speed);
+        velocity.0 = zero_if_near_zero(velocity.0);
 
-        let new_vel = delta_position * inv_dt;
-        velocity.0 = if new_vel.length_squared() < arbitrary_cutoff {
-            Vec3::ZERO
-        } else {
-            new_vel.clamp_length_max(shadow.max_speed)
-        };
+        angvel.0 = (delta_rotation_scaled_axis * inv_dt).clamp_length_max(shadow.max_angular);
+        angvel.0 = zero_if_near_zero(angvel.0);
+    }
+}
 
-        let new_angvel = delta_rotation_scaled_axis * inv_dt;
-        angvel.0 = if new_angvel.length_squared() < arbitrary_cutoff {
-            Vec3::ZERO
-        } else {
-            new_angvel.clamp_length_max(shadow.max_angular)
-        };
+fn zero_if_near_zero(vec: Vec3) -> Vec3 {
+    // This seems large, but since we multiply by the inverse of the delta time,
+    // it's actually quite small.
+    let arbitrary_cutoff = 1e-4;
+    if vec.length_squared() < arbitrary_cutoff {
+        Vec3::ZERO
+    } else {
+        vec
     }
 }
