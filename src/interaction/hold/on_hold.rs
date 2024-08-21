@@ -2,9 +2,7 @@ use bevy::prelude::*;
 
 use super::HoldError;
 use crate::{
-    prelude::*,
-    prop::{PickupMass, PrePickupRotation},
-    verb::Holding,
+    math::GetBestGlobalTransform, prelude::*, prop::{PickupMass, PrePickupRotation}, verb::Holding
 };
 
 /// CGrabController::AttachEntity
@@ -15,9 +13,8 @@ pub(super) fn on_hold(
         &mut AvianPickupActorState,
         &mut HoldError,
         &Holding,
-        &Position,
-        &Rotation,
     )>,
+    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &Rotation,
         &mut Mass,
@@ -27,8 +24,8 @@ pub(super) fn on_hold(
     )>,
 ) {
     let actor = trigger.entity();
-    let (mut state, mut hold_error, holding, position, rotation) = q_actor.get_mut(actor).unwrap();
-    let actor_transform = Transform::from_translation(position.0).with_rotation(rotation.0);
+    let (mut state, mut hold_error, holding) = q_actor.get_mut(actor).unwrap();
+    let actor_transform = q_actor_transform.get_best_global_transform(actor);
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     // Safety: All props are rigid bodies, so they are guaranteed to have a

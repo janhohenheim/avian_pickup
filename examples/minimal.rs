@@ -20,6 +20,7 @@ fn main() {
         .run();
 }
 
+/// Spawn the camera, light, ground, and a box to pick up.
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -34,7 +35,10 @@ fn setup(
             transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_at(-Vec3::Z, Vec3::Y),
             ..default()
         },
+        // Add this to set up the camera as the entity that can pick up
+        // objects.
         AvianPickupActor::default(),
+        // Add a `RigidBody` so that `rotate_camera` can use `Rotation`.
         RigidBody::Kinematic,
     ));
 
@@ -73,50 +77,59 @@ fn setup(
             transform: Transform::from_xyz(0.0, 2.0, 0.0),
             ..default()
         },
+        // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
     ));
 }
 
+/// Pass player input along to `avian_pickup`
 fn handle_input(
     mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
     key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
 ) {
-    let Ok(actor) = actors.get_single() else {
-        return;
-    };
-    if key_input.just_pressed(MouseButton::Left) {
-        avian_pickup_input_writer.send(AvianPickupInput {
-            kind: AvianPickupInputKind::JustPressedL,
-            actor,
-        });
-    }
-    if key_input.just_pressed(MouseButton::Right) {
-        avian_pickup_input_writer.send(AvianPickupInput {
-            kind: AvianPickupInputKind::JustPressedR,
-            actor,
-        });
-    }
-    if key_input.pressed(MouseButton::Right) {
-        avian_pickup_input_writer.send(AvianPickupInput {
-            kind: AvianPickupInputKind::PressedR,
-            actor,
-        });
+    for actor in actors.iter() {
+        if key_input.just_pressed(MouseButton::Left) {
+            avian_pickup_input_writer.send(AvianPickupInput {
+                kind: AvianPickupInputKind::JustPressedL,
+                actor,
+            });
+        }
+        if key_input.just_pressed(MouseButton::Right) {
+            avian_pickup_input_writer.send(AvianPickupInput {
+                kind: AvianPickupInputKind::JustPressedR,
+                actor,
+            });
+        }
+        if key_input.pressed(MouseButton::Right) {
+            avian_pickup_input_writer.send(AvianPickupInput {
+                kind: AvianPickupInputKind::PressedR,
+                actor,
+            });
+        }
     }
 }
 
+/// We change the `Rotation` and not the `Transform` because at this point,
+/// Avian already ran using the previous frame's transform. This means that if
+/// we update `Transform` now, the cube will lag one frame behind the camera.
 fn rotate_camera(
+    time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
     mut camera: Query<&mut Rotation, With<Camera>>,
 ) {
     let Ok(mut rotation) = camera.get_single_mut() else {
         return;
     };
+    let dt = time.delta_seconds();
+    // The factors are just arbitrary mouse sensitivity values.
+    // It's often nicer to have a faster horizontal sensitivity than vertical.
+    let mouse_sensitivity = Vec2::new(0.08, 0.05);
+
     for motion in mouse_motion.read() {
-        // The factors are just arbitrary mouse sensitivity values.
-        let delta_yaw = -motion.delta.x * 0.003;
-        let delta_pitch = -motion.delta.y * 0.002;
+        let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
+        let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
         // Add yaw
         rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;

@@ -165,13 +165,12 @@ fn read_camera_input(
 
 fn rotate_camera(time: Res<Time>, mut camera: Query<(&mut Rotation, &RotateCamera)>) {
     let dt = time.delta_seconds();
-    let x_sensitive = 0.08;
-    let y_sensitive = 0.05;
+    let mouse_sensitivity = Vec2::new(0.08, 0.05);
     for (mut rotation, motion) in camera.iter_mut() {
         let motion = motion.0;
         // The factors are just arbitrary mouse sensitivity values.
-        let delta_yaw = -motion.x * dt * x_sensitive;
-        let delta_pitch = -motion.y * dt * y_sensitive;
+        let delta_yaw = -motion.x * dt * mouse_sensitivity.x;
+        let delta_pitch = -motion.y * dt * mouse_sensitivity.y;
 
         // Add yaw (global rotation)
         rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
