@@ -7,11 +7,16 @@ pub(super) fn plugin(app: &mut App) {
 /// DetachObject
 fn throw(mut commands: Commands, mut q_actor: Query<(Entity, &mut Cooldown, &Throwing)>) {
     for (actor, mut cooldown, throw) in q_actor.iter_mut() {
-        let _prop = throw.0;
+        let prop = throw.0;
         info!("Throw!");
         commands.entity(actor).remove::<Throwing>();
-        // TODO: Yeet object. This is also handled in DetachObject through
-        // PrimaryAttack
+        if let Some(prop) = prop {
+            // TODO: Yeet object. This is also handled in DetachObject through
+            // PrimaryAttack
+            commands.entity(prop).remove::<HeldProp>();
+        } else {
+            // Yeet next object in front of us
+        }
 
         // TODO: only CD when we actually threw something
         cooldown.throw();

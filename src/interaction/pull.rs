@@ -1,5 +1,7 @@
 use crate::{
-    math::GetBestGlobalTransform, prelude::*, verb::{Pulling, SetVerb, Verb}
+    math::GetBestGlobalTransform,
+    prelude::*,
+    verb::{Pulling, SetVerb, Verb},
 };
 
 mod can_pull;
@@ -9,11 +11,11 @@ mod find_in_trace;
 use self::{can_pull::*, find_in_cone::*, find_in_trace::*};
 
 pub(super) fn plugin(app: &mut App) {
-    app
+    app.add_systems(PhysicsSchedule, find_object.in_set(HandleVerbSystem::Pull))
         .add_systems(
-            PhysicsSchedule,find_object.in_set(HandleVerbSystem::Pull))
-        .add_systems(
-            PhysicsSchedule,flush_pulling_state.in_set(AvianPickupSystem::ResetIdle));
+            PhysicsSchedule,
+            flush_pulling_state.in_set(AvianPickupSystem::ResetIdle),
+        );
 }
 
 /// Inspired by [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2497)
@@ -31,7 +33,13 @@ fn find_object(
     >,
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     q_collider_parent: Query<&ColliderParent>,
-    mut q_rigid_body: Query<(&RigidBody, &Mass, &mut ExternalImpulse, &Position)>,
+    mut q_rigid_body: Query<(
+        &RigidBody,
+        &Mass,
+        &mut ExternalImpulse,
+        &Position,
+        Has<HeldProp>,
+    )>,
     q_collider: Query<&Position>,
 ) {
     for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
@@ -46,14 +54,14 @@ fn find_object(
         // Safety: all colliders have a `ColliderParent`
         let rigid_body_entity = q_collider_parent.get(prop.entity).unwrap().get();
 
-        let Ok((&rigid_body, &mass, mut impulse, prop_position)) =
+        let Ok((&rigid_body, &mass, mut impulse, prop_position, is_already_being_held)) =
             q_rigid_body.get_mut(rigid_body_entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
             continue;
         };
 
-        if !can_pull(rigid_body, mass, config) {
+        if is_already_being_held || !can_pull(rigid_body, mass, config) {
             continue;
         }
 

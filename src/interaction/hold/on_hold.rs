@@ -32,6 +32,7 @@ pub(super) fn on_hold(
     let actor_transform = q_actor_transform.get_best_global_transform(actor);
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
+    commands.entity(prop).insert(HeldProp);
     // Safety: All props are rigid bodies, so they are guaranteed to have a
     // `Rotation` and `Mass`.
     let (rotation, mut mass, pickup_mass, non_pickup_mass, pre_pickup_rotation) =

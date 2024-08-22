@@ -18,6 +18,7 @@ fn drop(
     for (actor, mut state, mut cooldown, drop) in q_actor.iter_mut() {
         let prop = drop.0;
         *state = AvianPickupActorState::Idle;
+        commands.entity(prop).remove::<HeldProp>();
         cooldown.drop();
         commands.entity(actor).remove::<Dropping>();
         // Safety: the prop is a dynamic rigid body and thus is guaranteed to have a

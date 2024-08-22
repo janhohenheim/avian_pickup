@@ -11,6 +11,7 @@ pub(super) fn plugin(app: &mut App) {
         ClampPickupPitchOverride,
         PreferredPickupDistanceOverride,
         PickupMassOverride,
+        HeldProp,
     )>();
 }
 
@@ -20,6 +21,7 @@ pub(super) mod prelude {
         PickupMassOverride,
         PreferredPickupDistanceOverride,
         PreferredPickupRotation,
+        HeldProp
     };
 }
 
@@ -109,3 +111,13 @@ impl Default for PickupMassOverride {
 /// In other words, this is the mass before and after the pickup.
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub(crate) struct NonPickupMass(pub Scalar);
+
+/// Marker component for props that are held by an [`AvianPickupActor`].
+#[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Default, Reflect)]
+#[reflect(Debug, Component, Default, Hash, PartialEq)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct HeldProp;
