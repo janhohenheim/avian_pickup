@@ -10,6 +10,7 @@ mod cooldown;
 pub mod input;
 mod interaction;
 mod math;
+pub mod output;
 pub mod prop;
 mod verb;
 
@@ -18,14 +19,18 @@ pub mod prelude {
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy::prelude::*;
 
+    pub(crate) use super::{
+        cooldown::prelude::*,
+        prop::{prelude::*, NonPickupMass},
+        HandleVerbSystem,
+    };
     pub use crate::{
         actor::prelude::*,
         input::prelude::*,
-        prop::prelude::*,
+        output::prelude::*,
         AvianPickupPlugin,
         AvianPickupSystem,
     };
-    pub(crate) use crate::{cooldown::prelude::*, prop::NonPickupMass, HandleVerbSystem};
 }
 
 /// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable
@@ -85,6 +90,7 @@ impl Plugin for AvianPickupPlugin {
 
         app.add_plugins((
             input::plugin,
+            output::plugin,
             actor::plugin,
             interaction::plugin,
             cooldown::plugin,

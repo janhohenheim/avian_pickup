@@ -14,13 +14,19 @@ fn drop(
         &mut AngularVelocity,
         Option<&NonPickupMass>,
     )>,
+    mut w_drop_event: EventWriter<PropDropped>,
 ) {
     for (actor, mut state, mut cooldown, drop) in q_actor.iter_mut() {
-        let prop = drop.0;
+        let prop = drop.prop;
         *state = AvianPickupActorState::Idle;
         commands.entity(prop).remove::<HeldProp>();
         cooldown.drop();
         commands.entity(actor).remove::<Dropping>();
+        w_drop_event.send(PropDropped {
+            actor,
+            prop,
+            forced: drop.forced,
+        });
         // Safety: the prop is a dynamic rigid body and thus is guaranteed to have a
         // mass, linvel, and angvel.
         let (mut mass, mut velocity, mut angvel, non_pickup_mass) = q_prop.get_mut(prop).unwrap();
@@ -31,8 +37,5 @@ fn drop(
         mass.0 = non_pickup_mass.0;
         velocity.0 = Vec3::ZERO;
         angvel.0 = Vec3::ZERO;
-        // TODO: let the user know this prop was dropped through an event or
-        // observer. Do events sent in a fixed timestep get propagated
-        // to `PostUpdate` even when two fixed update loops passed?
     }
 }

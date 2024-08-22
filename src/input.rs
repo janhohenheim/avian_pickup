@@ -123,7 +123,10 @@ fn set_verbs_according_to_input(
                 let AvianPickupActorState::Holding(prop) = state else {
                     unreachable!()
                 };
-                Some(Verb::Drop(prop))
+                Some(Verb::Drop {
+                    prop,
+                    forced: false,
+                })
             }
             AvianPickupInputKind::JustPressedR | AvianPickupInputKind::PressedR => {
                 if matches!(

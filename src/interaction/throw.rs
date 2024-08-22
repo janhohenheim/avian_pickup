@@ -5,7 +5,11 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// DetachObject
-fn throw(mut commands: Commands, mut q_actor: Query<(Entity, &mut Cooldown, &Throwing)>) {
+fn throw(
+    mut commands: Commands,
+    mut q_actor: Query<(Entity, &mut Cooldown, &Throwing)>,
+    mut w_throw_event: EventWriter<PropThrown>,
+) {
     for (actor, mut cooldown, throw) in q_actor.iter_mut() {
         let prop = throw.0;
         info!("Throw!");
@@ -14,15 +18,22 @@ fn throw(mut commands: Commands, mut q_actor: Query<(Entity, &mut Cooldown, &Thr
             // TODO: Yeet object. This is also handled in DetachObject through
             // PrimaryAttack
             commands.entity(prop).remove::<HeldProp>();
+            w_throw_event.send(PropThrown {
+                actor,
+                prop,
+                was_held: true,
+            });
         } else {
-            // Yeet next object in front of us
+            // YTODO: eet next object in front of us
+
+            w_throw_event.send(PropThrown {
+                actor,
+                prop: Entity::PLACEHOLDER,
+                was_held: false,
+            });
         }
 
         // TODO: only CD when we actually threw something
         cooldown.throw();
-
-        // TODO: let the user know this prop was dropped through an event or
-        // observer. Do events sent in a fixed timestep get propagated
-        // to `PostUpdate` even when two fixed update loops passed?
     }
 }

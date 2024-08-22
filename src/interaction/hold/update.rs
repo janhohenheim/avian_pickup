@@ -67,7 +67,9 @@ pub(super) fn update_object(
     for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
         if hold_error.error > max_error {
-            commands.entity(actor).add(SetVerb::new(Verb::Drop(prop)));
+            commands
+                .entity(actor)
+                .add(SetVerb::new(Verb::Drop { prop, forced: true }));
             continue;
         }
         let actor_transform = q_actor_transform.get_best_global_transform(actor);

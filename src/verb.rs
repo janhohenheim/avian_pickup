@@ -19,7 +19,13 @@ pub(crate) enum Verb {
     /// Insert [`Throwing`] component and clear others
     Throw(Option<Entity>),
     /// Insert [`Dropping`] component and clear others
-    Drop(Entity),
+    Drop {
+        /// The prop to drop
+        prop: Entity,
+        /// Whether the drop was forced to be dropped by
+        /// being too far away from its target location.
+        forced: bool,
+    },
     /// Insert [`Pulling`] component and clear others
     Pull,
     /// Insert [`Holding`] component and clear others
@@ -30,7 +36,10 @@ pub(crate) enum Verb {
 pub(crate) struct Throwing(pub(crate) Option<Entity>);
 
 #[derive(Debug, Clone, Copy, Component)]
-pub(crate) struct Dropping(pub(crate) Entity);
+pub(crate) struct Dropping {
+    pub(crate) prop: Entity,
+    pub(crate) forced: bool,
+}
 
 #[derive(Debug, Clone, Copy, Component)]
 pub(crate) struct Pulling;
@@ -77,9 +86,9 @@ fn set_verb(
                 commands.remove::<Holding>();
             }
         }
-        Some(Verb::Drop(prop)) => {
+        Some(Verb::Drop { prop, forced }) => {
             if !dropping {
-                commands.insert(Dropping(prop));
+                commands.insert(Dropping { prop, forced });
             }
             if throwing {
                 commands.remove::<Throwing>();
