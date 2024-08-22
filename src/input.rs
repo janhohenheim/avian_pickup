@@ -81,7 +81,11 @@ fn set_verbs_according_to_input(
         };
 
         // Doing these checks now so that later systems can just call `unwrap`
-        let checks = [(has_global_transform, "GlobalTransform"), (has_shadow, "ShadowParams"), (has_error, "HoldError")];
+        let checks = [
+            (has_global_transform, "GlobalTransform"),
+            (has_shadow, "ShadowParams"),
+            (has_error, "HoldError"),
+        ];
         for (has_component, component_name) in checks.iter() {
             if !has_component {
                 error!(

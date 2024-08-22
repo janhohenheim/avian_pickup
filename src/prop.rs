@@ -18,10 +18,10 @@ pub(super) fn plugin(app: &mut App) {
 pub(super) mod prelude {
     pub use super::{
         ClampPickupPitchOverride,
+        HeldProp,
         PickupMassOverride,
         PreferredPickupDistanceOverride,
         PreferredPickupRotation,
-        HeldProp
     };
 }
 

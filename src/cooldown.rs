@@ -10,8 +10,7 @@ pub(super) mod prelude {
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app
-        .add_systems(PhysicsSchedule, tick.in_set(AvianPickupSystem::TickTimers));
+    app.add_systems(PhysicsSchedule, tick.in_set(AvianPickupSystem::TickTimers));
 }
 
 /// Timings taken from [`CWeaponPhysCannon::SecondaryAttack`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2284)
