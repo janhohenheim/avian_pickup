@@ -163,7 +163,7 @@ impl Default for AvianPickupActor {
             max_mass: 35.0,
             pull_force: 100.0,
             min_distance: 0.5,
-            linear_velocity_easing: 0.0,
+            linear_velocity_easing: 1.0,
             angular_velocity_easing: 1.6,
             clamp_pickup_pitch: (-75.0_f32.to_radians(), 75.0_f32.to_radians()),
             preferred_pickup_distance: 1.5,

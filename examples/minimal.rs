@@ -2,20 +2,43 @@ use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
-use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
+use bevy::{
+    app::RunFixedMainLoop,
+    color::palettes::tailwind,
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    input::mouse::MouseMotion,
+    prelude::*,
+    time::run_fixed_main_schedule,
+    window::PresentMode,
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_transform_interpolation::*;
 
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    present_mode: PresentMode::Immediate,
+                    ..default()
+                }),
+                ..default()
+            }),
             WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
-            //PhysicsDebugPlugin::default(),
+            TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
+            FrameTimeDiagnosticsPlugin::default(),
+            LogDiagnosticsPlugin::default(),
         ))
         .add_systems(Startup, setup)
-        .add_systems(Update, (handle_input, rotate_camera))
+        // Need to read input and rotate camera before physics,
+        // this is unfortunately the best way to schedule this:
+        // <https://github.com/bevyengine/bevy/issues/14873>
+        .add_systems(
+            RunFixedMainLoop,
+            (handle_input, rotate_camera).before(run_fixed_main_schedule),
+        )
         .add_systems(PhysicsSchedule, debug.in_set(AvianPickupSystem::Last))
         .run();
 }
@@ -40,6 +63,7 @@ fn setup(
         AvianPickupActor::default(),
         // Add a `RigidBody` so that `rotate_camera` can use `Rotation`.
         RigidBody::Kinematic,
+        NoRotationInterpolation,
     ));
 
     commands.spawn((
@@ -117,9 +141,9 @@ fn handle_input(
 fn rotate_camera(
     time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
-    mut cameras: Query<&mut Rotation, With<Camera>>,
+    mut cameras: Query<&mut Transform, With<Camera>>,
 ) {
-    for mut rotation in &mut cameras {
+    for mut transform in &mut cameras {
         let dt = time.delta_seconds();
         // The factors are just arbitrary mouse sensitivity values.
         // It's often nicer to have a faster horizontal sensitivity than vertical.
@@ -130,13 +154,13 @@ fn rotate_camera(
             let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
             // Add yaw (global)
-            rotation.0 = Quat::from_rotation_y(delta_yaw) * rotation.0;
+            transform.rotate_y(delta_yaw);
 
             // Add pitch (local)
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-            let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
+            let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-            rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+            transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }
     }
 }

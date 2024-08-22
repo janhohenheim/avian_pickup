@@ -336,6 +336,7 @@ dependencies = [
  "avian3d",
  "bevy",
  "bevy-inspector-egui",
+ "bevy_transform_interpolation",
  "serde",
 ]
 
@@ -1148,6 +1149,14 @@ dependencies = [
  "bevy_reflect",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "bevy_transform_interpolation"
+version = "0.1.0"
+source = "git+https://github.com/Jondolf/bevy_transform_interpolation#93b7036f754aa86ec03fb1b728677163c82fbf88"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]

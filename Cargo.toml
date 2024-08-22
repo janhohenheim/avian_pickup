@@ -35,6 +35,7 @@ features = [
 bevy-inspector-egui = "0.25.2"
 avian3d = { git = "https://github.com/Jondolf/avian" }
 bevy = { version = "0.14.1", features = ["dynamic_linking"] }
+bevy_transform_interpolation = { git = "https://github.com/Jondolf/bevy_transform_interpolation" }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
