@@ -1,6 +1,6 @@
 use avian3d::sync::ancestor_marker::AncestorMarker;
 
-use super::{HoldError, HoldSystem, ShadowParams};
+use super::{prelude::*, HoldSystem};
 use crate::{
     math::{rigid_body_compound_collider, GetBestGlobalTransform as _},
     prelude::*,
@@ -9,47 +9,11 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(
-        PhysicsSchedule,
-        (update_error, update_shadow_params)
-            .chain()
-            .in_set(HoldSystem::UpdateShadowParams),
-    );
-}
-
-/// CGrabController::ComputeError(),
-pub(super) fn update_error(
-    time: Res<Time>,
-    q_prop: Query<&Position>,
-    mut q_actor: Query<(&mut HoldError, &ShadowParams, &Holding)>,
-) {
-    let dt = time.delta_seconds();
-    for (mut hold_error, shadow, holding) in q_actor.iter_mut() {
-        let prop = holding.0;
-        hold_error.error_time += dt;
-        if hold_error.error_time <= 0.0 {
-            continue;
-        }
-        // Safety: All props are rigid bodies, so they are guaranteed to have a
-        // `Position`.
-        let position = q_prop.get(prop).unwrap();
-        let mut error = (position.0 - shadow.target_position).length();
-        if hold_error.error_time > 1.0 {
-            hold_error.error_time = 1.0;
-        }
-        let speed = error / hold_error.error_time;
-        if speed > shadow.max_speed {
-            // this seems like it would still result in a speed above max_speed
-            // but idk.
-            error *= 0.5;
-        }
-        hold_error.error = hold_error.error.lerp(error, hold_error.error_time);
-        hold_error.error_time = 0.0;
-    }
+    app.add_systems(PhysicsSchedule, set_targets.in_set(HoldSystem::SetTargets));
 }
 
 /// CGrabController::UpdateObject
-pub(super) fn update_shadow_params(
+fn set_targets(
     mut commands: Commands,
     spatial_query: SpatialQuery,
     mut q_actor: Query<(

@@ -1,4 +1,4 @@
-use super::HoldError;
+use super::prelude::HoldError;
 use crate::{math::GetBestGlobalTransform, prelude::*, prop::PrePickupRotation, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {
