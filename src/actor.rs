@@ -95,7 +95,7 @@ pub struct AvianPickupActor {
     /// to the held prop's velocity when the actor is moving.\
     /// A value of 0 means no smoothing, i.e. the prop perfectly follows the
     /// actor's position.\
-    /// Default: 0.0
+    /// Default: 1.0
     pub linear_velocity_easing: Scalar,
     /// A number >= 0 that indicates how much exponential easing will be applied
     /// to the held prop's angular velocity when the actor is rotating.\

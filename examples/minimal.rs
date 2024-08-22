@@ -5,11 +5,9 @@ use avian_pickup::prelude::*;
 use bevy::{
     app::RunFixedMainLoop,
     color::palettes::tailwind,
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     input::mouse::MouseMotion,
     prelude::*,
     time::run_fixed_main_schedule,
-    window::PresentMode,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_transform_interpolation::*;
@@ -17,19 +15,11 @@ use bevy_transform_interpolation::*;
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    present_mode: PresentMode::Immediate,
-                    ..default()
-                }),
-                ..default()
-            }),
+            DefaultPlugins,
             WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
             TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
-            FrameTimeDiagnosticsPlugin::default(),
-            LogDiagnosticsPlugin::default(),
         ))
         .add_systems(Startup, setup)
         // Need to read input and rotate camera before physics,
@@ -147,7 +137,7 @@ fn rotate_camera(
         let dt = time.delta_seconds();
         // The factors are just arbitrary mouse sensitivity values.
         // It's often nicer to have a faster horizontal sensitivity than vertical.
-        let mouse_sensitivity = Vec2::new(0.08, 0.05);
+        let mouse_sensitivity = Vec2::new(0.12, 0.10);
 
         for motion in mouse_motion.read() {
             let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
