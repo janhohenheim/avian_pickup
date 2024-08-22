@@ -56,8 +56,8 @@ pub(super) fn update_object(
         &Rotation,
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
-        Option<&PreferredPickupDistance>,
-        Option<&ClampPickupPitch>,
+        Option<&PreferredPickupDistanceOverride>,
+        Option<&ClampPickupPitchOverride>,
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
@@ -81,10 +81,11 @@ pub(super) fn update_object(
             preferred_distance,
             clamp_pitch,
         ) = q_prop.get_mut(prop).unwrap();
-        let clamp_pitch = clamp_pitch.copied().unwrap_or_default();
-
+        let (min_pitch, max_pitch) = clamp_pitch
+            .map(|c| (c.min, c.max))
+            .unwrap_or(config.clamp_pickup_pitch);
         let (actor_yaw, actor_pitch, actor_roll) = actor_transform.rotation.to_euler(EulerRot::YXZ);
-        let actor_to_prop_pitch = actor_pitch.clamp(clamp_pitch.min, clamp_pitch.max);
+        let actor_to_prop_pitch = actor_pitch.clamp(min_pitch, max_pitch);
         let clamped_rotation =
             Quat::from_euler(EulerRot::YXZ, actor_yaw, actor_to_prop_pitch, actor_roll);
         let forward = Transform::from_rotation(clamped_rotation).forward();
@@ -124,7 +125,9 @@ pub(super) fn update_object(
         let min_distance = prop_radius_wrt_direction + actor_radius_wrt_direction;
         // The 2013 code now additionally does `min_distance = (min_distance * 2) + 24
         // inches` That seems straight up bizarre, so I refuse to do that.
-        let preferred_distance = preferred_distance.copied().unwrap_or_default().0;
+        let preferred_distance = preferred_distance
+            .map(|d| d.0)
+            .unwrap_or(config.preferred_pickup_distance);
         // The 2013 code does `max_distance = preferred_distance + min_distance`
         // which means that `preferred_distance` is the distance between the prop's
         // edge and the actors's edge. Expect psyche, actually `min_distance` gets
@@ -157,6 +160,10 @@ pub(super) fn update_object(
         // padding to be safe.
         let max_cast_toi = max_distance + min_distance + 0.5;
 
+        // Not filtering this out later because we want the cast to "pass through" the
+        // prop to get the distance to the terrain behind it.
+        let mut terrain_filter = config.obstacle_filter.clone();
+        terrain_filter.excluded_entities.insert(prop);
         let terrain_hit = spatial_query.cast_shape(
             &prop_collider,
             actor_transform.translation,
@@ -164,7 +171,7 @@ pub(super) fn update_object(
             forward,
             max_cast_toi,
             true,
-            &config.obstacle_filter,
+            &terrain_filter,
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
             let toi = terrain_hit.time_of_impact;

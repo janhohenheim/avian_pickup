@@ -66,6 +66,9 @@ fn setup(
             prop_filter: SpatialQueryFilter::from_mask(ColliderLayer::Prop),
             obstacle_filter: SpatialQueryFilter::from_mask(ColliderLayer::Terrain),
             actor_filter: SpatialQueryFilter::from_mask(ColliderLayer::Player),
+            // Make sure the props do not intersect with the player's capsule
+            // when looking down.
+            clamp_pickup_pitch: (-50.0_f32.to_radians(), 75.0_f32.to_radians()),
             ..default()
         },
         RigidBody::Kinematic,
@@ -125,12 +128,6 @@ fn setup(
                 ColliderLayer::Player,
             ],
         ),
-        ClampPickupPitch {
-            // Make sure the box does not intersect with the player's capsule
-            // when looking down.
-            min: -50.0_f32.to_radians(),
-            ..default()
-        },
     ));
 }
 

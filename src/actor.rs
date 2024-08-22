@@ -54,7 +54,7 @@ pub struct AvianPickupActor {
     pub prop_filter: SpatialQueryFilter,
     /// The spatial query filter to use when looking for terrain that will block
     /// picking up a prop behind it.\
-    /// Default: Include no entities
+    /// Default: Include all entities
     pub obstacle_filter: SpatialQueryFilter,
     /// The spatial query filter to use when looking colliders belonging to this
     /// actor.\
@@ -103,6 +103,32 @@ pub struct AvianPickupActor {
     /// actor's point of view.\
     /// Default: 1.6
     pub angular_velocity_easing: Scalar,
+
+    /// The minimum and maximum pitch the held prop can have in radians while
+    /// following the actor's pitch.\
+    /// Can be overridden by adding a
+    /// [`ClampPickupPitchOverride`](crate::prop::ClampPickupPitchOverride)
+    /// to the prop.\
+    /// Default: (-75.0).to_radians() to 75.0.to_radians()
+    pub clamp_pickup_pitch: (f32, f32),
+    /// The distance in meters between the player and the object's OBBs when
+    /// picked up and there is no obstacle in the way.\
+    /// Can be overridden by adding a
+    /// [`PreferredPickupDistanceOverride`](crate::prop::PreferredPickupDistanceOverride)
+    /// to the prop.\
+    /// Default: 1.5 m
+    pub preferred_pickup_distance: Scalar,
+    /// The mass in kg of the object when picked up.
+    /// This mechanism is needed because the held object's velocity is
+    /// set directly, independent of its mass. This means that heavy
+    /// objects could potentially generate *a lot* of force when colliding
+    /// with other objects.
+    /// The prop's original mass will be restored when the prop is no longer
+    /// being held\
+    /// Can be overridden by adding a
+    /// [`PickupMassOverride`](crate::prop::PickupMassOverride) to the prop.\
+    /// Default: 1 kg
+    pub pickup_mass: Scalar,
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -130,7 +156,7 @@ impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
             prop_filter: default(),
-            obstacle_filter: SpatialQueryFilter::default().with_mask(LayerMask::NONE),
+            obstacle_filter: default(),
             actor_filter: default(),
             trace_length: 3.,
             cone: 0.97,
@@ -139,6 +165,9 @@ impl Default for AvianPickupActor {
             min_distance: 0.5,
             linear_velocity_easing: 0.0,
             angular_velocity_easing: 1.6,
+            clamp_pickup_pitch: (-75.0_f32.to_radians(), 75.0_f32.to_radians()),
+            preferred_pickup_distance: 1.5,
+            pickup_mass: 1.0,
         }
     }
 }

@@ -27,7 +27,9 @@ pub(super) fn find_prop_in_trace(
             true,
             &config.obstacle_filter,
         ) {
-            terrain_hit.time_of_impact > hit.time_of_impact
+            let occluded = terrain_hit.entity != hit.entity
+                && terrain_hit.time_of_impact <= hit.time_of_impact;
+            !occluded
         } else {
             true
         }
@@ -61,7 +63,9 @@ pub(super) fn find_prop_in_trace(
                 false,
                 &config.obstacle_filter,
             ) {
-                terrain_hit.time_of_impact > hit.time_of_impact
+                let occluded = terrain_hit.entity != hit.entity
+                    && terrain_hit.time_of_impact <= hit.time_of_impact;
+                !occluded
             } else {
                 true
             }

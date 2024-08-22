@@ -2,7 +2,10 @@ use bevy::prelude::*;
 
 use super::HoldError;
 use crate::{
-    math::GetBestGlobalTransform, prelude::*, prop::{PickupMass, PrePickupRotation}, verb::Holding
+    math::GetBestGlobalTransform,
+    prelude::*,
+    prop::{PickupMassOverride, PrePickupRotation},
+    verb::Holding,
 };
 
 /// CGrabController::AttachEntity
@@ -10,6 +13,7 @@ pub(super) fn on_hold(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
     mut q_actor: Query<(
+        &AvianPickupActor,
         &mut AvianPickupActorState,
         &mut HoldError,
         &Holding,
@@ -18,13 +22,13 @@ pub(super) fn on_hold(
     mut q_prop: Query<(
         &Rotation,
         &mut Mass,
-        Option<&PickupMass>,
+        Option<&PickupMassOverride>,
         Option<&mut NonPickupMass>,
         Option<&mut PrePickupRotation>,
     )>,
 ) {
     let actor = trigger.entity();
-    let (mut state, mut hold_error, holding) = q_actor.get_mut(actor).unwrap();
+    let (config, mut state, mut hold_error, holding) = q_actor.get_mut(actor).unwrap();
     let actor_transform = q_actor_transform.get_best_global_transform(actor);
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
@@ -32,7 +36,7 @@ pub(super) fn on_hold(
     // `Rotation` and `Mass`.
     let (rotation, mut mass, pickup_mass, non_pickup_mass, pre_pickup_rotation) =
         q_prop.get_mut(prop).unwrap();
-    let new_mass = pickup_mass.copied().unwrap_or_default().0;
+    let new_mass = pickup_mass.map(|m| m.0).unwrap_or(config.pickup_mass);
     if let Some(mut non_pickup_mass) = non_pickup_mass {
         non_pickup_mass.0 = mass.0;
     } else {
