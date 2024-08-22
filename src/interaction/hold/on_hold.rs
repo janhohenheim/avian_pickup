@@ -1,12 +1,7 @@
 use bevy::prelude::*;
 
 use super::HoldError;
-use crate::{
-    math::GetBestGlobalTransform,
-    prelude::*,
-    prop::{PickupMassOverride, PrePickupRotation},
-    verb::Holding,
-};
+use crate::{math::GetBestGlobalTransform, prelude::*, prop::PrePickupRotation, verb::Holding};
 
 /// CGrabController::AttachEntity
 pub(super) fn on_hold(
