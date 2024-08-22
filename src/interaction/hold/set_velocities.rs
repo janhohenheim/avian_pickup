@@ -1,10 +1,17 @@
 use std::f32::consts::{PI, TAU};
 
-use super::ShadowParams;
+use super::{HoldSystem, ShadowParams};
 use crate::{prelude::*, verb::Holding};
 
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(
+        PhysicsSchedule,
+        set_velocities.in_set(HoldSystem::SetVelocities),
+    );
+}
+
 /// CGrabController::Simulate
-pub(super) fn set_velocities(
+fn set_velocities(
     time: Res<Time>,
     mut q_prop: Query<(
         &mut LinearVelocity,

@@ -3,23 +3,27 @@ use std::f32::consts::TAU;
 use crate::prelude::*;
 
 mod on_hold;
-mod simulate;
-mod update;
+mod set_velocities;
+mod shadow_params;
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(on_hold::on_hold);
-    app.add_systems(
+    app.configure_sets(
         PhysicsSchedule,
-        (
-            // Updates the error that `update_object` uses
-            update::update_error,
-            // Sets `error_time` to 0
-            update::update_object,
-            simulate::set_velocities,
-        )
+        (HoldSystem::UpdateShadowParams, HoldSystem::SetVelocities)
             .chain()
             .in_set(HandleVerbSystem::Hold),
-    );
+    )
+    .add_plugins((
+        on_hold::plugin,
+        shadow_params::plugin,
+        set_velocities::plugin,
+    ));
+}
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
+enum HoldSystem {
+    UpdateShadowParams,
+    SetVelocities,
 }
 
 pub(super) mod prelude {

@@ -1,10 +1,12 @@
-use bevy::prelude::*;
-
 use super::HoldError;
 use crate::{math::GetBestGlobalTransform, prelude::*, prop::PrePickupRotation, verb::Holding};
 
+pub(super) fn plugin(app: &mut App) {
+    app.observe(on_hold);
+}
+
 /// CGrabController::AttachEntity
-pub(super) fn on_hold(
+pub fn on_hold(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
     mut q_actor: Query<(

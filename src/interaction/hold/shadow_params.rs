@@ -1,13 +1,21 @@
 use avian3d::sync::ancestor_marker::AncestorMarker;
-use bevy::prelude::*;
 
-use super::{HoldError, ShadowParams};
+use super::{HoldError, HoldSystem, ShadowParams};
 use crate::{
     math::{rigid_body_compound_collider, GetBestGlobalTransform as _},
     prelude::*,
     prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},
 };
+
+pub(super) fn plugin(app: &mut App) {
+    app.add_systems(
+        PhysicsSchedule,
+        (update_error, update_shadow_params)
+            .chain()
+            .in_set(HoldSystem::UpdateShadowParams),
+    );
+}
 
 /// CGrabController::ComputeError(),
 pub(super) fn update_error(
@@ -41,7 +49,7 @@ pub(super) fn update_error(
 }
 
 /// CGrabController::UpdateObject
-pub(super) fn update_object(
+pub(super) fn update_shadow_params(
     mut commands: Commands,
     spatial_query: SpatialQuery,
     mut q_actor: Query<(
