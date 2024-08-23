@@ -18,6 +18,8 @@ fn main() {
             DefaultPlugins,
             WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
+            // Because we are moving the camera independently of the physics system,
+            // interpolation is needed to prevent jittering.
             TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
         ))

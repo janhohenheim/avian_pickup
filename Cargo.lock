@@ -1154,7 +1154,7 @@ dependencies = [
 [[package]]
 name = "bevy_transform_interpolation"
 version = "0.1.0"
-source = "git+https://github.com/Jondolf/bevy_transform_interpolation#93b7036f754aa86ec03fb1b728677163c82fbf88"
+source = "git+https://github.com/janhohenheim/bevy_transform_interpolation?branch=patch-1#c466be85a781db995dce6f638f150c617934357e"
 dependencies = [
  "bevy",
 ]
@@ -4653,7 +4653,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
