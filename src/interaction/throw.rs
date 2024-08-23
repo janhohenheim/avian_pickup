@@ -1,4 +1,4 @@
-use crate::{prelude::*, verb::Throwing};
+use crate::{math::GetBestGlobalTransform, prelude::*, verb::Throwing};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(PhysicsSchedule, throw.in_set(HandleVerbSystem::Throw));
@@ -7,16 +7,30 @@ pub(super) fn plugin(app: &mut App) {
 /// DetachObject
 fn throw(
     mut commands: Commands,
-    mut q_actor: Query<(Entity, &mut Cooldown, &Throwing)>,
+    mut q_actor: Query<(Entity, &AvianPickupActor, &mut Cooldown, &Throwing)>,
+    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
+    q_prop: Query<&Position>,
     mut w_throw_event: EventWriter<PropThrown>,
 ) {
-    for (actor, mut cooldown, throw) in q_actor.iter_mut() {
+    for (actor, config, mut cooldown, throw) in q_actor.iter_mut() {
         let prop = throw.0;
         info!("Throw!");
         commands.entity(actor).remove::<Throwing>();
         if let Some(prop) = prop {
             // TODO: Yeet object. This is also handled in DetachObject through
             // PrimaryAttack
+            let actor_transform = q_actor_transform.get_best_global_transform(actor);
+            // Safety: All props are rigid bodies, which are guaranteed to have a
+            // `Position`.
+            let prop_position = q_prop.get(prop).unwrap();
+            let prop_dist_sq = actor_transform
+                .translation
+                .distance_squared(prop_position.0);
+            if prop_dist_sq > config.trace_length * config.trace_length {
+                // Note: I don't think this will ever happen, but the 2013 code
+                // does this check, so let's keep it just in case.
+                continue;
+            }
             commands.entity(prop).remove::<HeldProp>();
             w_throw_event.send(PropThrown {
                 actor,

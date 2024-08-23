@@ -2,11 +2,11 @@ use super::prelude::HoldError;
 use crate::{math::GetBestGlobalTransform, prelude::*, prop::PrePickupRotation, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(on_hold);
+    app.observe(on_add_holding);
 }
 
 /// CGrabController::AttachEntity
-pub fn on_hold(
+pub fn on_add_holding(
     trigger: Trigger<OnAdd, Holding>,
     mut commands: Commands,
     mut q_actor: Query<(

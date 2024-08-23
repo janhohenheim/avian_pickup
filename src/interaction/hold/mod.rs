@@ -1,7 +1,8 @@
 use crate::prelude::*;
 
 mod components;
-mod on_hold;
+mod on_add_holding;
+mod on_remove_holding;
 mod set_velocities;
 mod update_error;
 mod update_targets;
@@ -17,7 +18,8 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(HandleVerbSystem::Hold),
     )
     .add_plugins((
-        on_hold::plugin,
+        on_add_holding::plugin,
+        on_remove_holding::plugin,
         components::plugin,
         update_error::plugin,
         update_targets::plugin,
