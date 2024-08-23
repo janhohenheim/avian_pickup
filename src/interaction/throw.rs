@@ -9,7 +9,7 @@ fn throw(
     mut commands: Commands,
     mut q_actor: Query<(Entity, &AvianPickupActor, &mut Cooldown, &Throwing)>,
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
-    q_prop: Query<&Position>,
+    mut q_prop: Query<(&mut LinearVelocity, &mut AngularVelocity, &Position)>,
     mut w_throw_event: EventWriter<PropThrown>,
 ) {
     for (actor, config, mut cooldown, throw) in q_actor.iter_mut() {
@@ -22,7 +22,7 @@ fn throw(
             let actor_transform = q_actor_transform.get_best_global_transform(actor);
             // Safety: All props are rigid bodies, which are guaranteed to have a
             // `Position`.
-            let prop_position = q_prop.get(prop).unwrap();
+            let (mut velocity, mut angvel, prop_position) = q_prop.get_mut(prop).unwrap();
             let prop_dist_sq = actor_transform
                 .translation
                 .distance_squared(prop_position.0);
@@ -31,7 +31,9 @@ fn throw(
                 // does this check, so let's keep it just in case.
                 continue;
             }
-            commands.entity(prop).remove::<HeldProp>();
+
+            velocity.0 = Vec3::ZERO;
+            angvel.0 = Vec3::ZERO;
             w_throw_event.send(PropThrown {
                 actor,
                 prop,

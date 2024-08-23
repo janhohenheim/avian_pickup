@@ -1,3 +1,5 @@
+use avian3d::math::{Scalar, TAU};
+
 use crate::{prelude::*, verb::Dropping};
 
 pub(super) fn plugin(app: &mut App) {
@@ -24,7 +26,12 @@ fn drop(
         // Safety: the prop is a dynamic rigid body and thus is guaranteed to have a
         // linvel and angvel.
         let (mut velocity, mut angvel) = q_prop.get_mut(prop).unwrap();
-        velocity.0 = Vec3::ZERO;
-        angvel.0 = Vec3::ZERO;
+        // HL2 uses 190 inches per second, which is 4.826 meters per second.
+        // let's round that to 5 m/s.
+        const HL2_NORM_SPEED: Scalar = 5.0;
+        const MAX_DROP_LINEAR_SPEED: Scalar = HL2_NORM_SPEED * 1.5;
+        const MAX_DROP_ANGULAR_SPEED: Scalar = TAU * 2.0;
+        velocity.0 = velocity.clamp_length_max(MAX_DROP_LINEAR_SPEED);
+        angvel.0 = angvel.clamp_length_max(MAX_DROP_ANGULAR_SPEED);
     }
 }
