@@ -32,7 +32,7 @@ fn throw(
             let actor_transform = q_actor_transform.get_best_global_transform(actor);
             // Safety: All props are rigid bodies, which are guaranteed to have a
             // `Position`.
-            let (mut velocity, mut angvel, mut lin_impulse, mut ang_impulse, prop_position) =
+            let (mut velocity, mut angvel, lin_impulse, mut ang_impulse, prop_position) =
                 q_prop.get_mut(prop).unwrap();
             let prop_dist_sq = actor_transform
                 .translation
@@ -120,7 +120,7 @@ mod test {
 
     #[test]
     fn test_remap_through_spline() {
-        let remap = |val: f32| remap_through_spline(val, (100.0..=600.), (MAXFORCE..=MINFORCE));
+        let remap = |val: f32| remap_through_spline(val, 100.0..=600., MAXFORCE..=MINFORCE);
         // The speed we can muster is lower the heavier the object is.
         assert_eq!(remap(100.), MAXFORCE);
         assert_eq!(remap(600.), MINFORCE);
