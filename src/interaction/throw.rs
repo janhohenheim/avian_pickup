@@ -13,7 +13,13 @@ pub(super) fn plugin(app: &mut App) {
 /// holding any prop. I think this should be handled by the user.
 fn throw(
     mut commands: Commands,
-    mut q_actor: Query<(Entity, &AvianPickupActor, &mut Cooldown, &Throwing)>,
+    mut q_actor: Query<(
+        Entity,
+        &AvianPickupActor,
+        &mut AvianPickupActorState,
+        &mut Cooldown,
+        &Throwing,
+    )>,
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &mut LinearVelocity,
@@ -26,9 +32,8 @@ fn throw(
     mut w_throw_event: EventWriter<PropThrown>,
     mut rng: ResMut<RngSource>,
 ) {
-    for (actor, config, mut cooldown, throw) in q_actor.iter_mut() {
+    for (actor, config, mut states, mut cooldown, throw) in q_actor.iter_mut() {
         let prop = throw.0;
-        info!("Throw!");
         commands.entity(actor).remove::<Throwing>();
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
         // Safety: All props are rigid bodies, which are guaranteed to have a
@@ -57,6 +62,7 @@ fn throw(
         });
         angvel.0 = rand_direction * rand_magnitude;
 
+        *states = AvianPickupActorState::Idle;
         w_throw_event.send(PropThrown { actor, prop });
         cooldown.throw();
     }

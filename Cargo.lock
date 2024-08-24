@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "bevy_transform_interpolation"
 version = "0.1.0"
-source = "git+https://github.com/janhohenheim/bevy_transform_interpolation?branch=patch-1#c466be85a781db995dce6f638f150c617934357e"
+source = "git+https://github.com/Jondolf/bevy_transform_interpolation#93b7036f754aa86ec03fb1b728677163c82fbf88"
 dependencies = [
  "bevy",
 ]

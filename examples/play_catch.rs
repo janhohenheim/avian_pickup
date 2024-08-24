@@ -1,4 +1,4 @@
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_4};
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8};
 
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
@@ -26,7 +26,13 @@ fn main() {
         // Pass input to systems runing in the fixed update.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, make_npc_catch, rotate_camera).before(run_fixed_main_schedule),
+            (
+                on_reset_pressed,
+                handle_input,
+                make_npc_catch,
+                rotate_camera,
+            )
+                .before(run_fixed_main_schedule),
         )
         // Run fixed update zero to many times per frame.
         .add_systems(
@@ -38,8 +44,7 @@ fn main() {
         // React to things that happened during the fixed update.
         .add_systems(
             RunFixedMainLoop,
-            (on_npc_hold, on_player_throw, on_aim_timer, on_catch_timer)
-                .after(run_fixed_main_schedule),
+            (on_npc_hold, on_player_throw, on_aim_timer).after(run_fixed_main_schedule),
         )
         .run();
 }
@@ -66,7 +71,6 @@ enum NpcState {
 
 impl Npc {
     const AIM_DURATION: f32 = 1.0;
-    const MAX_CATCH_DURATION: f32 = 3.0;
 
     fn waiting(&mut self) {
         self.state = NpcState::Waiting;
@@ -80,7 +84,7 @@ impl Npc {
 
     fn catching(&mut self) {
         self.state = NpcState::Catching;
-        self.timer = Timer::from_seconds(Self::MAX_CATCH_DURATION, TimerMode::Once);
+        self.timer = Timer::default();
     }
 }
 
@@ -274,10 +278,12 @@ fn on_npc_hold(
             continue;
         }
         let mut rng = rand::thread_rng();
-        let max_pitch = FRAC_PI_4;
-        let max_yaw = FRAC_PI_4;
-        let random_pitch = rng.gen_range(-max_pitch..max_pitch);
-        let random_yaw = rng.gen_range(-max_yaw..max_yaw);
+        let min_pitch = -FRAC_PI_6;
+        let max_pitch = 0.0;
+        let min_yaw = -FRAC_PI_8;
+        let max_yaw = FRAC_PI_8;
+        let random_pitch = rng.gen_range(min_pitch..max_pitch);
+        let random_yaw = rng.gen_range(min_yaw..max_yaw);
         let rotation = Quat::from_euler(EulerRot::YXZ, random_yaw, random_pitch, 0.0);
         let dir = rotation.mul_vec3(Vec3::Z);
         npc.aiming_to(dir);
@@ -300,14 +306,24 @@ fn on_aim_timer(
     }
 }
 
-fn on_catch_timer(mut npcs: Query<&mut Npc>, mut props: Query<&mut Transform, With<Prop>>) {
-    for mut npc in &mut npcs {
-        if !matches!(npc.state, NpcState::Catching) || !npc.timer.finished() {
+fn on_reset_pressed(
+    mut npcs: Query<(&mut Npc, &mut AvianPickupActorState)>,
+    mut props: Query<(&mut Transform, &mut LinearVelocity, &mut AngularVelocity), With<Prop>>,
+    key_input: Res<ButtonInput<KeyCode>>,
+) {
+    if !key_input.just_pressed(KeyCode::KeyR) {
+        return;
+    }
+    for (mut npc, mut state) in &mut npcs {
+        if matches!(npc.state, NpcState::Aiming(..)) {
             continue;
         }
         npc.waiting();
-        for mut prop in &mut props {
-            prop.translation = Vec3::new(0.0, 2.0, 0.0);
+        *state = AvianPickupActorState::Idle;
+        for (mut transform, mut vel, mut angvel) in &mut props {
+            transform.translation = Vec3::new(0.0, 2.0, 0.0);
+            vel.0 = Vec3::ZERO;
+            angvel.0 = Vec3::ZERO;
         }
     }
 }
