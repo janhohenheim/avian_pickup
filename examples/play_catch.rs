@@ -23,23 +23,23 @@ fn main() {
             AvianPickupPlugin::default(),
         ))
         .add_systems(Startup, setup)
+        // Pass input to systems runing in the fixed update.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).before(run_fixed_main_schedule),
+            (handle_input, make_npc_catch, rotate_camera).before(run_fixed_main_schedule),
         )
+        // Run fixed update zero to many times per frame.
         .add_systems(
             PhysicsSchedule,
-            (
-                tick_timer,
-                rotate_npc,
-                make_npc_catch,
-                on_npc_hold,
-                on_player_throw,
-                on_aim_timer,
-                on_catch_timer,
-            )
+            (tick_timer, rotate_npc)
                 .chain()
                 .in_set(AvianPickupSystem::First),
+        )
+        // React to things that happened during the fixed update.
+        .add_systems(
+            RunFixedMainLoop,
+            (on_npc_hold, on_player_throw, on_aim_timer, on_catch_timer)
+                .after(run_fixed_main_schedule),
         )
         .run();
 }
