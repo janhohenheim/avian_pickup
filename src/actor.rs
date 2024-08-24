@@ -199,16 +199,16 @@ impl Default for AvianPickupActorHoldConfig {
 )]
 pub struct AvianPickupActorThrowConfig {
     pub cutoff_mass_for_slowdown: Scalar,
-    pub linear_velocity_range: RangeInclusive<Scalar>,
-    pub angular_velocity_range: RangeInclusive<Scalar>,
+    pub linear_speed_range: RangeInclusive<Scalar>,
+    pub angular_speed_range: RangeInclusive<Scalar>,
 }
 
 impl Default for AvianPickupActorThrowConfig {
     fn default() -> Self {
         Self {
             cutoff_mass_for_slowdown: 20.0,
-            linear_velocity_range: 0.0..=5.0,
-            angular_velocity_range: 0.0..=1.0,
+            linear_speed_range: 0.0..=5.0,
+            angular_speed_range: 0.0..=1.0,
         }
     }
 }

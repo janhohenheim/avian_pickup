@@ -9,12 +9,20 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(PhysicsSchedule, throw.in_set(HandleVerbSystem::Throw));
 }
 
-/// DetachObject
+/// Note: in constrast to the physcannon, we do not allow punting when not
+/// holding any prop. I think this should be handled by the user.
 fn throw(
     mut commands: Commands,
     mut q_actor: Query<(Entity, &AvianPickupActor, &mut Cooldown, &Throwing)>,
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
-    mut q_prop: Query<(&mut LinearVelocity, &mut AngularVelocity, &Mass, &Position)>,
+    mut q_prop: Query<(
+        &mut LinearVelocity,
+        &mut AngularVelocity,
+        &Mass,
+        &Position,
+        Option<&ThrownLinearSpeedOverride>,
+        Option<&ThrownAngularSpeedOverride>,
+    )>,
     mut w_throw_event: EventWriter<PropThrown>,
     mut rng: ResMut<RngSource>,
 ) {
@@ -22,46 +30,34 @@ fn throw(
         let prop = throw.0;
         info!("Throw!");
         commands.entity(actor).remove::<Throwing>();
-        if let Some(prop) = prop {
-            let actor_transform = q_actor_transform.get_best_global_transform(actor);
-            // Safety: All props are rigid bodies, which are guaranteed to have a
-            // `Position`.
-            let (mut velocity, mut angvel, mass, prop_position) = q_prop.get_mut(prop).unwrap();
-            let prop_dist_sq = actor_transform
-                .translation
-                .distance_squared(prop_position.0);
-            if prop_dist_sq > config.interaction_distance * config.interaction_distance {
-                // Note: I don't think this will ever happen, but the 2013 code
-                // does this check, so let's keep it just in case.
-                continue;
-            }
-
-            let lin_direction = actor_transform.forward();
-            let lin_speed = calculate_launch_speed(config, *mass);
-            velocity.0 = lin_direction * lin_speed;
-
-            let rand_direction = random_unit_vector(rng.as_mut());
-            let rand_magnitude = rng
-                .as_mut()
-                .gen_range(config.throw.angular_velocity_range.clone());
-            angvel.0 = rand_direction * rand_magnitude;
-
-            w_throw_event.send(PropThrown {
-                actor,
-                prop,
-                was_held: true,
-            });
-        } else {
-            // YTODO: eet next object in front of us
-
-            w_throw_event.send(PropThrown {
-                actor,
-                prop: Entity::PLACEHOLDER,
-                was_held: false,
-            });
+        let actor_transform = q_actor_transform.get_best_global_transform(actor);
+        // Safety: All props are rigid bodies, which are guaranteed to have a
+        // `Position`.
+        let (mut velocity, mut angvel, mass, prop_position, lin_speed_override, ang_speed_override) =
+            q_prop.get_mut(prop).unwrap();
+        let prop_dist_sq = actor_transform
+            .translation
+            .distance_squared(prop_position.0);
+        if prop_dist_sq > config.interaction_distance * config.interaction_distance {
+            // Note: I don't think this will ever happen, but the 2013 code
+            // does this check, so let's keep it just in case.
+            continue;
         }
 
-        // TODO: only CD when we actually threw something
+        let lin_direction = actor_transform.forward();
+        let lin_speed = lin_speed_override
+            .map(|s| s.0)
+            .unwrap_or_else(|| calculate_launch_speed(config, *mass));
+        velocity.0 = lin_direction * lin_speed;
+
+        let rand_direction = random_unit_vector(rng.as_mut());
+        let rand_magnitude = ang_speed_override.map(|s| s.0).unwrap_or_else(|| {
+            rng.as_mut()
+                .gen_range(config.throw.angular_speed_range.clone())
+        });
+        angvel.0 = rand_direction * rand_magnitude;
+
+        w_throw_event.send(PropThrown { actor, prop });
         cooldown.throw();
     }
 }
@@ -72,7 +68,7 @@ fn random_unit_vector(rng: &mut impl Rng) -> Vec3 {
 
 /// Corresponds to 2013's Pickup_DefaultPhysGunLaunchVelocity
 fn calculate_launch_speed(config: &AvianPickupActor, mass: Mass) -> Scalar {
-    let speed_range = &config.throw.linear_velocity_range;
+    let speed_range = &config.throw.linear_speed_range;
     let (min_speed, max_speed) = (*speed_range.start(), *speed_range.end());
     if mass.0 < config.throw.cutoff_mass_for_slowdown {
         max_speed

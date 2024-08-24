@@ -12,9 +12,10 @@ mod interaction;
 mod math;
 pub mod output;
 pub mod prop;
-pub mod rng;
+mod rng;
 mod verb;
 
+pub use rng::*;
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
     pub(crate) use avian3d::prelude::*;

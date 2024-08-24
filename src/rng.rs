@@ -1,5 +1,3 @@
-//! TODO
-
 use bevy::prelude::*;
 use rand::RngCore;
 

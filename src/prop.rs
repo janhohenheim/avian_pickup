@@ -14,6 +14,8 @@ pub(super) fn plugin(app: &mut App) {
         PreferredPickupDistanceOverride,
         PickupMassOverride,
         HeldProp,
+        ThrownLinearSpeedOverride,
+        ThrownAngularSpeedOverride,
     )>();
 }
 
@@ -24,6 +26,8 @@ pub(super) mod prelude {
         PickupMassOverride,
         PreferredPickupDistanceOverride,
         PreferredPickupRotation,
+        ThrownAngularSpeedOverride,
+        ThrownLinearSpeedOverride,
     };
 }
 
@@ -94,6 +98,36 @@ pub struct PickupMassOverride(pub Scalar);
 impl Default for PickupMassOverride {
     fn default() -> Self {
         Self(AvianPickupActor::default().hold.temporary_prop_mass)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
+#[reflect(Debug, Component, PartialEq, Default)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct ThrownLinearSpeedOverride(pub Scalar);
+
+impl Default for ThrownLinearSpeedOverride {
+    fn default() -> Self {
+        Self(*AvianPickupActor::default().throw.linear_speed_range.end())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
+#[reflect(Debug, Component, PartialEq, Default)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct ThrownAngularSpeedOverride(pub Scalar);
+
+impl Default for ThrownAngularSpeedOverride {
+    fn default() -> Self {
+        Self(*AvianPickupActor::default().throw.angular_speed_range.end())
     }
 }
 

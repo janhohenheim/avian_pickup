@@ -108,12 +108,14 @@ fn set_verbs_according_to_input(
         };
 
         let verb = match kind {
-            AvianPickupInputKind::JustPressedL if cooldown.left.finished() => {
-                if let AvianPickupActorState::Holding(prop) = state {
-                    Some(Verb::Throw(Some(prop)))
-                } else {
-                    Some(Verb::Throw(None))
-                }
+            AvianPickupInputKind::JustPressedL
+                if cooldown.left.finished()
+                    && matches!(state, AvianPickupActorState::Holding(..)) =>
+            {
+                let AvianPickupActorState::Holding(prop) = state else {
+                    unreachable!()
+                };
+                Some(Verb::Throw(prop))
             }
             AvianPickupInputKind::JustPressedL => None,
             AvianPickupInputKind::JustPressedR

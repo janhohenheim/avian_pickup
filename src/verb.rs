@@ -17,7 +17,7 @@ pub(super) fn plugin(_app: &mut App) {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Verb {
     /// Insert [`Throwing`] component and clear others
-    Throw(Option<Entity>),
+    Throw(Entity),
     /// Insert [`Dropping`] component and clear others
     Drop {
         /// The prop to drop
@@ -33,7 +33,7 @@ pub(crate) enum Verb {
 }
 
 #[derive(Debug, Clone, Copy, Component)]
-pub(crate) struct Throwing(pub(crate) Option<Entity>);
+pub(crate) struct Throwing(pub(crate) Entity);
 
 #[derive(Debug, Clone, Copy, Component)]
 pub(crate) struct Dropping {

@@ -27,9 +27,6 @@ pub struct PropThrown {
     pub prop: Entity,
     /// The actor that threw the prop.
     pub actor: Entity,
-    /// Whether the prop was held when thrown. If `false`, the prop was directly
-    /// thrown while an actor was looking at it without holding it up first.
-    pub was_held: bool,
 }
 
 /// Event sent when a prop is dropped by an actor.
