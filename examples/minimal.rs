@@ -47,14 +47,13 @@ fn setup(
     commands.spawn((
         Name::new("Player Camera"),
         Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.0, 5.0).looking_at(-Vec3::Z, Vec3::Y),
+            transform: Transform::from_xyz(0.0, 1.0, 5.0),
             ..default()
         },
         // Add this to set up the camera as the entity that can pick up
         // objects.
         AvianPickupActor::default(),
-        // Add a `RigidBody` so that `rotate_camera` can use `Rotation`.
-        RigidBody::Kinematic,
+        // This entity is moved in a variable timestep, so no interpolation is needed.
         NoRotationInterpolation,
     ));
 
@@ -127,9 +126,6 @@ fn handle_input(
     }
 }
 
-/// We change the `Rotation` and not the `Transform` because at this point,
-/// Avian already ran using the previous frame's transform. This means that if
-/// we update `Transform` now, the cube will lag one frame behind the camera.
 fn rotate_camera(
     time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
