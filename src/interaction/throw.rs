@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use avian3d::math::Scalar;
-use rand::Rng as _;
+use rand::Rng;
 
 use crate::{math::GetBestGlobalTransform, prelude::*, rng::RngSource, verb::Throwing};
 
@@ -14,13 +14,7 @@ fn throw(
     mut commands: Commands,
     mut q_actor: Query<(Entity, &AvianPickupActor, &mut Cooldown, &Throwing)>,
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
-    mut q_prop: Query<(
-        &mut LinearVelocity,
-        &mut AngularVelocity,
-        &mut ExternalImpulse,
-        &mut ExternalAngularImpulse,
-        &Position,
-    )>,
+    mut q_prop: Query<(&mut LinearVelocity, &mut AngularVelocity, &Mass, &Position)>,
     mut w_throw_event: EventWriter<PropThrown>,
     mut rng: ResMut<RngSource>,
 ) {
@@ -32,8 +26,7 @@ fn throw(
             let actor_transform = q_actor_transform.get_best_global_transform(actor);
             // Safety: All props are rigid bodies, which are guaranteed to have a
             // `Position`.
-            let (mut velocity, mut angvel, lin_impulse, mut ang_impulse, prop_position) =
-                q_prop.get_mut(prop).unwrap();
+            let (mut velocity, mut angvel, mass, prop_position) = q_prop.get_mut(prop).unwrap();
             let prop_dist_sq = actor_transform
                 .translation
                 .distance_squared(prop_position.0);
@@ -43,18 +36,15 @@ fn throw(
                 continue;
             }
 
-            velocity.0 = Vec3::ZERO;
-            angvel.0 = Vec3::ZERO;
+            let lin_direction = actor_transform.forward();
+            let lin_speed = calculate_launch_speed(config, *mass);
+            velocity.0 = lin_direction * lin_speed;
 
-            let direction = actor_transform.forward();
-            //let impulse = direction * config.throw.max_linear_velocity;
-            //lin_impulse.apply_impulse(impulse);
-            let rand_direction = Sphere::new(1.0).sample_boundary(rng.as_mut());
+            let rand_direction = random_unit_vector(rng.as_mut());
             let rand_magnitude = rng
                 .as_mut()
                 .gen_range(config.throw.angular_velocity_range.clone());
-            let torque = rand_direction * rand_magnitude;
-            ang_impulse.apply_impulse(torque);
+            angvel.0 = rand_direction * rand_magnitude;
 
             w_throw_event.send(PropThrown {
                 actor,
@@ -76,9 +66,23 @@ fn throw(
     }
 }
 
+fn random_unit_vector(rng: &mut impl Rng) -> Vec3 {
+    Sphere::new(1.0).sample_boundary(rng)
+}
+
 /// Corresponds to 2013's Pickup_DefaultPhysGunLaunchVelocity
 fn calculate_launch_speed(config: &AvianPickupActor, mass: Mass) -> Scalar {
-    todo!()
+    let speed_range = &config.throw.linear_velocity_range;
+    let (min_speed, max_speed) = (*speed_range.start(), *speed_range.end());
+    if mass.0 < config.throw.cutoff_mass_for_slowdown {
+        max_speed
+    } else {
+        remap_through_spline(
+            mass.0,
+            config.throw.cutoff_mass_for_slowdown..=config.pull.max_prop_mass,
+            max_speed..=min_speed,
+        )
+    }
 }
 
 /// Remaps a value `val` in range `domain` from linear
@@ -112,6 +116,8 @@ fn simple_spline(value: f32) -> f32 {
 
 #[cfg(test)]
 mod test {
+    use rand::thread_rng;
+
     use super::*;
 
     // USES INCHES!
@@ -126,5 +132,14 @@ mod test {
         assert_eq!(remap(600.), MINFORCE);
         assert_eq!(remap(350.), 1100.0);
         assert_eq!(remap(1000.), MINFORCE);
+    }
+
+    #[test]
+    fn is_random_unit_vector_actually_unit() {
+        let mut rng = thread_rng();
+        for _ in 0..1000 {
+            let v = random_unit_vector(&mut rng);
+            assert!(v.is_normalized());
+        }
     }
 }
