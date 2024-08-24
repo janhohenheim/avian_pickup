@@ -1,13 +1,14 @@
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8};
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8, PI};
 
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{
     app::RunFixedMainLoop,
     color::palettes::tailwind,
-    input::mouse::MouseMotion,
+    input::{common_conditions::input_just_pressed, mouse::MouseMotion},
     prelude::*,
     time::run_fixed_main_schedule,
+    window::CursorGrabMode,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_transform_interpolation::*;
@@ -17,7 +18,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            WorldInspectorPlugin::new(),
+            //WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
             TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
@@ -45,6 +46,15 @@ fn main() {
         .add_systems(
             RunFixedMainLoop,
             (on_npc_hold, on_player_throw, on_aim_timer).after(run_fixed_main_schedule),
+        )
+        // Purely aesthetic systems go in `Update`.
+        .add_systems(
+            Update,
+            (
+                capture_cursor.run_if(input_just_pressed(MouseButton::Left)),
+                release_cursor.run_if(input_just_pressed(KeyCode::Escape)),
+            )
+                .chain(),
         )
         .run();
 }
@@ -88,6 +98,8 @@ impl Npc {
     }
 }
 
+const BOX_DEFAULT_POS: Vec3 = Vec3::new(0.0, 2.0, 2.0);
+
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -98,13 +110,23 @@ fn setup(
     let visor_material = materials.add(Color::from(tailwind::LIME_600));
     let prop_material = materials.add(Color::from(tailwind::ORANGE_300));
 
+    // let's boost the default values a bit to make this more fun :)
+    let actor_config = AvianPickupActor {
+        interaction_distance: 3.0,
+        throw: AvianPickupActorThrowConfig {
+            linear_speed_range: 0.0..=10.0,
+            ..default()
+        },
+        ..default()
+    };
+
     commands.spawn((
         Name::new("Player Camera"),
         Camera3dBundle {
             transform: Transform::from_xyz(0.0, 1.0, 5.0),
             ..default()
         },
-        AvianPickupActor::default(),
+        actor_config.clone(),
         NoRotationInterpolation,
         Player,
     ));
@@ -120,7 +142,7 @@ fn setup(
                 transform: Transform::from_xyz(0.0, 1.0, -5.0).looking_to(Vec3::Z, Vec3::Y),
                 ..default()
             },
-            AvianPickupActor::default(),
+            actor_config,
             Npc::default(),
         ))
         .with_children(|parent| {
@@ -150,16 +172,27 @@ fn setup(
     ));
 
     let ground_shape = Cuboid::new(15.0, 0.25, 15.0);
-    commands.spawn((
-        Name::new("Ground"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(ground_shape)),
-            material: terrain_material.clone(),
-            ..default()
-        },
-        RigidBody::Static,
-        Collider::from(ground_shape),
-    ));
+    let ground_mesh = meshes.add(Mesh::from(ground_shape));
+    let terrain_transforms = [
+        Transform::default(),
+        Transform::from_xyz(7.5, 0.0, 0.0).with_rotation(Quat::from_rotation_z(FRAC_PI_2)),
+        Transform::from_xyz(-7.5, 0.0, 0.0).with_rotation(Quat::from_rotation_z(FRAC_PI_2)),
+        Transform::from_xyz(0.0, 0.0, 7.5).with_rotation(Quat::from_rotation_x(FRAC_PI_2)),
+        Transform::from_xyz(0.0, 0.0, -7.5).with_rotation(Quat::from_rotation_x(FRAC_PI_2)),
+    ];
+    for (i, transform) in terrain_transforms.iter().enumerate() {
+        commands.spawn((
+            Name::new(format!("Wall {}", i)),
+            PbrBundle {
+                mesh: ground_mesh.clone(),
+                material: terrain_material.clone(),
+                transform: *transform,
+                ..default()
+            },
+            RigidBody::Static,
+            Collider::from(ground_shape),
+        ));
+    }
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
     commands.spawn((
@@ -167,13 +200,29 @@ fn setup(
         PbrBundle {
             mesh: meshes.add(Mesh::from(box_shape)),
             material: prop_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.0, 0.0),
+            transform: Transform::from_translation(BOX_DEFAULT_POS),
             ..default()
         },
         RigidBody::Dynamic,
         Collider::from(box_shape),
         Prop,
     ));
+}
+
+fn capture_cursor(mut windows: Query<&mut Window>) {
+    let Ok(mut window) = windows.get_single_mut() else {
+        return;
+    };
+    window.cursor.visible = false;
+    window.cursor.grab_mode = CursorGrabMode::Locked;
+}
+
+fn release_cursor(mut windows: Query<&mut Window>) {
+    let Ok(mut window) = windows.get_single_mut() else {
+        return;
+    };
+    window.cursor.visible = true;
+    window.cursor.grab_mode = CursorGrabMode::None;
 }
 
 fn handle_input(
@@ -242,7 +291,7 @@ fn rotate_npc(
             NpcState::Aiming(dir) => dir,
         };
         let target = transform.looking_to(dir, Vec3::Y);
-        let decay_rate = f32::ln(10.0);
+        let decay_rate = f32::ln(30.0);
         transform.rotation = transform
             .rotation
             .slerp(target.rotation, 1.0 - f32::exp(-decay_rate * dt));
@@ -280,8 +329,8 @@ fn on_npc_hold(
         let mut rng = rand::thread_rng();
         let min_pitch = -FRAC_PI_6;
         let max_pitch = 0.0;
-        let min_yaw = -FRAC_PI_8;
-        let max_yaw = FRAC_PI_8;
+        let min_yaw = -PI / 12.0;
+        let max_yaw = PI / 12.0;
         let random_pitch = rng.gen_range(min_pitch..max_pitch);
         let random_yaw = rng.gen_range(min_yaw..max_yaw);
         let rotation = Quat::from_euler(EulerRot::YXZ, random_yaw, random_pitch, 0.0);
@@ -321,7 +370,7 @@ fn on_reset_pressed(
         npc.waiting();
         *state = AvianPickupActorState::Idle;
         for (mut transform, mut vel, mut angvel) in &mut props {
-            transform.translation = Vec3::new(0.0, 2.0, 0.0);
+            *transform = Transform::from_translation(BOX_DEFAULT_POS);
             vel.0 = Vec3::ZERO;
             angvel.0 = Vec3::ZERO;
         }

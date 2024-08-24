@@ -9,7 +9,11 @@ pub(super) fn find_prop_in_cone(
     q_collider: &Query<&Position>,
 ) -> Option<Prop> {
     const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0 * METERS_PER_INCH;
-    let mut nearest_dist = config.interaction_distance + MAGIC_OFFSET_ASK_VALVE;
+    // Valve uses the trace length here, but imo using the hold distance makes more
+    // sense, as the raw trace length is what is also used for the hold check in
+    // the 2013 code. (Reminder that the actual trace is done with 4 times the
+    // configured trace length, eek)
+    let mut nearest_dist = config.hold.distance_to_allow_holding + MAGIC_OFFSET_ASK_VALVE;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
 
     let colliders = spatial_query.shape_intersections(

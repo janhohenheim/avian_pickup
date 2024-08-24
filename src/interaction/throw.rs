@@ -46,7 +46,8 @@ fn throw(
         if prop_dist_sq > config.interaction_distance * config.interaction_distance {
             // Note: I don't think this will ever happen, but the 2013 code
             // does this check, so let's keep it just in case.
-            continue;
+            error!("boy: {}", prop_dist_sq.sqrt());
+            //continue;
         }
 
         let lin_direction = actor_transform.forward();

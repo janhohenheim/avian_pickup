@@ -129,6 +129,7 @@ impl Default for AvianPickupActorPullConfig {
     reflect(Serialize, Deserialize)
 )]
 pub struct AvianPickupActorHoldConfig {
+    pub distance_to_allow_holding: Scalar,
     /// The minimum distance an object must be from the player when picked up.
     /// Usually, the prop will try to stay at
     /// [`PreferredPickupDistance`](crate::prop::PreferredPickupDistance),
@@ -157,7 +158,7 @@ pub struct AvianPickupActorHoldConfig {
     /// to the prop.\
     /// Default: (-75.0).to_radians() to 75.0.to_radians()
     pub pitch_range: RangeInclusive<f32>,
-    /// The distance in meters between the player and the object's OBBs when
+    /// The distance in meters between the player and the object when
     /// picked up and there is no obstacle in the way.\
     /// Can be overridden by adding a
     /// [`PreferredPickupDistanceOverride`](crate::prop::PreferredPickupDistanceOverride)
@@ -180,11 +181,12 @@ pub struct AvianPickupActorHoldConfig {
 impl Default for AvianPickupActorHoldConfig {
     fn default() -> Self {
         Self {
+            distance_to_allow_holding: 1.0,
             min_distance: 0.5,
             linear_velocity_easing: 1.0,
             angular_velocity_easing: 1.6,
             pitch_range: (-75.0_f32).to_radians()..=75.0_f32.to_radians(),
-            preferred_distance: 1.5,
+            preferred_distance: 1.25,
             temporary_prop_mass: 1.0,
         }
     }
@@ -240,8 +242,8 @@ impl Default for AvianPickupActor {
             prop_filter: default(),
             obstacle_filter: default(),
             actor_filter: default(),
-            interaction_distance: 3.,
-            interaction_cone: 0.97,
+            interaction_distance: 1.5,
+            interaction_cone: 0.92,
             pull: default(),
             hold: default(),
             throw: default(),
