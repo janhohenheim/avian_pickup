@@ -57,7 +57,7 @@ fn set_targets(
         ) = q_prop.get_mut(prop).unwrap();
         let (min_pitch, max_pitch) = clamp_pitch
             .map(|c| (c.min, c.max))
-            .unwrap_or(config.clamp_pickup_pitch);
+            .unwrap_or(config.hold.clamp_pickup_pitch);
         let (actor_yaw, actor_pitch, actor_roll) = actor_transform.rotation.to_euler(EulerRot::YXZ);
         let actor_to_prop_pitch = actor_pitch.clamp(min_pitch, max_pitch);
         let clamped_rotation =
@@ -91,9 +91,9 @@ fn set_targets(
                 actor_transform.rotation,
                 forward,
             );
-            min_distance_to_not_penetrate.max(config.min_distance)
+            min_distance_to_not_penetrate.max(config.hold.min_distance)
         } else {
-            config.min_distance
+            config.hold.min_distance
         };
 
         let min_distance = prop_radius_wrt_direction + actor_radius_wrt_direction;
@@ -101,7 +101,7 @@ fn set_targets(
         // inches` That seems straight up bizarre, so I refuse to do that.
         let preferred_distance = preferred_distance
             .map(|d| d.0)
-            .unwrap_or(config.preferred_pickup_distance);
+            .unwrap_or(config.hold.preferred_pickup_distance);
         // The 2013 code does `max_distance = preferred_distance + min_distance`
         // which means that `preferred_distance` is the distance between the prop's
         // edge and the actors's edge. Expect psyche, actually `min_distance` gets

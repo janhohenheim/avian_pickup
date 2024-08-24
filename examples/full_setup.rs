@@ -68,7 +68,10 @@ fn setup(
             actor_filter: SpatialQueryFilter::from_mask(ColliderLayer::Player),
             // Make sure the props do not intersect with the player's capsule
             // when looking down.
-            clamp_pickup_pitch: (-50.0_f32.to_radians(), 75.0_f32.to_radians()),
+            hold: AvianPickupActorHoldConfig {
+                clamp_pickup_pitch: (-50.0_f32.to_radians(), 75.0_f32.to_radians()),
+                ..default()
+            },
             ..default()
         },
         RigidBody::Kinematic,

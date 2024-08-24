@@ -66,8 +66,8 @@ impl Default for ClampPickupPitchOverride {
     fn default() -> Self {
         let default_actor = AvianPickupActor::default();
         Self {
-            min: default_actor.clamp_pickup_pitch.0,
-            max: default_actor.clamp_pickup_pitch.1,
+            min: default_actor.hold.clamp_pickup_pitch.0,
+            max: default_actor.hold.clamp_pickup_pitch.1,
         }
     }
 }
@@ -85,7 +85,7 @@ pub struct PreferredPickupDistanceOverride(pub Scalar);
 
 impl Default for PreferredPickupDistanceOverride {
     fn default() -> Self {
-        Self(AvianPickupActor::default().preferred_pickup_distance)
+        Self(AvianPickupActor::default().hold.preferred_pickup_distance)
     }
 }
 
@@ -102,7 +102,7 @@ pub struct PickupMassOverride(pub Scalar);
 
 impl Default for PickupMassOverride {
     fn default() -> Self {
-        Self(AvianPickupActor::default().pickup_mass)
+        Self(AvianPickupActor::default().hold.pickup_mass)
     }
 }
 

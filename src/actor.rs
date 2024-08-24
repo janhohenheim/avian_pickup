@@ -12,7 +12,13 @@ use crate::{
 };
 
 pub(super) mod prelude {
-    pub use super::{AvianPickupActor, AvianPickupActorState};
+    pub use super::{
+        AvianPickupActor,
+        AvianPickupActorHoldConfig,
+        AvianPickupActorPullConfig,
+        AvianPickupActorState,
+        AvianPickupActorThrowConfig,
+    };
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -63,25 +69,64 @@ pub struct AvianPickupActor {
     /// extent.\
     /// Default: Include all entities
     pub actor_filter: SpatialQueryFilter,
-    /// How far an object can be pulled from in meters. Default: 3 m
+    /// How far away an object can be interacted with.\
+    /// Default: 3 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
     pub trace_length: Scalar,
-    /// Changes how wide the pickup range is, lower numbers are wider. This is a
-    /// dot product value. Default: 0.97
+    /// Changes how wide the pickup range is. Lower numbers are wider.
+    /// This is the dot product of the direction the player is looking and the
+    /// direction to the object.\
+    /// Default: 0.97
     ///
     /// Corresponds to Source's [`physcannon_cone`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_cone).
     pub cone: f32,
-    /// The maximum mass in kg an object can have to be picked up. Default: 35.0
-    /// kg
+    /// Configuration that is only used when pulling props to the actor.
+    pub pull: AvianPickupActorPullConfig,
+    /// Configuration that is only used while holding props.
+    pub hold: AvianPickupActorHoldConfig,
+    /// Configuration that is only used when throwing props.
+    pub throw: AvianPickupActorThrowConfig,
+}
+
+#[derive(Debug, Clone, PartialEq, Reflect)]
+#[reflect(Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct AvianPickupActorPullConfig {
+    /// How much impulse to be used when pulling objects to the player.
+    /// This is not continuously applied, but governed by an internal cooldown.\
+    /// Default: 100.0 Ns
+    ///
+    /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
+    pub pull_impulse: Scalar,
+    /// The maximum mass in kg an object can have to be pulled or picked up.\
+    /// Default: 35.0 kg
     ///
     /// Corresponds to Source's [`physcannon_maxmass`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_maxmass).
     pub max_mass: Scalar,
-    /// How much force to be used when pulling objects to the player.
-    /// Default: 100.0 N
-    ///
-    /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
-    pub pull_force: Scalar,
+}
+
+impl Default for AvianPickupActorPullConfig {
+    fn default() -> Self {
+        Self {
+            pull_impulse: 100.0,
+            max_mass: 35.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Reflect)]
+#[reflect(Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct AvianPickupActorHoldConfig {
     /// The minimum distance an object must be from the player when picked up.
     /// Usually, the prop will try to stay at
     /// [`PreferredPickupDistance`](crate::prop::PreferredPickupDistance),
@@ -103,7 +148,6 @@ pub struct AvianPickupActor {
     /// actor's point of view.\
     /// Default: 1.6
     pub angular_velocity_easing: Scalar,
-
     /// The minimum and maximum pitch the held prop can have in radians while
     /// following the actor's pitch.\
     /// Can be overridden by adding a
@@ -129,6 +173,43 @@ pub struct AvianPickupActor {
     /// [`PickupMassOverride`](crate::prop::PickupMassOverride) to the prop.\
     /// Default: 1 kg
     pub pickup_mass: Scalar,
+}
+
+impl Default for AvianPickupActorHoldConfig {
+    fn default() -> Self {
+        Self {
+            min_distance: 0.5,
+            linear_velocity_easing: 1.0,
+            angular_velocity_easing: 1.6,
+            clamp_pickup_pitch: (-75.0_f32.to_radians(), 75.0_f32.to_radians()),
+            preferred_pickup_distance: 1.5,
+            pickup_mass: 1.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Reflect)]
+#[reflect(Debug, Default, PartialEq)]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde::Serialize, serde::Deserialize),
+    reflect(Serialize, Deserialize)
+)]
+pub struct AvianPickupActorThrowConfig {
+    pub throw_cutoff_mass_for_slowdown: Scalar,
+
+    pub throw_linear_velocity: Scalar,
+    pub throw_max_angular_velocity: Scalar,
+}
+
+impl Default for AvianPickupActorThrowConfig {
+    fn default() -> Self {
+        Self {
+            throw_cutoff_mass_for_slowdown: 10.0,
+            throw_linear_velocity: 1.0,
+            throw_max_angular_velocity: 0.2,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
@@ -160,14 +241,9 @@ impl Default for AvianPickupActor {
             actor_filter: default(),
             trace_length: 3.,
             cone: 0.97,
-            max_mass: 35.0,
-            pull_force: 100.0,
-            min_distance: 0.5,
-            linear_velocity_easing: 1.0,
-            angular_velocity_easing: 1.6,
-            clamp_pickup_pitch: (-75.0_f32.to_radians(), 75.0_f32.to_radians()),
-            preferred_pickup_distance: 1.5,
-            pickup_mass: 1.0,
+            pull: default(),
+            hold: default(),
+            throw: default(),
         }
     }
 }

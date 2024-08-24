@@ -74,7 +74,7 @@ fn find_object(
         } else {
             let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
-            let pull_impulse = direction * config.pull_force * mass_adjustment;
+            let pull_impulse = direction * config.pull.pull_impulse * mass_adjustment;
             cooldown.pull();
             impulse.apply_impulse(pull_impulse);
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {

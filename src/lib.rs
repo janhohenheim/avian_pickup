@@ -12,6 +12,7 @@ mod interaction;
 mod math;
 pub mod output;
 pub mod prop;
+pub mod rng;
 mod verb;
 
 /// Everything you need to get started with Avian Pickup.
@@ -96,6 +97,7 @@ impl Plugin for AvianPickupPlugin {
             cooldown::plugin,
             prop::plugin,
             verb::plugin,
+            rng::plugin,
         ));
     }
 }
