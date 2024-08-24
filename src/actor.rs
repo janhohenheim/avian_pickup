@@ -1,5 +1,7 @@
 //! TODO
 
+use std::ops::{Range, RangeInclusive};
+
 use avian3d::{math::Scalar, prelude::*};
 use bevy::{
     ecs::component::{ComponentHooks, StorageType},
@@ -73,14 +75,14 @@ pub struct AvianPickupActor {
     /// Default: 3 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
-    pub trace_length: Scalar,
+    pub interaction_distance: Scalar,
     /// Changes how wide the pickup range is. Lower numbers are wider.
     /// This is the dot product of the direction the player is looking and the
     /// direction to the object.\
     /// Default: 0.97
     ///
     /// Corresponds to Source's [`physcannon_cone`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_cone).
-    pub cone: f32,
+    pub interaction_cone: f32,
     /// Configuration that is only used when pulling props to the actor.
     pub pull: AvianPickupActorPullConfig,
     /// Configuration that is only used while holding props.
@@ -102,19 +104,19 @@ pub struct AvianPickupActorPullConfig {
     /// Default: 100.0 Ns
     ///
     /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
-    pub pull_impulse: Scalar,
+    pub impulse: Scalar,
     /// The maximum mass in kg an object can have to be pulled or picked up.\
     /// Default: 35.0 kg
     ///
     /// Corresponds to Source's [`physcannon_maxmass`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_maxmass).
-    pub max_mass: Scalar,
+    pub max_prop_mass: Scalar,
 }
 
 impl Default for AvianPickupActorPullConfig {
     fn default() -> Self {
         Self {
-            pull_impulse: 100.0,
-            max_mass: 35.0,
+            impulse: 100.0,
+            max_prop_mass: 35.0,
         }
     }
 }
@@ -154,14 +156,14 @@ pub struct AvianPickupActorHoldConfig {
     /// [`ClampPickupPitchOverride`](crate::prop::ClampPickupPitchOverride)
     /// to the prop.\
     /// Default: (-75.0).to_radians() to 75.0.to_radians()
-    pub clamp_pickup_pitch: (f32, f32),
+    pub pitch_range: RangeInclusive<f32>,
     /// The distance in meters between the player and the object's OBBs when
     /// picked up and there is no obstacle in the way.\
     /// Can be overridden by adding a
     /// [`PreferredPickupDistanceOverride`](crate::prop::PreferredPickupDistanceOverride)
     /// to the prop.\
     /// Default: 1.5 m
-    pub preferred_pickup_distance: Scalar,
+    pub preferred_distance: Scalar,
     /// The mass in kg of the object when picked up.
     /// This mechanism is needed because the held object's velocity is
     /// set directly, independent of its mass. This means that heavy
@@ -172,7 +174,7 @@ pub struct AvianPickupActorHoldConfig {
     /// Can be overridden by adding a
     /// [`PickupMassOverride`](crate::prop::PickupMassOverride) to the prop.\
     /// Default: 1 kg
-    pub pickup_mass: Scalar,
+    pub temporary_prop_mass: Scalar,
 }
 
 impl Default for AvianPickupActorHoldConfig {
@@ -181,9 +183,9 @@ impl Default for AvianPickupActorHoldConfig {
             min_distance: 0.5,
             linear_velocity_easing: 1.0,
             angular_velocity_easing: 1.6,
-            clamp_pickup_pitch: (-75.0_f32.to_radians(), 75.0_f32.to_radians()),
-            preferred_pickup_distance: 1.5,
-            pickup_mass: 1.0,
+            pitch_range: (-75.0_f32).to_radians()..=75.0_f32.to_radians(),
+            preferred_distance: 1.5,
+            temporary_prop_mass: 1.0,
         }
     }
 }
@@ -196,18 +198,17 @@ impl Default for AvianPickupActorHoldConfig {
     reflect(Serialize, Deserialize)
 )]
 pub struct AvianPickupActorThrowConfig {
-    pub throw_cutoff_mass_for_slowdown: Scalar,
-
-    pub throw_linear_velocity: Scalar,
-    pub throw_max_angular_velocity: Scalar,
+    pub cutoff_mass_for_slowdown: Scalar,
+    pub linear_velocity_range: RangeInclusive<Scalar>,
+    pub angular_velocity_range: RangeInclusive<Scalar>,
 }
 
 impl Default for AvianPickupActorThrowConfig {
     fn default() -> Self {
         Self {
-            throw_cutoff_mass_for_slowdown: 10.0,
-            throw_linear_velocity: 1.0,
-            throw_max_angular_velocity: 0.2,
+            cutoff_mass_for_slowdown: 10.0,
+            linear_velocity_range: 0.0..=10.0,
+            angular_velocity_range: 0.0..=10.0,
         }
     }
 }
@@ -239,8 +240,8 @@ impl Default for AvianPickupActor {
             prop_filter: default(),
             obstacle_filter: default(),
             actor_filter: default(),
-            trace_length: 3.,
-            cone: 0.97,
+            interaction_distance: 3.,
+            interaction_cone: 0.97,
             pull: default(),
             hold: default(),
             throw: default(),

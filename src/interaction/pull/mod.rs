@@ -65,7 +65,7 @@ fn find_object(
             continue;
         }
 
-        let can_hold = prop.toi <= config.trace_length;
+        let can_hold = prop.toi <= config.interaction_distance;
         if can_hold {
             cooldown.hold();
             commands
@@ -74,7 +74,7 @@ fn find_object(
         } else {
             let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
-            let pull_impulse = direction * config.pull.pull_impulse * mass_adjustment;
+            let pull_impulse = direction * config.pull.impulse * mass_adjustment;
             cooldown.pull();
             impulse.apply_impulse(pull_impulse);
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {

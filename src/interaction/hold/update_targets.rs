@@ -29,7 +29,7 @@ fn set_targets(
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistanceOverride>,
-        Option<&ClampPickupPitchOverride>,
+        Option<&HelpPropPitchRangeOverride>,
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
@@ -55,11 +55,11 @@ fn set_targets(
             preferred_distance,
             clamp_pitch,
         ) = q_prop.get_mut(prop).unwrap();
-        let (min_pitch, max_pitch) = clamp_pitch
-            .map(|c| (c.min, c.max))
-            .unwrap_or(config.hold.clamp_pickup_pitch);
+        let pitch_range = clamp_pitch
+            .map(|c| &c.0)
+            .unwrap_or(&config.hold.pitch_range);
         let (actor_yaw, actor_pitch, actor_roll) = actor_transform.rotation.to_euler(EulerRot::YXZ);
-        let actor_to_prop_pitch = actor_pitch.clamp(min_pitch, max_pitch);
+        let actor_to_prop_pitch = actor_pitch.clamp(*pitch_range.start(), *pitch_range.end());
         let clamped_rotation =
             Quat::from_euler(EulerRot::YXZ, actor_yaw, actor_to_prop_pitch, actor_roll);
         let forward = Transform::from_rotation(clamped_rotation).forward();
@@ -101,7 +101,7 @@ fn set_targets(
         // inches` That seems straight up bizarre, so I refuse to do that.
         let preferred_distance = preferred_distance
             .map(|d| d.0)
-            .unwrap_or(config.hold.preferred_pickup_distance);
+            .unwrap_or(config.hold.preferred_distance);
         // The 2013 code does `max_distance = preferred_distance + min_distance`
         // which means that `preferred_distance` is the distance between the prop's
         // edge and the actors's edge. Expect psyche, actually `min_distance` gets

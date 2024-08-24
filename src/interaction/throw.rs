@@ -37,7 +37,7 @@ fn throw(
             let prop_dist_sq = actor_transform
                 .translation
                 .distance_squared(prop_position.0);
-            if prop_dist_sq > config.trace_length * config.trace_length {
+            if prop_dist_sq > config.interaction_distance * config.interaction_distance {
                 // Note: I don't think this will ever happen, but the 2013 code
                 // does this check, so let's keep it just in case.
                 continue;
@@ -47,14 +47,13 @@ fn throw(
             angvel.0 = Vec3::ZERO;
 
             let direction = actor_transform.forward();
-            let impulse = direction * config.throw.throw_linear_velocity;
-            lin_impulse.apply_impulse(impulse);
+            //let impulse = direction * config.throw.max_linear_velocity;
+            //lin_impulse.apply_impulse(impulse);
             let rand_direction = Sphere::new(1.0).sample_boundary(rng.as_mut());
             let rand_magnitude = rng
                 .as_mut()
-                .gen_range(0.0..config.throw.throw_max_angular_velocity);
+                .gen_range(config.throw.angular_velocity_range.clone());
             let torque = rand_direction * rand_magnitude;
-            info!("impulse: {:?}, torque: {:?}", impulse, torque);
             ang_impulse.apply_impulse(torque);
 
             w_throw_event.send(PropThrown {

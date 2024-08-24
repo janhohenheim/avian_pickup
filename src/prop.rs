@@ -1,5 +1,7 @@
 //! TODO
 
+use std::ops::RangeInclusive;
+
 use avian3d::math::Scalar;
 use bevy::prelude::*;
 
@@ -8,7 +10,7 @@ use crate::prelude::AvianPickupActor;
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<(
         PreferredPickupRotation,
-        ClampPickupPitchOverride,
+        HelpPropPitchRangeOverride,
         PreferredPickupDistanceOverride,
         PickupMassOverride,
         HeldProp,
@@ -17,8 +19,8 @@ pub(super) fn plugin(app: &mut App) {
 
 pub(super) mod prelude {
     pub use super::{
-        ClampPickupPitchOverride,
         HeldProp,
+        HelpPropPitchRangeOverride,
         PickupMassOverride,
         PreferredPickupDistanceOverride,
         PreferredPickupRotation,
@@ -33,7 +35,7 @@ pub(super) mod prelude {
 ///
 /// If an object has no `PreferredPickupRotation`, it will be held with whatever
 /// rotation it had when picked up.
-#[derive(Debug, Clone, Copy, PartialEq, Component, Default, Reflect)]
+#[derive(Debug, Clone, PartialEq, Component, Default, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
     feature = "serialize",
@@ -42,33 +44,22 @@ pub(super) mod prelude {
 )]
 pub struct PreferredPickupRotation(pub Quat);
 
-#[derive(Debug, Clone, Copy, PartialEq, Component)]
+#[derive(Debug, Clone, PartialEq, Component)]
 pub(crate) struct PrePickupRotation(pub Quat);
 
 /// Insert this on a prop to override
 /// [`AvianPickupActor::clamp_pickup_pitch`](crate::prelude::AvianPickupActor::clamp_pickup_pitch).
-#[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
+#[derive(Debug, Clone, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
     feature = "serialize",
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct ClampPickupPitchOverride {
-    /// The minimum pitch the held object can have in radians while following
-    /// the actor's pitch.
-    pub min: f32,
-    /// The maximum pitch the held object can have in radians while following
-    /// the actor's pitch.
-    pub max: f32,
-}
-impl Default for ClampPickupPitchOverride {
+pub struct HelpPropPitchRangeOverride(pub RangeInclusive<Scalar>);
+impl Default for HelpPropPitchRangeOverride {
     fn default() -> Self {
-        let default_actor = AvianPickupActor::default();
-        Self {
-            min: default_actor.hold.clamp_pickup_pitch.0,
-            max: default_actor.hold.clamp_pickup_pitch.1,
-        }
+        Self(AvianPickupActor::default().hold.pitch_range)
     }
 }
 
@@ -85,7 +76,7 @@ pub struct PreferredPickupDistanceOverride(pub Scalar);
 
 impl Default for PreferredPickupDistanceOverride {
     fn default() -> Self {
-        Self(AvianPickupActor::default().hold.preferred_pickup_distance)
+        Self(AvianPickupActor::default().hold.preferred_distance)
     }
 }
 
@@ -102,7 +93,7 @@ pub struct PickupMassOverride(pub Scalar);
 
 impl Default for PickupMassOverride {
     fn default() -> Self {
-        Self(AvianPickupActor::default().hold.pickup_mass)
+        Self(AvianPickupActor::default().hold.temporary_prop_mass)
     }
 }
 

@@ -9,7 +9,7 @@ pub(super) fn find_prop_in_cone(
     q_collider: &Query<&Position>,
 ) -> Option<Prop> {
     const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0 * METERS_PER_INCH;
-    let mut nearest_dist = config.trace_length + MAGIC_OFFSET_ASK_VALVE;
+    let mut nearest_dist = config.interaction_distance + MAGIC_OFFSET_ASK_VALVE;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
 
     let colliders = spatial_query.shape_intersections(
@@ -33,7 +33,7 @@ pub(super) fn find_prop_in_cone(
         }
 
         // Cull to the cone
-        let max_dot = config.cone;
+        let max_dot = config.interaction_cone;
         if los.dot(origin.forward().into()) <= max_dot {
             continue;
         }

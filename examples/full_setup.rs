@@ -69,7 +69,7 @@ fn setup(
             // Make sure the props do not intersect with the player's capsule
             // when looking down.
             hold: AvianPickupActorHoldConfig {
-                clamp_pickup_pitch: (-50.0_f32.to_radians(), 75.0_f32.to_radians()),
+                pitch_range: -50.0_f32.to_radians()..=75.0_f32.to_radians(),
                 ..default()
             },
             ..default()

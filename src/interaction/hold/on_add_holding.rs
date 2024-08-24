@@ -34,7 +34,9 @@ pub fn on_add_holding(
     // `Rotation` and `Mass`.
     let (rotation, mut mass, pickup_mass, non_pickup_mass, pre_pickup_rotation) =
         q_prop.get_mut(prop).unwrap();
-    let new_mass = pickup_mass.map(|m| m.0).unwrap_or(config.hold.pickup_mass);
+    let new_mass = pickup_mass
+        .map(|m| m.0)
+        .unwrap_or(config.hold.temporary_prop_mass);
     if let Some(mut non_pickup_mass) = non_pickup_mass {
         non_pickup_mass.0 = mass.0;
     } else {
