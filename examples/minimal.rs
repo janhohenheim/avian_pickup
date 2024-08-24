@@ -16,7 +16,6 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
             // Because we are moving the camera independently of the physics system,
             // interpolation is needed to prevent jittering.
@@ -31,7 +30,6 @@ fn main() {
             RunFixedMainLoop,
             (handle_input, rotate_camera).before(run_fixed_main_schedule),
         )
-        .add_systems(PhysicsSchedule, debug.in_set(AvianPickupSystem::Last))
         .run();
 }
 
@@ -150,11 +148,5 @@ fn rotate_camera(
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
             transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }
-    }
-}
-
-fn debug(q_state: Query<&AvianPickupActorState, Changed<AvianPickupActorState>>) {
-    for state in q_state.iter() {
-        info!("{state:?}");
     }
 }

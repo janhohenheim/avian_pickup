@@ -1,5 +1,5 @@
 use super::Prop;
-use crate::{math::METERS_PER_INCH, prelude::*};
+use crate::prelude::*;
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectTrace`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2470)
 pub(super) fn find_prop_in_trace(

@@ -14,14 +14,17 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_transform_interpolation::*;
 use rand::Rng;
 
+mod util;
+
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            //WorldInspectorPlugin::new(),
             PhysicsPlugins::default(),
             TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
+            // This is just here to make the example look a bit nicer.
+            util::plugin(util::Example::Resettable),
         ))
         .add_systems(Startup, setup)
         // Pass input to systems runing in the fixed update.
@@ -46,15 +49,6 @@ fn main() {
         .add_systems(
             RunFixedMainLoop,
             (on_npc_hold, on_player_throw, on_aim_timer).after(run_fixed_main_schedule),
-        )
-        // Purely aesthetic systems go in `Update`.
-        .add_systems(
-            Update,
-            (
-                capture_cursor.run_if(input_just_pressed(MouseButton::Left)),
-                release_cursor.run_if(input_just_pressed(KeyCode::Escape)),
-            )
-                .chain(),
         )
         .run();
 }
@@ -98,7 +92,7 @@ impl Npc {
     }
 }
 
-const BOX_DEFAULT_POS: Vec3 = Vec3::new(0.0, 2.0, 2.0);
+const INITIAL_BOX_TRANSFORM: Transform = Transform::from_translation(Vec3::new(0.0, 2.0, 2.0));
 
 fn setup(
     mut commands: Commands,
@@ -201,49 +195,13 @@ fn setup(
         PbrBundle {
             mesh: meshes.add(Mesh::from(box_shape)),
             material: prop_material.clone(),
-            transform: Transform::from_translation(BOX_DEFAULT_POS),
+            transform: INITIAL_BOX_TRANSFORM,
             ..default()
         },
         RigidBody::Dynamic,
         Collider::from(box_shape),
         Prop,
     ));
-
-    // Show a crosshair for better aiming
-    let crosshair_texture = asset_server.load("crosshair.png");
-    commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        })
-        .with_children(|parent| {
-            parent.spawn(ImageBundle {
-                image: crosshair_texture.into(),
-                ..default()
-            });
-        });
-}
-
-fn capture_cursor(mut windows: Query<&mut Window>) {
-    let Ok(mut window) = windows.get_single_mut() else {
-        return;
-    };
-    window.cursor.visible = false;
-    window.cursor.grab_mode = CursorGrabMode::Locked;
-}
-
-fn release_cursor(mut windows: Query<&mut Window>) {
-    let Ok(mut window) = windows.get_single_mut() else {
-        return;
-    };
-    window.cursor.visible = true;
-    window.cursor.grab_mode = CursorGrabMode::None;
 }
 
 fn handle_input(
@@ -391,7 +349,7 @@ fn on_reset_pressed(
         npc.waiting();
         *state = AvianPickupActorState::Idle;
         for (mut transform, mut vel, mut angvel) in &mut props {
-            *transform = Transform::from_translation(BOX_DEFAULT_POS);
+            *transform = INITIAL_BOX_TRANSFORM;
             vel.0 = Vec3::ZERO;
             angvel.0 = Vec3::ZERO;
         }
