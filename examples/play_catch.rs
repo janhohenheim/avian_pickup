@@ -104,6 +104,7 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
     let terrain_material = materials.add(Color::WHITE);
     let npc_material = materials.add(Color::from(tailwind::LIME_300));
@@ -207,6 +208,26 @@ fn setup(
         Collider::from(box_shape),
         Prop,
     ));
+
+    // Show a crosshair for better aiming
+    let crosshair_texture = asset_server.load("crosshair.png");
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn(ImageBundle {
+                image: crosshair_texture.into(),
+                ..default()
+            });
+        });
 }
 
 fn capture_cursor(mut windows: Query<&mut Window>) {
