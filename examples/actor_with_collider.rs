@@ -132,19 +132,19 @@ fn handle_input(
     for actor in &actors {
         if key_input.just_pressed(MouseButton::Left) {
             avian_pickup_input_writer.send(AvianPickupInput {
-                kind: AvianPickupInputKind::JustPressedL,
+                action: AvianPickupAction::Throw,
                 actor,
             });
         }
         if key_input.just_pressed(MouseButton::Right) {
             avian_pickup_input_writer.send(AvianPickupInput {
-                kind: AvianPickupInputKind::JustPressedR,
+                action: AvianPickupAction::Drop,
                 actor,
             });
         }
         if key_input.pressed(MouseButton::Right) {
             avian_pickup_input_writer.send(AvianPickupInput {
-                kind: AvianPickupInputKind::PressedR,
+                action: AvianPickupAction::Pull,
                 actor,
             });
         }

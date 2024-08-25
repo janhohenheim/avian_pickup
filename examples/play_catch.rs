@@ -211,19 +211,19 @@ fn handle_input(
     for player in &players {
         if key_input.just_pressed(MouseButton::Left) {
             avian_pickup_input_writer.send(AvianPickupInput {
-                kind: AvianPickupInputKind::JustPressedL,
+                action: AvianPickupAction::Throw,
                 actor: player,
             });
         }
         if key_input.just_pressed(MouseButton::Right) {
             avian_pickup_input_writer.send(AvianPickupInput {
-                kind: AvianPickupInputKind::JustPressedR,
+                action: AvianPickupAction::Drop,
                 actor: player,
             });
         }
         if key_input.pressed(MouseButton::Right) {
             avian_pickup_input_writer.send(AvianPickupInput {
-                kind: AvianPickupInputKind::PressedR,
+                action: AvianPickupAction::Pull,
                 actor: player,
             });
         }
@@ -291,7 +291,7 @@ fn make_npc_catch(
             continue;
         }
         avian_pickup_input_writer.send(AvianPickupInput {
-            kind: AvianPickupInputKind::PressedR,
+            action: AvianPickupAction::Pull,
             actor: entity,
         });
     }
@@ -327,7 +327,7 @@ fn on_aim_timer(
         }
         npc.waiting();
         avian_pickup_input_writer.send(AvianPickupInput {
-            kind: AvianPickupInputKind::JustPressedL,
+            action: AvianPickupAction::Throw,
             actor: entity,
         });
     }

@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub(super) mod prelude {
-    pub use super::{AvianPickupInput, AvianPickupInputKind};
+    pub use super::{AvianPickupAction, AvianPickupInput};
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -31,7 +31,7 @@ pub struct AvianPickupInput {
     /// The entity of the [`AvianPickupActor`] that the event is related to.
     pub actor: Entity,
     /// The kind of input that the event represents.
-    pub kind: AvianPickupInputKind,
+    pub action: AvianPickupAction,
 }
 
 /// The kind of input that the [`AvianPickupInput`] represents.
@@ -42,13 +42,13 @@ pub struct AvianPickupInput {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub enum AvianPickupInputKind {
+pub enum AvianPickupAction {
     /// The left mouse button was just pressed this update.
-    JustPressedL,
+    Throw,
     /// The right mouse button was just pressed this update.
-    JustPressedR,
+    Drop,
     /// The right mouse button was pressed.
-    PressedR,
+    Pull,
 }
 
 fn set_verbs_according_to_input(
@@ -68,7 +68,7 @@ fn set_verbs_according_to_input(
 ) {
     let mut unhandled_actors: HashSet<_> = q_actor.iter().map(|(entity, ..)| entity).collect();
     'outer: for &event in r_input.read() {
-        let kind = event.kind;
+        let action = event.action;
         let actor = event.actor;
         unhandled_actors.remove(&actor);
         let Ok((_entity, state, cooldown, has_global_transform, has_shadow, has_error)) =
@@ -107,8 +107,8 @@ fn set_verbs_according_to_input(
             continue;
         };
 
-        let verb = match kind {
-            AvianPickupInputKind::JustPressedL
+        let verb = match action {
+            AvianPickupAction::Throw
                 if cooldown.left.finished()
                     && matches!(state, AvianPickupActorState::Holding(..)) =>
             {
@@ -117,8 +117,7 @@ fn set_verbs_according_to_input(
                 };
                 Some(Verb::Throw(prop))
             }
-            AvianPickupInputKind::JustPressedL => None,
-            AvianPickupInputKind::JustPressedR
+            AvianPickupAction::Drop
                 if matches!(state, AvianPickupActorState::Holding(..))
                     && cooldown.right.finished() =>
             {
@@ -130,17 +129,15 @@ fn set_verbs_according_to_input(
                     forced: false,
                 })
             }
-            AvianPickupInputKind::JustPressedR | AvianPickupInputKind::PressedR => {
+            AvianPickupAction::Pull
                 if matches!(
                     state,
                     AvianPickupActorState::Idle | AvianPickupActorState::Pulling(..)
-                ) && cooldown.right.finished()
-                {
-                    Some(Verb::Pull)
-                } else {
-                    None
-                }
+                ) && cooldown.right.finished() =>
+            {
+                Some(Verb::Pull)
             }
+            _ => None,
         };
         commands.entity(actor).add(SetVerb::new(verb));
     }
