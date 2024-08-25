@@ -26,7 +26,7 @@ fn main() {
             TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
-            util::plugin(util::Example::Generic),
+            util::plugin(util::Example::Manipulation),
         ))
         .add_systems(Startup, setup)
         // Need to read input and rotate camera before physics,
@@ -59,7 +59,10 @@ fn setup(
         },
         // Add this to set up the camera as the entity that can pick up
         // objects.
-        AvianPickupActor::default(),
+        AvianPickupActor {
+            interaction_distance: 15.0,
+            ..default()
+        },
         // This entity is moved in a variable timestep, so no interpolation is needed.
         NoRotationInterpolation,
         InputAccumulation::default(),
@@ -97,7 +100,7 @@ fn setup(
         PbrBundle {
             mesh: meshes.add(Mesh::from(box_shape)),
             material: prop_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.0, 3.5),
+            transform: Transform::from_xyz(0.0, 2.0, 1.5),
             ..default()
         },
         // All `RigidBody::Dynamic` entities are able to be picked up.
@@ -222,8 +225,9 @@ fn move_prop(
             continue;
         }
         let y_rotation_global = Quat::from_rotation_y(input.rotation.x * dt);
-        let x_rotation_local = Quat::from_rotation_x(input.rotation.y * dt);
-        rotation.0 = y_rotation_global * rotation.0 * x_rotation_local;
+        let x_rotation_global = Quat::from_rotation_x(input.rotation.y * dt);
+        rotation.0 = x_rotation_global * y_rotation_global * rotation.0;
+
         input.rotation = Vec2::ZERO;
     }
 }

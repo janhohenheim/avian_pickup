@@ -24,6 +24,9 @@ pub enum Example {
     /// Includes instructions for resetting the cube's position.
     #[allow(dead_code)]
     Resettable,
+    /// Includes instructions for manipulating the cube's position and rotation.
+    #[allow(dead_code)]
+    Manipulation,
 }
 
 /// Show a crosshair for better aiming
@@ -95,6 +98,15 @@ fn spawn_text(example: Example) -> impl Fn(Commands) {
                             "Left click while holding a prop to throw it.\n",
                             "Right click while holding a prop to drop it.\n",
                             "Press R to reset the prop's position.\n",
+                            "Press Escape to release the cursor."
+                        ),
+                        Example::Manipulation => concat!(
+                            "Move the camera with your mouse.\n",
+                            "Hold right click to pick up a prop.\n",
+                            "Left click while holding a prop to throw it.\n",
+                            "Right click while holding a prop to drop it.\n",
+                            "Scroll to change the held prop's distance.\n",
+                            "Hold Shift and move the mouse to rotate the held prop.\n",
                             "Press Escape to release the cursor."
                         ),
                     },
