@@ -133,6 +133,9 @@ mod test {
     #[test]
     fn is_random_unit_vector_actually_unit() {
         let mut rng = thread_rng();
+        // What?! A unit test that uses randomness?
+        // In this part of the codebase, localized entirely within your for-loop?
+        // Yes.
         for _ in 0..1000 {
             let v = random_unit_vector(&mut rng);
             assert!(v.is_normalized());
