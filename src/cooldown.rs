@@ -1,9 +1,9 @@
 use std::time::Duration;
 
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::hashbrown::HashMap};
 
-use crate::AvianPickupSystem;
+use crate::{prelude::AvianPickupAction, AvianPickupSystem};
 
 pub(super) mod prelude {
     pub(crate) use super::Cooldown;
@@ -14,24 +14,44 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// Timings taken from [`CWeaponPhysCannon::SecondaryAttack`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2284)
-#[derive(Debug, Clone, PartialEq, Component, Default)]
-pub(crate) struct Cooldown {
-    pub(crate) left: Timer,
-    pub(crate) right: Timer,
+#[derive(Debug, Clone, Component)]
+pub(crate) struct Cooldown(HashMap<AvianPickupAction, Timer>);
+
+impl Default for Cooldown {
+    fn default() -> Self {
+        let map = AvianPickupAction::iter()
+            .map(|action| (action, default()))
+            .collect();
+
+        Self(map)
+    }
 }
 
 impl Cooldown {
+    fn get(&self, action: &AvianPickupAction) -> &Timer {
+        self.0.get(action).unwrap()
+    }
+
+    fn set(&mut self, action: AvianPickupAction, seconds: f32) {
+        self.0
+            .insert(action, Timer::from_seconds(seconds, TimerMode::Once));
+    }
+
+    pub(crate) fn finished(&self, action: AvianPickupAction) -> bool {
+        self.get(&action).finished()
+    }
+
+    fn finish(&mut self, action: AvianPickupAction) {
+        self.0.insert(action, default());
+    }
+
     pub(crate) fn throw(&mut self) {
-        // Happens to be the same as `drop`, but that's a coincidence
-        // Also, the CD does not differentiate between throwing a held object
-        // and throwing an object in front of us.
-        self.left = Timer::from_seconds(0.5, TimerMode::Once);
-        self.right = Timer::from_seconds(0.5, TimerMode::Once);
+        // Happens to be the same as `drop`, but that's a coincidence.
+        self.set(AvianPickupAction::Pull, 0.5);
     }
 
     pub(crate) fn drop(&mut self) {
-        self.left = Timer::from_seconds(0.5, TimerMode::Once);
-        self.right = Timer::from_seconds(0.5, TimerMode::Once);
+        self.set(AvianPickupAction::Pull, 0.5);
     }
 
     pub(crate) fn hold(&mut self) {
@@ -39,16 +59,17 @@ impl Cooldown {
         // - [+ 0.5](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2316)
         // - [+ 0.4](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2438)
         // Let's use just 0.4, that feels nicer.
-        self.right = Timer::from_seconds(0.4, TimerMode::Once);
+        self.set(AvianPickupAction::Drop, 0.4);
     }
 
     pub(crate) fn pull(&mut self) {
-        self.right = Timer::from_seconds(0.1, TimerMode::Once);
+        self.set(AvianPickupAction::Pull, 0.1);
     }
 
     pub(crate) fn tick(&mut self, time: Duration) {
-        self.left.tick(time);
-        self.right.tick(time);
+        for timer in self.0.values_mut() {
+            timer.tick(time);
+        }
     }
 }
 

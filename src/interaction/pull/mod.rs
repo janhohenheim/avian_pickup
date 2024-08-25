@@ -116,7 +116,7 @@ fn flush_pulling_state(mut q_state: Query<(Mut<AvianPickupActorState>, Has<Pulli
         // that no input was given to start / continue pulling during `Update`.
         if matches!(state.as_ref(), AvianPickupActorState::Pulling(..))
             && !has_pulling
-            && cooldown.right.finished()
+            && cooldown.finished(AvianPickupAction::Pull)
         {
             *state = AvianPickupActorState::Idle;
         }

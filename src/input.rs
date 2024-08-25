@@ -35,8 +35,8 @@ pub struct AvianPickupInput {
 }
 
 /// The kind of input that the [`AvianPickupInput`] represents.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Reflect)]
-#[reflect(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Reflect)]
+#[reflect(Debug, PartialEq, Hash)]
 #[cfg_attr(
     feature = "serialize",
     derive(serde::Serialize, serde::Deserialize),
@@ -49,6 +49,12 @@ pub enum AvianPickupAction {
     Drop,
     /// The right mouse button was pressed.
     Pull,
+}
+
+impl AvianPickupAction {
+    pub(crate) fn iter() -> impl Iterator<Item = Self> {
+        [Self::Throw, Self::Drop, Self::Pull].iter().copied()
+    }
 }
 
 fn set_verbs_according_to_input(
@@ -109,7 +115,7 @@ fn set_verbs_according_to_input(
 
         let verb = match action {
             AvianPickupAction::Throw
-                if cooldown.left.finished()
+                if cooldown.finished(AvianPickupAction::Throw)
                     && matches!(state, AvianPickupActorState::Holding(..)) =>
             {
                 let AvianPickupActorState::Holding(prop) = state else {
@@ -119,7 +125,7 @@ fn set_verbs_according_to_input(
             }
             AvianPickupAction::Drop
                 if matches!(state, AvianPickupActorState::Holding(..))
-                    && cooldown.right.finished() =>
+                    && cooldown.finished(AvianPickupAction::Drop) =>
             {
                 let AvianPickupActorState::Holding(prop) = state else {
                     unreachable!()
@@ -133,7 +139,7 @@ fn set_verbs_according_to_input(
                 if matches!(
                     state,
                     AvianPickupActorState::Idle | AvianPickupActorState::Pulling(..)
-                ) && cooldown.right.finished() =>
+                ) && cooldown.finished(AvianPickupAction::Pull) =>
             {
                 Some(Verb::Pull)
             }
