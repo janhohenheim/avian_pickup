@@ -1,11 +1,14 @@
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
-use avian_pickup::prelude::*;
+use avian_pickup::{
+    prelude::*,
+    prop::{PreferredPickupDistanceOverride, PreferredPickupRotation},
+};
 use bevy::{
     app::RunFixedMainLoop,
     color::palettes::tailwind,
-    input::mouse::MouseMotion,
+    input::mouse::{MouseMotion, MouseWheel},
     prelude::*,
     time::run_fixed_main_schedule,
 };
@@ -31,8 +34,11 @@ fn main() {
         // <https://github.com/bevyengine/bevy/issues/14873>
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).before(run_fixed_main_schedule),
+            (accumulate_input, handle_pickup_input, rotate_camera)
+                .chain()
+                .before(run_fixed_main_schedule),
         )
+        .add_systems(FixedUpdate, move_prop)
         .run();
 }
 
@@ -56,6 +62,7 @@ fn setup(
         AvianPickupActor::default(),
         // This entity is moved in a variable timestep, so no interpolation is needed.
         NoRotationInterpolation,
+        InputAccumulation::default(),
     ));
 
     commands.spawn((
@@ -96,11 +103,13 @@ fn setup(
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
+        PreferredPickupDistanceOverride::default(),
+        PreferredPickupRotation::default(),
     ));
 }
 
 /// Pass player input along to `avian_pickup`
-fn handle_input(
+fn handle_pickup_input(
     mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
     key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
@@ -129,39 +138,92 @@ fn handle_input(
 
 fn rotate_camera(
     time: Res<Time>,
-    mut mouse_motion: EventReader<MouseMotion>,
-    mut cameras: Query<&mut Transform, With<Camera>>,
+    mut cameras: Query<(&mut Transform, &mut InputAccumulation), With<Camera>>,
 ) {
-    for mut transform in &mut cameras {
+    for (mut transform, mut input) in &mut cameras {
         let dt = time.delta_seconds();
-        // The factors are just arbitrary mouse sensitivity values.
-        // It's often nicer to have a faster horizontal sensitivity than vertical.
-        let mouse_sensitivity = Vec2::new(0.12, 0.10);
-
-        for motion in mouse_motion.read() {
-            let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
-            let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
-
-            // Add yaw (global)
-            transform.rotate_y(delta_yaw);
-
-            // Add pitch (local)
-            const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-            let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
-            let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-            transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+        if input.shift {
+            continue;
         }
+
+        let delta_yaw = -input.rotation.x * dt;
+        let delta_pitch = -input.rotation.y * dt;
+        input.rotation = Vec2::ZERO;
+
+        // Add yaw (global)
+        transform.rotate_y(delta_yaw);
+
+        // Add pitch (local)
+        const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
+        let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+        let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+        transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+    }
+}
+
+fn accumulate_input(
+    mut mouse_motion: EventReader<MouseMotion>,
+    mut mouse_wheel: EventReader<MouseWheel>,
+    key_input: Res<ButtonInput<KeyCode>>,
+    mut accumulation: Query<&mut InputAccumulation>,
+) {
+    for motion in mouse_motion.read() {
+        for mut input in &mut accumulation {
+            // The factors are just arbitrary mouse sensitivity values.
+            // It's often nicer to have a faster horizontal sensitivity than vertical.
+            let mouse_sensitivity = Vec2::new(0.12, 0.10);
+            input.rotation += motion.delta * mouse_sensitivity;
+        }
+    }
+    for wheel in mouse_wheel.read() {
+        for mut input in &mut accumulation {
+            const SCROLL_SENSITIVITY: f32 = 1.0;
+            let delta = wheel.y * SCROLL_SENSITIVITY;
+            input.zoom += delta as i32;
+        }
+    }
+    for mut input in &mut accumulation {
+        input.shift =
+            key_input.pressed(KeyCode::ShiftLeft) || key_input.pressed(KeyCode::ShiftRight);
     }
 }
 
 /// Systems in fixed timesteps may not run every frame,
-/// so we cache them 
+/// so we accumulate all input that happened since the last fixed update.
 #[derive(Debug, Component, Default)]
-struct InputCache {
-    move_accumulator: i32,
-    shift_presset: bool,
+struct InputAccumulation {
+    zoom: i32,
+    rotation: Vec2,
+    shift: bool,
 }
 
 fn move_prop(
-    caches: 
-)
+    time: Res<Time>,
+    mut actors: Query<(&mut InputAccumulation, &AvianPickupActorState)>,
+    mut props: Query<(
+        &mut PreferredPickupDistanceOverride,
+        &mut PreferredPickupRotation,
+    )>,
+) {
+    let dt = time.delta_seconds();
+    for (mut input, state) in &mut actors {
+        let AvianPickupActorState::Holding(prop) = state else {
+            continue;
+        };
+        let (mut distance, mut rotation) = props.get_mut(*prop).unwrap();
+        const SCROLL_VELOCITY: f32 = 5.0;
+        let delta = input.zoom as f32 * SCROLL_VELOCITY * dt;
+        input.zoom = 0;
+
+        distance.0 += delta;
+        distance.0 = distance.0.clamp(0.5, 15.0);
+
+        if !input.shift {
+            continue;
+        }
+        let y_rotation_global = Quat::from_rotation_y(input.rotation.x * dt);
+        let x_rotation_local = Quat::from_rotation_x(input.rotation.y * dt);
+        rotation.0 = y_rotation_global * rotation.0 * x_rotation_local;
+        input.rotation = Vec2::ZERO;
+    }
+}

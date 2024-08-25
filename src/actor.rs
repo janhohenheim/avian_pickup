@@ -236,6 +236,23 @@ pub enum AvianPickupActorState {
     Holding(Entity),
 }
 
+impl AvianPickupActorState {
+    /// Returns `true` if the actor is [`AvianPickupActorState::Idle`].
+    pub fn is_idle(self) -> bool {
+        matches!(self, AvianPickupActorState::Idle)
+    }
+
+    /// Returns `true` if the actor is [`AvianPickupActorState::Pulling`].
+    pub fn is_pulling(self) -> bool {
+        matches!(self, AvianPickupActorState::Pulling { .. })
+    }
+
+    /// Returns `true` if the actor is [`AvianPickupActorState::Holding`].
+    pub fn is_holding(self) -> bool {
+        matches!(self, AvianPickupActorState::Holding { .. })
+    }
+}
+
 impl Default for AvianPickupActor {
     fn default() -> Self {
         Self {
