@@ -38,7 +38,8 @@ impl Cooldown {
         // Sneakily updated in two places:
         // - [+ 0.5](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2316)
         // - [+ 0.4](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2438)
-        self.right = Timer::from_seconds(0.9, TimerMode::Once);
+        // Let's use just 0.4, that feels nicer.
+        self.right = Timer::from_seconds(0.4, TimerMode::Once);
     }
 
     pub(crate) fn pull(&mut self) {

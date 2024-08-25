@@ -100,7 +100,7 @@ pub struct AvianPickupActor {
 )]
 pub struct AvianPickupActorPullConfig {
     /// How much impulse to be used when pulling objects to the player.
-    /// This is not continuously applied, but governed by an internal cooldown.\
+    /// This is applied every 0.1 seconds.\
     /// Default: 100.0 Ns
     ///
     /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
