@@ -41,10 +41,6 @@ impl Cooldown {
         self.get(&action).finished()
     }
 
-    fn finish(&mut self, action: AvianPickupAction) {
-        self.0.insert(action, default());
-    }
-
     pub(crate) fn throw(&mut self) {
         // Happens to be the same as `drop`, but that's a coincidence.
         self.set(AvianPickupAction::Pull, 0.5);

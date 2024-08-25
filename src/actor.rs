@@ -91,6 +91,8 @@ pub struct AvianPickupActor {
     pub throw: AvianPickupActorThrowConfig,
 }
 
+/// Configuration that is only used when pulling props to the actor.
+/// Used in [`AvianPickupActor::pull`].
 #[derive(Debug, Clone, PartialEq, Reflect)]
 #[reflect(Debug, Default, PartialEq)]
 #[cfg_attr(
@@ -121,6 +123,8 @@ impl Default for AvianPickupActorPullConfig {
     }
 }
 
+/// Configuration that is only used while holding props.
+/// Used in [`AvianPickupActor::hold`].
 #[derive(Debug, Clone, PartialEq, Reflect)]
 #[reflect(Debug, Default, PartialEq)]
 #[cfg_attr(
@@ -129,6 +133,9 @@ impl Default for AvianPickupActorPullConfig {
     reflect(Serialize, Deserialize)
 )]
 pub struct AvianPickupActorHoldConfig {
+    /// The maximum distance between the player and the object when it can be
+    /// picked up.\
+    /// Default: 1.0 m
     pub distance_to_allow_holding: Scalar,
     /// The minimum distance an object must be from the player when picked up.
     /// Usually, the prop will try to stay at
@@ -192,6 +199,8 @@ impl Default for AvianPickupActorHoldConfig {
     }
 }
 
+/// Configuration that is only used when throwing props.
+/// Used in [`AvianPickupActor::throw`].
 #[derive(Debug, Clone, PartialEq, Reflect)]
 #[reflect(Debug, Default, PartialEq)]
 #[cfg_attr(
@@ -200,8 +209,20 @@ impl Default for AvianPickupActorHoldConfig {
     reflect(Serialize, Deserialize)
 )]
 pub struct AvianPickupActorThrowConfig {
+    /// Objects with less than this mass will be thrown with
+    /// `linear_speed_range.end()`.\
+    /// Objects with more than this mass will be thrown with
+    /// less speed, down to objects at
+    /// [`AvianPickupActorPullConfig::max_prop_mass`], which will be thrown
+    /// with `linear_speed_range.start()`.\
+    /// Default: 20.0 kg
     pub cutoff_mass_for_slowdown: Scalar,
+    /// The range of linear speeds in m/s that the object can be thrown with.\
+    /// Default: 0.0 m/s to 5.0 m/s
     pub linear_speed_range: RangeInclusive<Scalar>,
+    /// The range of angular speeds in rad/s that the object can be thrown with.
+    /// When throwing, a random value in this range will be chosen.\
+    /// Default: 0.0 rad/s to 1.0 rad/s
     pub angular_speed_range: RangeInclusive<Scalar>,
 }
 

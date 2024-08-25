@@ -68,7 +68,7 @@ impl Default for HelpPropPitchRangeOverride {
 }
 
 /// Insert this on a prop to override
-/// [`AvianPickupActor::preferred_pickup_distance`](crate::prelude::AvianPickupActor::preferred_pickup_distance).
+/// [`AvianPickupActorHoldConfig::preferred_distance`](crate::prelude::AvianPickupActorHoldConfig::preferred_distance).
 #[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
@@ -101,6 +101,8 @@ impl Default for PickupMassOverride {
     }
 }
 
+/// Insert this on a prop to override
+/// [`AvianPickupActorThrowConfig::linear_speed_range`](crate::prelude::AvianPickupActorThrowConfig::linear_speed_range).
 #[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
@@ -116,6 +118,8 @@ impl Default for ThrownLinearSpeedOverride {
     }
 }
 
+/// Insert this on a prop to override
+/// [`AvianPickupActorThrowConfig::angular_speed_range`](crate::prelude::AvianPickupActorThrowConfig::angular_speed_range).
 #[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
