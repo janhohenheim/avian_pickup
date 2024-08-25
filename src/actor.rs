@@ -244,7 +244,10 @@ impl Default for AvianPickupActorThrowConfig {
     reflect(Serialize, Deserialize)
 )]
 /// The state of an [`AvianPickupActor`]. This component is automatically added
-/// to the entity holding the [`AvianPickupActor`], do not add or remove it.
+/// to the entity holding the [`AvianPickupActor`], do not add or remove it.\
+/// If you need to react to a prop being thrown or dropped, listen to
+/// [`PropThrown`](crate::output::PropThrown) and
+/// [`PropDropped`](crate::output::PropDropped).
 pub enum AvianPickupActorState {
     /// The actor is not doing anything.
     #[default]
