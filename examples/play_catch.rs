@@ -10,7 +10,6 @@ use bevy::{
     time::run_fixed_main_schedule,
     window::CursorGrabMode,
 };
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_transform_interpolation::*;
 use rand::Rng;
 

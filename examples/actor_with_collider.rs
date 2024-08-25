@@ -36,6 +36,14 @@ fn main() {
         .run();
 }
 
+#[derive(Debug, PhysicsLayer, Default)]
+enum CollisionLayer {
+    #[default]
+    Default,
+    Player,
+    Prop,
+}
+
 /// Spawn the camera, light, ground, and a box to pick up.
 fn setup(
     mut commands: Commands,
@@ -53,9 +61,23 @@ fn setup(
         },
         // Add this to set up the camera as the entity that can pick up
         // objects.
-        AvianPickupActor::default(),
+        AvianPickupActor {
+            prop_filter: SpatialQueryFilter::from_mask(CollisionLayer::Prop),
+            actor_filter: SpatialQueryFilter::from_mask(CollisionLayer::Player),
+            obstacle_filter: SpatialQueryFilter::from_mask(CollisionLayer::Default),
+            hold: AvianPickupActorHoldConfig {
+                // Make sure the prop is far enough away from
+                // our collider when looking straight down
+                pitch_range: -50.0_f32.to_radians()..=75.0_f32.to_radians(),
+                ..default()
+            },
+            ..default()
+        },
         // This entity is moved in a variable timestep, so no interpolation is needed.
         NoRotationInterpolation,
+        CollisionLayers::new(CollisionLayer::Player, CollisionLayer::all_bits()),
+        RigidBody::Kinematic,
+        Collider::capsule(0.2, 1.3),
     ));
 
     commands.spawn((
@@ -82,6 +104,7 @@ fn setup(
         },
         RigidBody::Static,
         Collider::from(ground_shape),
+        CollisionLayers::new(CollisionLayer::Default, CollisionLayer::all_bits()),
     ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
@@ -96,6 +119,7 @@ fn setup(
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
+        CollisionLayers::new(CollisionLayer::Prop, CollisionLayer::all_bits()),
     ));
 }
 
