@@ -1,4 +1,7 @@
-//! TODO
+//! Events related to props being thrown and dropped.
+//! These will be sent by the Avian Pickup plugin to notify the user of
+//! prop-related events. Handle these to e.g. play sound effects or show
+//! visual effects.
 
 use crate::prelude::*;
 

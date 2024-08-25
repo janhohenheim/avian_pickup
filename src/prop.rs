@@ -1,5 +1,5 @@
-//! TODO
-
+//! Components that can be placed on props to customize their behavior when
+//! picked up or thrown. All of these are optional.
 use std::ops::RangeInclusive;
 
 use avian3d::math::Scalar;

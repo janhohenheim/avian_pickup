@@ -1,4 +1,4 @@
-//! TODO
+//! Module for the actor that can pick up objects.
 
 use std::ops::RangeInclusive;
 

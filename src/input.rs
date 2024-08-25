@@ -1,4 +1,4 @@
-//! TODO
+//! Module for the types that represent input events for Avian Pickup.
 
 use bevy::{prelude::*, utils::HashSet};
 
