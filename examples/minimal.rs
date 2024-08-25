@@ -91,7 +91,7 @@ fn setup(
         PbrBundle {
             mesh: meshes.add(Mesh::from(box_shape)),
             material: prop_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.0, 0.0),
+            transform: Transform::from_xyz(0.0, 2.0, 3.5),
             ..default()
         },
         // All `RigidBody::Dynamic` entities are able to be picked up.

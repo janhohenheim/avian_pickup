@@ -19,8 +19,10 @@ pub fn plugin(example: Example) -> impl Plugin {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Example {
     /// The minimal set of instructions.
+    #[allow(dead_code)]
     Generic,
     /// Includes instructions for resetting the cube's position.
+    #[allow(dead_code)]
     Resettable,
 }
 
@@ -82,16 +84,18 @@ fn spawn_text(example: Example) -> impl Fn(Commands) {
                     match example {
                         Example::Generic => concat!(
                             "Move the camera with your mouse.\n",
-                            "Hold right click to pick up the cube.\n",
-                            "Left click to throw it.\n",
+                            "Hold right click to pick up a prop.\n",
+                            "Left click while holding a prop to throw it.\n",
+                            "Right click while holding a prop to drop it.\n",
                             "Press Escape to release the cursor."
                         ),
                         Example::Resettable => concat!(
                             "Move the camera with your mouse.\n",
-                            "Hold right click to pick up the cube.\n",
-                            "Left click to throw it.\n",
-                            "Press Escape to release the cursor.\n",
-                            "Press R to reset the cube's position."
+                            "Hold right click to pick up a prop.\n",
+                            "Left click while holding a prop to throw it.\n",
+                            "Right click while holding a prop to drop it.\n",
+                            "Press R to reset the prop's position.\n",
+                            "Press Escape to release the cursor."
                         ),
                     },
                     TextStyle {
