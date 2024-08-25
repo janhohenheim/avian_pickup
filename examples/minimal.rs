@@ -12,6 +12,8 @@ use bevy::{
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_transform_interpolation::*;
 
+mod util;
+
 fn main() {
     App::new()
         .add_plugins((
@@ -21,6 +23,8 @@ fn main() {
             // interpolation is needed to prevent jittering.
             TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
+            // This is just here to make the example look a bit nicer.
+            util::plugin(util::Example::Generic),
         ))
         .add_systems(Startup, setup)
         // Need to read input and rotate camera before physics,
