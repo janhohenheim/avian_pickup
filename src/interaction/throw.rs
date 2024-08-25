@@ -25,7 +25,6 @@ fn throw(
         &mut LinearVelocity,
         &mut AngularVelocity,
         &Mass,
-        &Position,
         Option<&ThrownLinearSpeedOverride>,
         Option<&ThrownAngularSpeedOverride>,
     )>,
@@ -37,18 +36,12 @@ fn throw(
         commands.entity(actor).remove::<Throwing>();
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
         // Safety: All props are rigid bodies, which are guaranteed to have a
-        // `Position`.
-        let (mut velocity, mut angvel, mass, prop_position, lin_speed_override, ang_speed_override) =
+        // `LinearVelocity`, `AngularVelocity`, and `Mass`.
+        let (mut velocity, mut angvel, mass, lin_speed_override, ang_speed_override) =
             q_prop.get_mut(prop).unwrap();
-        let prop_dist_sq = actor_transform
-            .translation
-            .distance_squared(prop_position.0);
-        if prop_dist_sq > config.interaction_distance * config.interaction_distance {
-            // Note: I don't think this will ever happen, but the 2013 code
-            // does this check, so let's keep it just in case.
-            error!("boy: {}", prop_dist_sq.sqrt());
-            //continue;
-        }
+        // The 2013 code now does a `continue` on
+        // `prop_dist_sq > config.interaction_distance * config.interaction_distance`
+        // but eh, that's fine. Better to respect players' input in such edge cases.
 
         let lin_direction = actor_transform.forward();
         let lin_speed = lin_speed_override
