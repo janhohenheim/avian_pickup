@@ -52,7 +52,7 @@ pub struct PreferredPickupRotation(pub Quat);
 pub(crate) struct PrePickupRotation(pub Quat);
 
 /// Insert this on a prop to override
-/// [`AvianPickupActor::clamp_pickup_pitch`](crate::prelude::AvianPickupActor::clamp_pickup_pitch).
+/// [`AvianPickupActorHoldConfig::pitch_range`](crate::prelude::AvianPickupActorHoldConfig::pitch_range).
 #[derive(Debug, Clone, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
@@ -85,7 +85,7 @@ impl Default for PreferredPickupDistanceOverride {
 }
 
 /// Insert this on a prop to override
-/// [`AvianPickupActor::pickup_mass`](crate::prelude::AvianPickupActor::pickup_mass).
+/// [`AvianPickupActorPullConfig::max_prop_mass`](crate::prelude::AvianPickupActorPullConfig::max_prop_mass).
 #[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, Default, PartialEq)]
 #[cfg_attr(

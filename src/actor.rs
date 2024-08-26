@@ -139,10 +139,11 @@ pub struct AvianPickupActorHoldConfig {
     pub distance_to_allow_holding: Scalar,
     /// The minimum distance an object must be from the player when picked up.
     /// Usually, the prop will try to stay at
-    /// [`PreferredPickupDistance`](crate::prop::PreferredPickupDistance),
+    /// [`preferred_distance`](Self::preferred_distance),
     /// but will fall back to this when there is terrain in the way as
-    /// determined by [`terrain_filter`](Self::terrain_filter).\
-    /// If the actor is a rigid body, the distance used in that case is
+    /// determined by
+    /// [`AvianPickupActor::obstacle_filter`](AvianPickupActor::obstacle_filter).
+    /// \ If the actor is a rigid body, the distance used in that case is
     /// `max(collider_radius, min_distance)`.\
     /// Default: 0.5 m
     pub min_distance: Scalar,

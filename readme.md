@@ -86,9 +86,9 @@ App::new()
 The main two concepts of Avian Pickup are *actors* and *props*. It's simple:
 
 - An *actor* is something that can pick up *props*.
-    These are spatial entities with an [`AvianPickupActor`](TODO) component.
+    These are spatial entities with an [`AvianPickupActor`] component.
 - An *prop* is an object to be picked up.
-    These are spatial entities with a regular old [`RigidBody::Dynamic`](TODO) component and associated colliders.
+    These are spatial entities with a regular old [`RigidBody::Dynamic`] component and associated colliders.
 
 As such, this is the minimum version of these two:
 
@@ -113,7 +113,7 @@ fn setup(mut commands: Commands) {
 }
 ```
 
-In order for an actor to try picking up a prop, you need to send an [`AvianPickupInput`](TODO) event:
+In order for an actor to try picking up a prop, you need to send an [`AvianPickupInput`] event:
 
 ```rust
 use bevy::prelude::*;
@@ -131,18 +131,18 @@ fn handle_input(
 ```
 
 When using a `AvianPickupAction::Pull` action, the actor will try to pull the nearest prop they're facing towards
-them. Once they have picked it up, its [`AvianPickupActorState`](TODO) will reflect that by becoming
-[`AvianPickupActorState::Holding(..)`](TODO). Note that [`AvianPickupState`](TODO) is a component that will automatically
+them. Once they have picked it up, its [`AvianPickupActorState`] will reflect that by becoming
+[`AvianPickupActorState::Holding(..)`]. Note that [`AvianPickupActorState`] is a component that will automatically
 get added to every actor.
 
 That's it! You can use other actions to further instruct the actor to manipulate the prop.
-The [`AvianPickupActor`](TODO) holds a lot of configuration options to tweak the behavior of the actor.
-Many of these can be overridden for a specific prop by using components in the [`props`](TODO) module.
-Finally, you can also read the events in the [`output`](TODO) module to react to what's happening.
+The [`AvianPickupActor`] holds a lot of configuration options to tweak the behavior of the actor.
+Many of these can be overridden for a specific prop by using components in the [`props`] module.
+Finally, you can also read the events in the [`output`] module to react to what's happening.
 
 ### First Personal Camera
 
-If you want to use a first person perspective for your player and allow him to be an [`AvianPickupActor`](TODO),
+If you want to use a first person perspective for your player and allow him to be an [`AvianPickupActor`],
 you need to make sure to move the camera *before* the physics update takes place. Usually, all movement code
 for physicsal entities in the world should be in the fixed timestep, but the camera is a notable exception.
 A player will want to have a camera that works as smoothly as possible and updates every frame. That's why you need to place the camera in the last variable timestep schedule before the physics update. You do this like so:
@@ -168,3 +168,11 @@ fn move_camera() { todo!() }
 | `avian_pickup` | `avian` | `bevy` |
 |---------------|---------|-------|
 | `main`       | `main` | `0.14` |
+
+[`AvianPickupActor`]: TODO
+[`RigidBody::Dynamic`]: TODO
+[`AvianPickupActorState`]: TODO
+[`AvianPickupInput`]: TODO
+[`AvianPickupActorState::Holding(..)`]: TODO
+[`props`]: TODO
+[`output`]: TODO
