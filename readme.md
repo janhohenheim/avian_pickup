@@ -5,12 +5,9 @@ Modeled after Half Life 2's gravity gun.
 
 ## Examples
 
-[`examples/play_catch.rs`](https://github.com/janhohenheim/avian_pickup/blob/main/examples/play_catch.rs):\
-TODO: gif here!
-[`examples/prop_playground.rs`](https://github.com/janhohenheim/avian_pickup/blob/main/examples/prop_playground.rs):\
-TODO: gif here!
-[`examples/manipulate_prop.rs`](https://github.com/janhohenheim/avian_pickup/blob/main/examples/manipulate_prop.rs):\
-TODO: gif here!
+[`examples/play_catch.rs`](https://github.com/janhohenheim/avian_pickup/blob/main/examples/play_catch.rs):
+
+<img src="docs/play_catch.gif" alt="A video showing the player playing catch with an NPC" width="50%">
 
 ## Features
 
