@@ -29,9 +29,10 @@ fn set_velocities(
     let inv_dt = dt.recip();
     for (shadow, holding, actor) in q_actor.iter_mut() {
         let prop = holding.0;
-        // Safety: All props are rigid bodies, so they are guaranteed to have a
-        // `Position`, `Rotation`, `LinearVelocity`, and `AngularVelocity`.
-        let (mut velocity, mut angvel, position, rotation) = q_prop.get_mut(prop).unwrap();
+        let Ok((mut velocity, mut angvel, position, rotation)) = q_prop.get_mut(prop) else {
+            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
 
         let delta_position = shadow.target_position - position.0;
 

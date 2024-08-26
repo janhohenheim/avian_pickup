@@ -10,10 +10,14 @@ fn on_remove_holding(
     q_actor: Query<&Holding>,
     mut q_prop: Query<(&mut Mass, Option<&NonPickupMass>, Has<HeldProp>)>,
 ) {
+    // Safety: We are removing a `Holding` component, so we know that the entity has
+    // one.
     let holding = q_actor.get(trigger.entity()).unwrap();
     let prop = holding.0;
-    // Safety: All props are rigid bodies, so they are guaranteed to have a `Mass`.
-    let (mut mass, non_pickup_mass, has_held_marker) = q_prop.get_mut(prop).unwrap();
+    let Ok((mut mass, non_pickup_mass, has_held_marker)) = q_prop.get_mut(prop) else {
+        error!("Prop entity was deleted or in an invalid state. Ignoring.");
+        return;
+    };
     if !has_held_marker {
         error!(
             "A held prop that is no longer being held was not actually marked as held. This is supremely weird. Ignoring."

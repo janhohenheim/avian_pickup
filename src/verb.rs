@@ -68,8 +68,10 @@ fn set_verb(
     mut commands: Commands,
     q_actor: Query<(Has<Throwing>, Has<Dropping>, Has<Pulling>, Has<Holding>)>,
 ) {
-    // Safety: we are only querying optional components.
-    let (throwing, dropping, pulling, holding) = q_actor.get(actor).unwrap();
+    let Ok((throwing, dropping, pulling, holding)) = q_actor.get(actor) else {
+        error!("Actor entity was deleted or in an invalid state. Ignoring.");
+        return;
+    };
     let mut commands = commands.entity(actor);
     match verb {
         Some(Verb::Throw(prop)) => {

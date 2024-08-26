@@ -29,6 +29,7 @@ impl Default for Cooldown {
 
 impl Cooldown {
     fn get(&self, action: &AvianPickupAction) -> &Timer {
+        // Safety: all actions are always present in the map as we initialize them in `default`.
         self.0.get(action).unwrap()
     }
 

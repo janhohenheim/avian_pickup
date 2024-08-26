@@ -25,15 +25,20 @@ pub fn on_add_holding(
     )>,
 ) {
     let actor = trigger.entity();
-    let (config, mut state, mut hold_error, holding) = q_actor.get_mut(actor).unwrap();
+    let Ok((config, mut state, mut hold_error, holding)) = q_actor.get_mut(actor) else {
+        error!("Actor entity was deleted or in an invalid state. Ignoring.");
+        return;
+    };
     let actor_transform = q_actor_transform.get_best_global_transform(actor);
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     commands.entity(prop).insert(HeldProp);
-    // Safety: All props are rigid bodies, so they are guaranteed to have a
-    // `Rotation` and `Mass`.
-    let (rotation, mut mass, pickup_mass, non_pickup_mass, pre_pickup_rotation) =
-        q_prop.get_mut(prop).unwrap();
+    let Ok((rotation, mut mass, pickup_mass, non_pickup_mass, pre_pickup_rotation)) =
+        q_prop.get_mut(prop)
+    else {
+        error!("Prop entity was deleted or in an invalid state. Ignoring.");
+        return;
+    };
     let new_mass = pickup_mass
         .map(|m| m.0)
         .unwrap_or(config.hold.temporary_prop_mass);

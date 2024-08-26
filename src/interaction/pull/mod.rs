@@ -51,8 +51,11 @@ fn find_object(
             continue;
         };
 
-        // Safety: all colliders have a `ColliderParent`
-        let rigid_body_entity = q_collider_parent.get(prop.entity).unwrap().get();
+        let Ok(rigid_body_entity) = q_collider_parent.get(prop.entity) else {
+            error!("Collider entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
+        let rigid_body_entity = rigid_body_entity.get();
 
         let Ok((&rigid_body, &mass, mut impulse, prop_position, is_already_being_held)) =
             q_rigid_body.get_mut(rigid_body_entity)

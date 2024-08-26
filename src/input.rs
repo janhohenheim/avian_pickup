@@ -86,7 +86,7 @@ fn set_verbs_according_to_input(
             continue;
         };
 
-        // Doing these checks now so that later systems can just call `unwrap`
+        // Doing these checks now so that we can report issues early.
         let checks = [
             (has_global_transform, "GlobalTransform"),
             (has_shadow, "ShadowParams"),

@@ -37,8 +37,12 @@ fn throw(
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
         // Safety: All props are rigid bodies, which are guaranteed to have a
         // `LinearVelocity`, `AngularVelocity`, and `Mass`.
-        let (mut velocity, mut angvel, mass, lin_speed_override, ang_speed_override) =
-            q_prop.get_mut(prop).unwrap();
+        let Ok((mut velocity, mut angvel, mass, lin_speed_override, ang_speed_override)) =
+            q_prop.get_mut(prop)
+        else {
+            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
         // The 2013 code now does a `continue` on
         // `prop_dist_sq > config.interaction_distance * config.interaction_distance`
         // but eh, that's fine. Better to respect players' input in such edge cases.

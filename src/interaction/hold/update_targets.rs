@@ -46,15 +46,16 @@ fn set_targets(
         }
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
 
-        // Safety: All props are rigid bodies, so they are guaranteed to have a
-        // `Rotation`.
-        let (
+        let Ok((
             prop_rotation,
             pre_pickup_rotation,
             preferred_rotation,
             preferred_distance,
             clamp_pitch,
-        ) = q_prop.get_mut(prop).unwrap();
+        )) = q_prop.get_mut(prop)else {
+            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
         let pitch_range = clamp_pitch
             .map(|c| &c.0)
             .unwrap_or(&config.hold.pitch_range);

@@ -21,9 +21,10 @@ pub fn update_error(
         if hold_error.error_time <= 0.0 {
             continue;
         }
-        // Safety: All props are rigid bodies, so they are guaranteed to have a
-        // `Position`.
-        let position = q_prop.get(prop).unwrap();
+        let Ok(position) = q_prop.get(prop) else {
+            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
         let mut error = (position.0 - shadow.target_position).length();
         if hold_error.error_time > 1.0 {
             hold_error.error_time = 1.0;

@@ -25,8 +25,7 @@ pub(super) fn find_prop_in_cone(
     let mut canditate = None;
 
     for collider in colliders {
-        // Safety: this collection only contains entities that are contained in
-        // `q_collider`
+        // Safety: Pretty sure a `shape_intersection` will never return an entity without a `Position`.
         let object_translation = q_collider.get(collider).unwrap().0;
 
         // Closer than other objects

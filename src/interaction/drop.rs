@@ -25,7 +25,10 @@ fn drop(
         });
         // Safety: the prop is a dynamic rigid body and thus is guaranteed to have a
         // linvel and angvel.
-        let (mut velocity, mut angvel) = q_prop.get_mut(prop).unwrap();
+        let Ok((mut velocity, mut angvel)) = q_prop.get_mut(prop) else {
+            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
         // HL2 uses 190 inches per second, which is 4.826 meters per second.
         // let's round that to 5 m/s.
         const HL2_NORM_SPEED: Scalar = 5.0;
