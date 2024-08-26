@@ -29,7 +29,7 @@ fn set_targets(
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistanceOverride>,
-        Option<&HelpPropPitchRangeOverride>,
+        Option<&PitchRangeOverride>,
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
@@ -52,7 +52,8 @@ fn set_targets(
             preferred_rotation,
             preferred_distance,
             clamp_pitch,
-        )) = q_prop.get_mut(prop)else {
+        )) = q_prop.get_mut(prop)
+        else {
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;
         };

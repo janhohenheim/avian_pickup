@@ -72,14 +72,14 @@ pub struct AvianPickupActor {
     /// Default: Include all entities
     pub actor_filter: SpatialQueryFilter,
     /// How far away an object can be interacted with.\
-    /// Default: 3 m
+    /// Default: 1.5 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
     pub interaction_distance: Scalar,
     /// Changes how wide the pickup range is. Lower numbers are wider.
     /// This is the dot product of the direction the player is looking and the
     /// direction to the object.\
-    /// Default: 0.97
+    /// Default: 0.92
     ///
     /// Corresponds to Source's [`physcannon_cone`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_cone).
     pub interaction_cone: f32,
@@ -162,7 +162,7 @@ pub struct AvianPickupActorHoldConfig {
     /// The minimum and maximum pitch the held prop can have in radians while
     /// following the actor's pitch.\
     /// Can be overridden by adding a
-    /// [`ClampPickupPitchOverride`](crate::prop::ClampPickupPitchOverride)
+    /// [`PitchRangeOverride`](crate::prop::PitchRangeOverride)
     /// to the prop.\
     /// Default: (-75.0).to_radians() to 75.0.to_radians()
     pub pitch_range: RangeInclusive<f32>,
@@ -171,7 +171,7 @@ pub struct AvianPickupActorHoldConfig {
     /// Can be overridden by adding a
     /// [`PreferredPickupDistanceOverride`](crate::prop::PreferredPickupDistanceOverride)
     /// to the prop.\
-    /// Default: 1.5 m
+    /// Default: 1.25 m
     pub preferred_distance: Scalar,
     /// The mass in kg of the object when picked up.
     /// This mechanism is needed because the held object's velocity is
@@ -219,10 +219,16 @@ pub struct AvianPickupActorThrowConfig {
     /// Default: 20.0 kg
     pub cutoff_mass_for_slowdown: Scalar,
     /// The range of linear speeds in m/s that the object can be thrown with.\
+    /// Can be overridden by adding a
+    /// [`ThrownLinearSpeedOverride`](crate::prop::ThrownLinearSpeedOverride)
+    /// to the prop.\
     /// Default: 0.0 m/s to 5.0 m/s
     pub linear_speed_range: RangeInclusive<Scalar>,
     /// The range of angular speeds in rad/s that the object can be thrown with.
     /// When throwing, a random value in this range will be chosen.\
+    /// Can be overridden by adding a
+    /// [`ThrownAngularSpeedOverride`](crate::prop::ThrownAngularSpeedOverride)
+    /// to the prop.\
     /// Default: 0.0 rad/s to 1.0 rad/s
     pub angular_speed_range: RangeInclusive<Scalar>,
 }

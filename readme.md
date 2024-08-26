@@ -137,7 +137,7 @@ get added to every actor.
 
 That's it! You can use other actions to further instruct the actor to manipulate the prop.
 The [`AvianPickupActor`] holds a lot of configuration options to tweak the behavior of the actor.
-Many of these can be overridden for a specific prop by using components in the [`props`] module.
+Many of these can be overridden for a specific prop by using components in the [`prop`] module.
 Finally, you can also read the events in the [`output`] module to react to what's happening.
 
 ### First Personal Camera
@@ -169,10 +169,10 @@ fn move_camera() { todo!() }
 |---------------|---------|-------|
 | `main`       | `main` | `0.14` |
 
-[`AvianPickupActor`]: TODO
+[`AvianPickupActor`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
 [`RigidBody::Dynamic`]: TODO
-[`AvianPickupActorState`]: TODO
-[`AvianPickupInput`]: TODO
-[`AvianPickupActorState::Holding(..)`]: TODO
-[`props`]: TODO
-[`output`]: TODO
+[`AvianPickupActorState`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
+[`AvianPickupInput`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/input.rs
+[`AvianPickupActorState::Holding(..)`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
+[`prop`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/prop.rs
+[`output`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/output.rs

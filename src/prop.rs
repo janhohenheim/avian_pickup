@@ -10,7 +10,7 @@ use crate::prelude::AvianPickupActor;
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<(
         PreferredPickupRotation,
-        HelpPropPitchRangeOverride,
+        PitchRangeOverride,
         PreferredPickupDistanceOverride,
         PickupMassOverride,
         HeldProp,
@@ -22,8 +22,8 @@ pub(super) fn plugin(app: &mut App) {
 pub(super) mod prelude {
     pub use super::{
         HeldProp,
-        HelpPropPitchRangeOverride,
         PickupMassOverride,
+        PitchRangeOverride,
         PreferredPickupDistanceOverride,
         PreferredPickupRotation,
         ThrownAngularSpeedOverride,
@@ -60,8 +60,8 @@ pub(crate) struct PrePickupRotation(pub Quat);
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct HelpPropPitchRangeOverride(pub RangeInclusive<Scalar>);
-impl Default for HelpPropPitchRangeOverride {
+pub struct PitchRangeOverride(pub RangeInclusive<Scalar>);
+impl Default for PitchRangeOverride {
     fn default() -> Self {
         Self(AvianPickupActor::default().hold.pitch_range)
     }
