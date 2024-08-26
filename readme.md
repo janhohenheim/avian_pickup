@@ -170,7 +170,7 @@ fn move_camera() { todo!() }
 | `main`       | `main` | `0.14` |
 
 [`AvianPickupActor`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
-[`RigidBody::Dynamic`]: TODO
+[`RigidBody::Dynamic`]: https://docs.rs/avian3d/latest/avian3d/dynamics/rigid_body/enum.RigidBody.html#variant.Dynamic
 [`AvianPickupActorState`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
 [`AvianPickupInput`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/input.rs
 [`AvianPickupActorState::Holding(..)`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
