@@ -2,14 +2,13 @@
 name = "avian_pickup"
 version = "0.1.0"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
-
+license = "MIT OR Apache-2.0"
 edition = "2021"
 exclude = [
     "/assets/",
     "/docs/",
     "/.github/",
 ]
-license = "MIT OR Apache-2.0"
 
 [features]
 # Since this library does not make sense without also depending on `avian3d`,
@@ -25,7 +24,7 @@ serialize = [
 
 [dependencies]
 rand = "0.8.5"
-serde = { version = "1.0", optional = true}
+serde = { version = "1.0.209", optional = true}
 
 [dependencies.bevy]
 version = "0.14.1"
