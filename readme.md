@@ -64,9 +64,107 @@ Additionally, you need some sort of interpolation:
 cargo add bevy_transform_interpolation --git https://github.com/Jondolf/bevy_transform_interpolation
 ```
 
+Finally, add these plugins to your app. Make sure to add Avian Pickup after Avian:
+
+```rust
+use bevy::prelude::*;
+use avian::prelude::*;
+use avian_pickup::prelude::*;
+use bevy_transform_interpolation::*;
+
+App::new()
+    .add_plugins((
+        DefaultPlugins,
+        // Add Avian
+        PhysicsPlugins::default(),
+        // Add Avian Pickup
+        AvianPickupPlugin::default(),
+        // Add interpolation
+        TransformInterpolationPlugin::interpolate_all(),
+    ))
+```
+
 ### Usage
 
-TODO
+The main two concepts of Avian Pickup are *actors* and *props*. It's simple:
+
+- An *actor* is something that can pick up *props*.
+    These are spatial entities with an [`AvianPickupActor`](TODO) component.
+- An *prop* is an object to be picked up.
+    These are spatial entities with a regular old [`RigidBody::Dynamic`](TODO) component and associated colliders.
+
+As such, this is the minimum version of these two:
+
+```rust
+use bevy::prelude::*;
+use avian::prelude::*;
+use avian_pickup::prelude::*;
+
+fn setup(mut commands: Commands) {
+    // Actor
+    commands.spawn((
+        SpatialBundle::default(),
+        AvianPickupActor::default(),
+    ));
+
+    // Prop
+    commands.spawn((
+        SpatialBundle::default(),
+        RigidBody::Dynamic,
+        Collider::sphere(0.5),
+    ));
+}
+```
+
+In order for an actor to try picking up a prop, you need to send an [`AvianPickupInput`](TODO) event:
+
+```rust
+use bevy::prelude::*;
+use avian_pickup::prelude::*;
+
+fn handle_input(
+    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+) {
+    let actor_entity = todo!("Your entity goes here");
+    avian_pickup_input_writer.send(AvianPickupInput {
+        action: AvianPickupAction::Pull,
+        actor: actor_entity,
+    }); 
+}
+```
+
+When using a `AvianPickupAction::Pull` action, the actor will try to pull the nearest prop they're facing towards
+them. Once they have picked it up, its [`AvianPickupActorState`](TODO) will reflect that by becoming
+[`AvianPickupActorState::Holding(..)`](TODO). Note that [`AvianPickupState`](TODO) is a component that will automatically
+get added to every actor.
+
+That's it! You can use other actions to further instruct the actor to manipulate the prop.
+The [`AvianPickupActor`](TODO) holds a lot of configuration options to tweak the behavior of the actor.
+Many of these can be overridden for a specific prop by using components in the [`props`](TODO) module.
+Finally, you can also read the events in the [`output`](TODO) module to react to what's happening.
+
+### First Personal Camera
+
+If you want to use a first person perspective for your player and allow him to be an [`AvianPickupActor`](TODO),
+you need to make sure to move the camera *before* the physics update takes place. Usually, all movement code
+for physicsal entities in the world should be in the fixed timestep, but the camera is a notable exception.
+A player will want to have a camera that works as smoothly as possible and updates every frame. That's why you need to place the camera in the last variable timestep schedule before the physics update. You do this like so:
+
+```rust
+use bevy::{
+    app::RunFixedMainLoop,
+    prelude::*,
+    time::run_fixed_main_schedule,
+};
+
+App::new()
+    .add_systems(
+        RunFixedMainLoop,
+        move_camera.before(run_fixed_main_schedule),
+    );
+
+fn move_camera() { todo!() }
+```
 
 ## Version Compatibility
 

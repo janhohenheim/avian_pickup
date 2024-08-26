@@ -1,3 +1,5 @@
+//! Shows a minimal example of using `avian_pickup` with Bevy.
+
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
@@ -26,9 +28,10 @@ fn main() {
             util::plugin(util::Example::Generic),
         ))
         .add_systems(Startup, setup)
-        // Need to read input and rotate camera before physics,
-        // this is unfortunately the best way to schedule this:
-        // <https://github.com/bevyengine/bevy/issues/14873>
+        // Input handling and camera movement need to be executed every frame,
+        // so we run them in a variable timestep.
+        // We also want them to happen before the physics system, so we add them
+        // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
             (handle_input, rotate_camera).before(run_fixed_main_schedule),
@@ -36,7 +39,7 @@ fn main() {
         .run();
 }
 
-/// Spawn the camera, light, ground, and a box to pick up.
+/// Spawn the actor, camera, light, ground, and a box to pick up.
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,

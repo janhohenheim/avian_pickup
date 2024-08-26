@@ -1,3 +1,7 @@
+//! A little minigame where you and an NPC play catch with a box.
+//! Shows how to use two different actors with Avian Pickup:
+//! one is the player, and the other is an NPC.
+
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_6, PI};
 
 use avian3d::prelude::*;
@@ -26,6 +30,10 @@ fn main() {
         ))
         .add_systems(Startup, setup)
         // Pass input to systems runing in the fixed update.
+        // Input handling and camera movement need to be executed every frame,
+        // so we run them in a variable timestep.
+        // We also want them to happen before the physics system, so we add them
+        // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
             (

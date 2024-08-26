@@ -1,3 +1,6 @@
+//! Shows how to move and rotate a prop that is being held.
+//! This can be used to implement something like Garry's Mod's physics gun.
+
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
@@ -29,9 +32,10 @@ fn main() {
             util::plugin(util::Example::Manipulation),
         ))
         .add_systems(Startup, setup)
-        // Need to read input and rotate camera before physics,
-        // this is unfortunately the best way to schedule this:
-        // <https://github.com/bevyengine/bevy/issues/14873>
+        // Input handling and camera movement need to be executed every frame,
+        // so we run them in a variable timestep.
+        // We also want them to happen before the physics system, so we add them
+        // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
             (accumulate_input, handle_pickup_input, rotate_camera)
@@ -60,6 +64,8 @@ fn setup(
         // Add this to set up the camera as the entity that can pick up
         // objects.
         AvianPickupActor {
+            // Increase the maximum distance a bit to show off the
+            // prop changing its distance on scroll.
             interaction_distance: 15.0,
             ..default()
         },
@@ -195,21 +201,24 @@ fn accumulate_input(
 /// so we accumulate all input that happened since the last fixed update.
 #[derive(Debug, Component, Default)]
 struct InputAccumulation {
+    /// Accumulated mouse scrolling
     zoom: i32,
+    /// Accumulated mouse motion
     rotation: Vec2,
+    /// Was shift pressed during the last frame?
     shift: bool,
 }
 
 fn move_prop(
     time: Res<Time>,
-    mut actors: Query<(&mut InputAccumulation, &AvianPickupActorState)>,
+    mut actors: Query<(&mut InputAccumulation, &Transform, &AvianPickupActorState)>,
     mut props: Query<(
         &mut PreferredPickupDistanceOverride,
         &mut PreferredPickupRotation,
     )>,
 ) {
     let dt = time.delta_seconds();
-    for (mut input, state) in &mut actors {
+    for (mut input, transform, state) in &mut actors {
         let AvianPickupActorState::Holding(prop) = state else {
             continue;
         };
@@ -224,9 +233,14 @@ fn move_prop(
         if !input.shift {
             continue;
         }
+
+        // Make the yaw global
         let y_rotation_global = Quat::from_rotation_y(input.rotation.x * dt);
-        let x_rotation_global = Quat::from_rotation_x(input.rotation.y * dt);
-        rotation.0 = x_rotation_global * y_rotation_global * rotation.0;
+
+        // Make the pitch relative to the actor's orientation
+        let horizontal_axis = transform.right().into();
+        let vertical_rotation = Quat::from_axis_angle(horizontal_axis, input.rotation.y * dt);
+        rotation.0 = vertical_rotation * y_rotation_global * rotation.0;
 
         input.rotation = Vec2::ZERO;
     }
