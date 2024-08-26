@@ -2,7 +2,14 @@
 name = "avian_pickup"
 version = "0.1.0"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
+
 edition = "2021"
+exclude = [
+    "/assets/",
+    "/docs/",
+    "/.github/",
+]
+license = "MIT OR Apache-2.0"
 
 [features]
 # Since this library does not make sense without also depending on `avian3d`,
