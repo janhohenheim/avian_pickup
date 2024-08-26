@@ -27,10 +27,7 @@ pub mod prelude {
         HandleVerbSystem,
     };
     pub use crate::{
-        actor::prelude::*,
-        input::prelude::*,
-        output::prelude::*,
-        AvianPickupPlugin,
+        actor::prelude::*, input::prelude::*, output::prelude::*, AvianPickupPlugin,
         AvianPickupSystem,
     };
 }

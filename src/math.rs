@@ -68,7 +68,9 @@ impl GetBestGlobalTransform
     for Query<'_, '_, (&GlobalTransform, Option<&Position>, Option<&Rotation>)>
 {
     fn get_best_global_transform(&self, entity: Entity) -> Transform {
-        let (global_transform, position, rotation) = self.get(entity).expect("Got an entity without `GlobalTransform`");
+        let (global_transform, position, rotation) = self
+            .get(entity)
+            .expect("Got an entity without `GlobalTransform`");
         if let Some(position) = position {
             if let Some(rotation) = rotation {
                 return Transform::from_translation(position.0).with_rotation(rotation.0);

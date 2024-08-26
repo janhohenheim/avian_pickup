@@ -15,11 +15,8 @@ use crate::{
 
 pub(super) mod prelude {
     pub use super::{
-        AvianPickupActor,
-        AvianPickupActorHoldConfig,
-        AvianPickupActorPullConfig,
-        AvianPickupActorState,
-        AvianPickupActorThrowConfig,
+        AvianPickupActor, AvianPickupActorHoldConfig, AvianPickupActorPullConfig,
+        AvianPickupActorState, AvianPickupActorThrowConfig,
     };
 }
 

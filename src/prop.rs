@@ -21,13 +21,8 @@ pub(super) fn plugin(app: &mut App) {
 
 pub(super) mod prelude {
     pub use super::{
-        HeldProp,
-        PickupMassOverride,
-        PitchRangeOverride,
-        PreferredPickupDistanceOverride,
-        PreferredPickupRotation,
-        ThrownAngularSpeedOverride,
-        ThrownLinearSpeedOverride,
+        HeldProp, PickupMassOverride, PitchRangeOverride, PreferredPickupDistanceOverride,
+        PreferredPickupRotation, ThrownAngularSpeedOverride, ThrownLinearSpeedOverride,
     };
 }
 
