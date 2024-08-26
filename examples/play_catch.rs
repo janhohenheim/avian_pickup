@@ -1,14 +1,13 @@
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_4, FRAC_PI_6, FRAC_PI_8, PI};
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_6, PI};
 
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{
     app::RunFixedMainLoop,
     color::palettes::tailwind,
-    input::{common_conditions::input_just_pressed, mouse::MouseMotion},
+    input::mouse::MouseMotion,
     prelude::*,
     time::run_fixed_main_schedule,
-    window::CursorGrabMode,
 };
 use bevy_transform_interpolation::*;
 use rand::Rng;
@@ -97,7 +96,6 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    asset_server: Res<AssetServer>,
 ) {
     let terrain_material = materials.add(Color::WHITE);
     let npc_material = materials.add(Color::from(tailwind::LIME_300));
