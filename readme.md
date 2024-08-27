@@ -31,7 +31,7 @@ Modeled after Half Life 2's gravity gun.
     right in front of the camera, which should run in a variable update,
     you *need* some sort of interpolation to make it look good. I recommend
     [`bevy_transform_interpolation`](https://github.com/Jondolf/bevy_transform_interpolation).
-- Only a single object can be picked up at a time.
+- Only a single object can be picked up per actor at a time.
 - An object cannot be pulled away while it is being held by someone else.
 - Only works in 3D.
 - Only works with dynamic rigid bodies, not static or kinematic ones.
