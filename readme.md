@@ -65,7 +65,7 @@ Finally, add these plugins to your app. Make sure to add Avian Pickup after Avia
 
 ```rust
 use bevy::prelude::*;
-use avian::prelude::*;
+use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy_transform_interpolation::*;
 
@@ -94,7 +94,7 @@ As such, this is the minimum version of these two:
 
 ```rust
 use bevy::prelude::*;
-use avian::prelude::*;
+use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 
 fn setup(mut commands: Commands) {
