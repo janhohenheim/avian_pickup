@@ -78,7 +78,7 @@ App::new()
         AvianPickupPlugin::default(),
         // Add interpolation
         TransformInterpolationPlugin::interpolate_all(),
-    ))
+    ));
 ```
 
 ### Usage
