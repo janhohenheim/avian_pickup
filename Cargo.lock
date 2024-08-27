@@ -319,6 +319,7 @@ dependencies = [
  "avian3d",
  "bevy",
  "bevy_transform_interpolation",
+ "bitflags 2.6.0",
  "rand",
  "serde",
 ]

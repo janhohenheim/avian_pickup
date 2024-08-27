@@ -20,11 +20,14 @@ serialize = [
     "dep:serde",
     "bevy/serialize",
     "avian3d/serialize",
+    "bitflags/serde",
 ]
 
 [dependencies]
 rand = "0.8.5"
 serde = { version = "1.0.209", optional = true}
+# Only here because of https://github.com/Jondolf/avian/pull/502
+bitflags = "2.5.0"
 
 [dependencies.bevy]
 version = "0.14.1"
