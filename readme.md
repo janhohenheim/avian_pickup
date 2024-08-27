@@ -63,7 +63,7 @@ cargo add bevy_transform_interpolation --git https://github.com/Jondolf/bevy_tra
 
 Finally, add these plugins to your app. Make sure to add Avian Pickup after Avian:
 
-```rust
+```rust,no_run
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
