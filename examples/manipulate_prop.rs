@@ -4,6 +4,7 @@
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
+use avian_interpolation3d::prelude::*;
 use avian_pickup::{
     prelude::*,
     prop::{PreferredPickupDistanceOverride, PreferredPickupRotation},
@@ -15,7 +16,6 @@ use bevy::{
     prelude::*,
     time::run_fixed_main_schedule,
 };
-use bevy_transform_interpolation::*;
 
 mod util;
 
@@ -26,7 +26,7 @@ fn main() {
             PhysicsPlugins::default(),
             // Because we are moving the camera independently of the physics system,
             // interpolation is needed to prevent jittering.
-            TransformInterpolationPlugin::interpolate_all(),
+            AvianInterpolationPlugin::default(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Manipulation),
@@ -69,8 +69,6 @@ fn setup(
             interaction_distance: 15.0,
             ..default()
         },
-        // This entity is moved in a variable timestep, so no interpolation is needed.
-        NoRotationInterpolation,
         InputAccumulation::default(),
     ));
 
@@ -159,12 +157,9 @@ fn rotate_camera(
         let delta_pitch = -input.rotation.y * dt;
         input.rotation = Vec2::ZERO;
 
-        // Add yaw (global)
-        transform.rotate_y(delta_yaw);
-
-        // Add pitch (local)
         const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
         let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+        let yaw = yaw + delta_yaw;
         let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
         transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
     }

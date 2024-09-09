@@ -5,12 +5,12 @@
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_6, PI};
 
 use avian3d::prelude::*;
+use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{
     app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
     time::run_fixed_main_schedule,
 };
-use bevy_transform_interpolation::*;
 use rand::Rng;
 
 mod util;
@@ -20,7 +20,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            TransformInterpolationPlugin::interpolate_all(),
+            AvianInterpolationPlugin::default(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Resettable),
@@ -124,7 +124,6 @@ fn setup(
             ..default()
         },
         actor_config.clone(),
-        NoRotationInterpolation,
         Player,
     ));
 
@@ -246,10 +245,9 @@ fn rotate_camera(
             let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
             let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
-            transform.rotate_y(delta_yaw);
-
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
             let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+            let yaw = yaw + delta_yaw;
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
             transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }
