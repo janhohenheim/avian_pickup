@@ -74,11 +74,11 @@ fn setup(
             },
             ..default()
         },
-        CollisionLayers::new(CollisionLayer::Player, CollisionLayer::all_bits()),
+        CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),
         RigidBody::Kinematic,
         Collider::capsule(0.2, 1.3),
         // We are moving this entity manually, so disable interpolation.
-        DisableTransformInterpolation,
+        InterpolationMode::None,
     ));
 
     commands.spawn((
@@ -105,7 +105,7 @@ fn setup(
         },
         RigidBody::Static,
         Collider::from(ground_shape),
-        CollisionLayers::new(CollisionLayer::Default, CollisionLayer::all_bits()),
+        CollisionLayers::new(CollisionLayer::Default, LayerMask::ALL),
     ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
@@ -120,7 +120,7 @@ fn setup(
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
-        CollisionLayers::new(CollisionLayer::Prop, CollisionLayer::all_bits()),
+        CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
     ));
 }
 
@@ -155,9 +155,10 @@ fn handle_input(
 fn rotate_camera(
     time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
-    mut cameras: Query<&mut Transform, With<Camera>>,
+    // Note how we change the `Rotation` and not the `Transform` as this is a rigid body now.
+    mut cameras: Query<&mut Rotation, With<Camera>>,
 ) {
-    for mut transform in &mut cameras {
+    for mut rotation in &mut cameras {
         let dt = time.delta_seconds();
         // The factors are just arbitrary mouse sensitivity values.
         // It's often nicer to have a faster horizontal sensitivity than vertical.
@@ -168,10 +169,10 @@ fn rotate_camera(
             let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-            let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+            let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
             let yaw = yaw + delta_yaw;
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-            transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+            rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }
     }
 }
