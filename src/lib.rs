@@ -102,7 +102,7 @@ impl Plugin for AvianPickupPlugin {
 
 /// Set enum for the systems added by [`AvianPickupPlugin`].
 /// Use this to order your systems relative to the ones used by Avian Pickup.
-/// This is run in Avian's `PhysicsStepSet::First`.
+/// This is run in Avian's [`PhysicsStepSet::First`] and scheduled under [`PhysicsSchedule`].
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 pub enum AvianPickupSystem {
     /// Runs at the start of the [`AvianPickupSystem`]. Empty by default.

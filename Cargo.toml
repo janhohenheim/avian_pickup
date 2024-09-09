@@ -9,6 +9,7 @@ exclude = [
     "/docs/",
     "/.github/",
 ]
+repository = "https://github.com/janhohenheim/avian_pickup"
 
 [features]
 # Since this library does not make sense without also depending on `avian3d`,
@@ -41,7 +42,7 @@ features = [
 [dev-dependencies]
 avian3d = { git = "https://github.com/Jondolf/avian" }
 bevy = { version = "0.14.2", features = ["dynamic_linking"] }
-bevy_transform_interpolation = { git = "https://github.com/Jondolf/bevy_transform_interpolation" }
+avian_interpolation3d = { git = "https://github.com/janhohenheim/avian_interpolation" }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

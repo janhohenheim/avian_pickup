@@ -3,12 +3,12 @@
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
+use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{
     app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
     time::run_fixed_main_schedule,
 };
-use bevy_transform_interpolation::*;
 
 mod util;
 
@@ -19,7 +19,7 @@ fn main() {
             PhysicsPlugins::default(),
             // Because we are moving the camera independently of the physics system,
             // interpolation is needed to prevent jittering.
-            TransformInterpolationPlugin::interpolate_all(),
+            AvianInterpolationPlugin::default(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Generic),
@@ -54,8 +54,6 @@ fn setup(
         // Add this to set up the camera as the entity that can pick up
         // objects.
         AvianPickupActor::default(),
-        // This entity is moved in a variable timestep, so no interpolation is needed.
-        NoRotationInterpolation,
     ));
 
     commands.spawn((
@@ -142,12 +140,9 @@ fn rotate_camera(
             let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
             let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
-            // Add yaw (global)
-            transform.rotate_y(delta_yaw);
-
-            // Add pitch (local)
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
             let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+            let yaw = yaw + delta_yaw;
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
             transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }

@@ -320,12 +320,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "avian_interpolation3d"
+version = "0.1.0"
+source = "git+https://github.com/janhohenheim/avian_interpolation#d047b92f11a4810fa981dd5fd3b9623285a077cf"
+dependencies = [
+ "avian3d",
+ "bevy",
+]
+
+[[package]]
 name = "avian_pickup"
 version = "0.1.0"
 dependencies = [
  "avian3d",
+ "avian_interpolation3d",
  "bevy",
- "bevy_transform_interpolation",
  "rand",
  "serde",
 ]
@@ -1073,14 +1082,6 @@ dependencies = [
  "bevy_reflect",
  "serde",
  "thiserror",
-]
-
-[[package]]
-name = "bevy_transform_interpolation"
-version = "0.1.0"
-source = "git+https://github.com/Jondolf/bevy_transform_interpolation#93b7036f754aa86ec03fb1b728677163c82fbf88"
-dependencies = [
- "bevy",
 ]
 
 [[package]]

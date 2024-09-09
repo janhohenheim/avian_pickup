@@ -4,12 +4,12 @@
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
+use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{
     app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
     time::run_fixed_main_schedule,
 };
-use bevy_transform_interpolation::*;
 
 mod util;
 
@@ -20,7 +20,7 @@ fn main() {
             PhysicsPlugins::default(),
             // Because we are moving the camera independently of the physics system,
             // interpolation is needed to prevent jittering.
-            TransformInterpolationPlugin::interpolate_all(),
+            AvianInterpolationPlugin::default(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Generic),
@@ -74,11 +74,11 @@ fn setup(
             },
             ..default()
         },
-        // This entity is moved in a variable timestep, so no interpolation is needed.
-        NoRotationInterpolation,
-        CollisionLayers::new(CollisionLayer::Player, CollisionLayer::all_bits()),
+        CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),
         RigidBody::Kinematic,
         Collider::capsule(0.2, 1.3),
+        // We are moving this entity manually, so disable interpolation.
+        InterpolationMode::None,
     ));
 
     commands.spawn((
@@ -105,7 +105,7 @@ fn setup(
         },
         RigidBody::Static,
         Collider::from(ground_shape),
-        CollisionLayers::new(CollisionLayer::Default, CollisionLayer::all_bits()),
+        CollisionLayers::new(CollisionLayer::Default, LayerMask::ALL),
     ));
 
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
@@ -120,7 +120,7 @@ fn setup(
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
-        CollisionLayers::new(CollisionLayer::Prop, CollisionLayer::all_bits()),
+        CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
     ));
 }
 
@@ -155,9 +155,10 @@ fn handle_input(
 fn rotate_camera(
     time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
-    mut cameras: Query<&mut Transform, With<Camera>>,
+    // Note how we change the `Rotation` and not the `Transform` as this is a rigid body now.
+    mut cameras: Query<&mut Rotation, With<Camera>>,
 ) {
-    for mut transform in &mut cameras {
+    for mut rotation in &mut cameras {
         let dt = time.delta_seconds();
         // The factors are just arbitrary mouse sensitivity values.
         // It's often nicer to have a faster horizontal sensitivity than vertical.
@@ -167,14 +168,11 @@ fn rotate_camera(
             let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
             let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
 
-            // Add yaw (global)
-            transform.rotate_y(delta_yaw);
-
-            // Add pitch (local)
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-            let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+            let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
+            let yaw = yaw + delta_yaw;
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-            transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+            rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }
     }
 }

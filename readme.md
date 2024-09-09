@@ -52,13 +52,13 @@ it's not on crates.io yet because I'm waiting for a new `Avian` release, as this
 targeting the `main` branch. This means you also need to use the `main` branch of `Avian`:
 
 ```sh
-cargo add avian --git https://github.com/Jondolf/avian3d
+cargo add avian3d --git https://github.com/Jondolf/avian
 ```
 
-Additionally, you need some sort of interpolation:
+Additionally, you need some sort of interpolation for anything to look smooth at all:
 
 ```sh
-cargo add bevy_transform_interpolation --git https://github.com/Jondolf/bevy_transform_interpolation
+cargo add avian_interpolation3d --git https://github.com/janhohenheim/avian_interpolation
 ```
 
 Finally, add these plugins to your app. Make sure to add Avian Pickup after Avian:
@@ -67,7 +67,7 @@ Finally, add these plugins to your app. Make sure to add Avian Pickup after Avia
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
-use bevy_transform_interpolation::*;
+use avian_interpolation3d::prelude::*;
 
 App::new()
     .add_plugins((
@@ -77,7 +77,7 @@ App::new()
         // Add Avian Pickup
         AvianPickupPlugin::default(),
         // Add interpolation
-        TransformInterpolationPlugin::interpolate_all(),
+        AvianInterpolationPlugin::default(),
     ));
 ```
 
