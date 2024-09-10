@@ -153,20 +153,18 @@ fn handle_input(
 }
 
 fn rotate_camera(
-    time: Res<Time>,
     mut mouse_motion: EventReader<MouseMotion>,
     // Note how we change the `Rotation` and not the `Transform` as this is a rigid body now.
     mut cameras: Query<&mut Rotation, With<Camera>>,
 ) {
     for mut rotation in &mut cameras {
-        let dt = time.delta_seconds();
         // The factors are just arbitrary mouse sensitivity values.
         // It's often nicer to have a faster horizontal sensitivity than vertical.
-        let mouse_sensitivity = Vec2::new(0.12, 0.10);
+        let mouse_sensitivity = Vec2::new(0.003, 0.002);
 
         for motion in mouse_motion.read() {
-            let delta_yaw = -motion.delta.x * dt * mouse_sensitivity.x;
-            let delta_pitch = -motion.delta.y * dt * mouse_sensitivity.y;
+            let delta_yaw = -motion.delta.x * mouse_sensitivity.x;
+            let delta_pitch = -motion.delta.y * mouse_sensitivity.y;
 
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
             let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
