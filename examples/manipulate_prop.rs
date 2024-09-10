@@ -143,18 +143,14 @@ fn handle_pickup_input(
     }
 }
 
-fn rotate_camera(
-    time: Res<Time>,
-    mut cameras: Query<(&mut Transform, &mut InputAccumulation), With<Camera>>,
-) {
+fn rotate_camera(mut cameras: Query<(&mut Transform, &mut InputAccumulation), With<Camera>>) {
     for (mut transform, mut input) in &mut cameras {
-        let dt = time.delta_seconds();
         if input.shift {
             continue;
         }
 
-        let delta_yaw = -input.rotation.x * dt;
-        let delta_pitch = -input.rotation.y * dt;
+        let delta_yaw = -input.rotation.x;
+        let delta_pitch = -input.rotation.y;
         input.rotation = Vec2::ZERO;
 
         const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
@@ -175,7 +171,7 @@ fn accumulate_input(
         for mut input in &mut accumulation {
             // The factors are just arbitrary mouse sensitivity values.
             // It's often nicer to have a faster horizontal sensitivity than vertical.
-            let mouse_sensitivity = Vec2::new(0.12, 0.10);
+            let mouse_sensitivity = Vec2::new(0.003, 0.002);
             input.rotation += motion.delta * mouse_sensitivity;
         }
     }
