@@ -41,7 +41,7 @@ fn set_targets(
         if hold_error.error > max_error {
             commands
                 .entity(actor)
-                .add(SetVerb::new(Verb::Drop { prop, forced: true }));
+                .queue(SetVerb::new(Verb::Drop { prop, forced: true }));
             continue;
         }
         let actor_transform = q_actor_transform.get_best_global_transform(actor);

@@ -14,7 +14,6 @@ use bevy::{
     color::palettes::tailwind,
     input::mouse::{MouseMotion, MouseWheel},
     prelude::*,
-    time::run_fixed_main_schedule,
 };
 
 mod util;
@@ -40,7 +39,7 @@ fn main() {
             RunFixedMainLoop,
             (accumulate_input, handle_pickup_input, rotate_camera)
                 .chain()
-                .before(run_fixed_main_schedule),
+                .before(RunFixedMainLoopSystem::FixedMainLoop),
         )
         .add_systems(FixedUpdate, move_prop)
         .run();
@@ -89,11 +88,8 @@ fn setup(
     let ground_shape = Cuboid::new(15.0, 0.25, 15.0);
     commands.spawn((
         Name::new("Ground"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(ground_shape)),
-            material: terrain_material.clone(),
-            ..default()
-        },
+        Mesh3d(meshes.add(Mesh::from(ground_shape))),
+        MeshMaterial3d(terrain_material.clone()),
         RigidBody::Static,
         Collider::from(ground_shape),
     ));
@@ -101,12 +97,9 @@ fn setup(
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
     commands.spawn((
         Name::new("Box"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(box_shape)),
-            material: prop_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.0, 1.5),
-            ..default()
-        },
+        Mesh3d(meshes.add(Mesh::from(box_shape))),
+        MeshMaterial3d(prop_material.clone()),
+        Transform::from_xyz(0.0, 2.0, 1.5),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
@@ -208,7 +201,7 @@ fn move_prop(
         &mut PreferredPickupRotation,
     )>,
 ) {
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
     for (mut input, transform, state) in &mut actors {
         let AvianPickupActorState::Holding(prop) = state else {
             continue;

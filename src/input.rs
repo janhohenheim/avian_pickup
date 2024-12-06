@@ -145,9 +145,9 @@ fn set_verbs_according_to_input(
             }
             _ => None,
         };
-        commands.entity(actor).add(SetVerb::new(verb));
+        commands.entity(actor).queue(SetVerb::new(verb));
     }
     for &actor in unhandled_actors.iter() {
-        commands.entity(actor).add(SetVerb::new(None));
+        commands.entity(actor).queue(SetVerb::new(None));
     }
 }

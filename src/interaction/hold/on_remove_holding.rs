@@ -1,7 +1,7 @@
 use crate::{prelude::*, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {
-    app.observe(on_remove_holding);
+    app.add_observer(on_remove_holding);
 }
 
 fn on_remove_holding(
@@ -31,5 +31,5 @@ fn on_remove_holding(
         );
         return;
     };
-    mass.0 = non_pickup_mass.0;
+    mass.set(non_pickup_mass.0);
 }
