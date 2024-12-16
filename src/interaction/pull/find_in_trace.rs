@@ -9,6 +9,7 @@ pub(super) fn find_prop_in_trace(
 ) -> Option<Prop> {
     // Fun fact: Valve lies to you and actually multiplies this by 4 at this point.
     let test_length = config.interaction_distance;
+    let shape_cast_config = ShapeCastConfig::from_max_distance(test_length);
     let hit = spatial_query.cast_ray(
         origin.translation,
         origin.forward(),
@@ -26,7 +27,7 @@ pub(super) fn find_prop_in_trace(
             &config.obstacle_filter,
         ) {
             let occluded = terrain_hit.entity != hit.entity
-                && terrain_hit.time_of_impact <= hit.time_of_impact;
+                && terrain_hit.distance <= hit.distance;
             !occluded
         } else {
             true
@@ -36,7 +37,7 @@ pub(super) fn find_prop_in_trace(
     if let Some(hit) = hit {
         Prop {
             entity: hit.entity,
-            toi: hit.time_of_impact,
+            toi: hit.distance,
         }
         .into()
     } else {
@@ -49,8 +50,9 @@ pub(super) fn find_prop_in_trace(
             origin.translation,
             origin.rotation,
             origin.forward(),
-            test_length,
-            false,
+            &shape_cast_config,
+            //test_length,
+            //false,
             &config.prop_filter,
         );
         hit.filter(|hit| {
@@ -59,12 +61,13 @@ pub(super) fn find_prop_in_trace(
                 origin.translation,
                 origin.rotation,
                 origin.forward(),
-                test_length,
-                false,
+                &shape_cast_config,
+                //test_length,
+                //false,
                 &config.obstacle_filter,
             ) {
                 let occluded = terrain_hit.entity != hit.entity
-                    && terrain_hit.time_of_impact <= hit.time_of_impact;
+                    && terrain_hit.distance <= hit.distance;
                 !occluded
             } else {
                 true
@@ -72,7 +75,7 @@ pub(super) fn find_prop_in_trace(
         })
         .map(|hit| Prop {
             entity: hit.entity,
-            toi: hit.time_of_impact,
+            toi: hit.distance,
         })
     }
 }

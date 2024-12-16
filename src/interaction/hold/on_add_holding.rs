@@ -43,11 +43,11 @@ pub fn on_add_holding(
         .map(|m| m.0)
         .unwrap_or(config.hold.temporary_prop_mass);
     if let Some(mut non_pickup_mass) = non_pickup_mass {
-        non_pickup_mass.0 = mass.inverse()
+        non_pickup_mass.0 = mass.0
     } else {
         // This has some overhead, even if it only overwrites the existing component,
         // so let's try to avoid it if possible
-        commands.entity(prop).insert(NonPickupMass(mass.inverse()));
+        commands.entity(prop).insert(NonPickupMass(mass.0));
     }
 
     let actor_space_rotation = prop_rotation_to_actor_space(rotation.0, actor_transform);
@@ -59,7 +59,7 @@ pub fn on_add_holding(
             .insert(PrePickupRotation(actor_space_rotation));
     }
 
-    mass.set(new_mass);
+    mass.set(Box::new(new_mass));
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me
 

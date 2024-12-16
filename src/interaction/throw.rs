@@ -74,11 +74,11 @@ fn random_unit_vector(rng: &mut impl Rng) -> Vec3 {
 fn calculate_launch_speed(config: &AvianPickupActor, mass: Mass) -> Scalar {
     let speed_range = &config.throw.linear_speed_range;
     let (min_speed, max_speed) = (*speed_range.start(), *speed_range.end());
-    if mass.inverse() < config.throw.cutoff_mass_for_slowdown {
+    if mass.0 < config.throw.cutoff_mass_for_slowdown {
         max_speed
     } else {
         remap_through_spline(
-            mass.inverse(),
+            mass.0,
             config.throw.cutoff_mass_for_slowdown..=config.pull.max_prop_mass,
             max_speed..=min_speed,
         )

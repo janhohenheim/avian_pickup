@@ -90,8 +90,8 @@ fn find_object(
 
 /// Taken from [this snippet](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2607-L2610)
 fn adjust_impulse_for_mass(mass: Mass) -> f32 {
-    if mass.inverse() < 50.0 {
-        (mass.inverse() + 0.5) * (1.0 / 50.0)
+    if mass.0 < 50.0 {
+        (mass.0 + 0.5) * (1.0 / 50.0)
     } else {
         1.0
     }

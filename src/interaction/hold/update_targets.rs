@@ -140,17 +140,19 @@ fn set_targets(
         // prop to get the distance to the terrain behind it.
         let mut terrain_filter = config.obstacle_filter.clone();
         terrain_filter.excluded_entities.insert(prop);
+        let shape_cast_config = ShapeCastConfig::from_max_distance(max_cast_toi);
         let terrain_hit = spatial_query.cast_shape(
             &prop_collider,
             actor_transform.translation,
             target_rotation,
             forward,
-            max_cast_toi,
-            true,
+            &shape_cast_config,
+            //max_cast_toi,
+            //true,
             &terrain_filter,
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
-            let toi = terrain_hit.time_of_impact;
+            let toi = terrain_hit.distance;
             let fraction = toi / max_distance;
             if fraction < 0.5 {
                 // not doing `max(min_distance, toi)` here because that would

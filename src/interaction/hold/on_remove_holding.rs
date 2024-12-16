@@ -31,5 +31,5 @@ fn on_remove_holding(
         );
         return;
     };
-    mass.set(non_pickup_mass.0);
+    mass.set(Box::new(non_pickup_mass.0));
 }
