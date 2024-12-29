@@ -6,7 +6,7 @@ use crate::{prelude::*, verb::Holding};
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         PhysicsSchedule,
-        set_velocities.in_set(HoldSystem::SetVelocities),
+        set_velocities.in_set(HoldSystem::SetVelocities).ambiguous_with(PhysicsStepSet::First),
     );
 }
 

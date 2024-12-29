@@ -6,7 +6,7 @@ use rand::Rng;
 use crate::{math::GetBestGlobalTransform, prelude::*, rng::RngSource, verb::Throwing};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(PhysicsSchedule, throw.in_set(HandleVerbSystem::Throw));
+    app.add_systems(PhysicsSchedule, throw.in_set(HandleVerbSystem::Throw).ambiguous_with(PhysicsStepSet::First));
 }
 
 /// Note: in constrast to the physcannon, we do not allow punting when not

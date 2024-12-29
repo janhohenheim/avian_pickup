@@ -3,7 +3,7 @@ use avian3d::math::{Scalar, TAU};
 use crate::{prelude::*, verb::Dropping};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(PhysicsSchedule, drop.in_set(HandleVerbSystem::Drop));
+    app.add_systems(PhysicsSchedule, drop.in_set(HandleVerbSystem::Drop).ambiguous_with(PhysicsStepSet::First));
 }
 
 /// DetachObject
