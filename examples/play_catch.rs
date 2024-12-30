@@ -38,7 +38,7 @@ fn main() {
                 make_npc_catch,
                 rotate_camera,
             )
-                .before(RunFixedMainLoopSystem::FixedMainLoop),
+                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         // Run fixed update zero to many times per frame.
         .add_systems(
@@ -50,7 +50,7 @@ fn main() {
         // React to things that happened during the fixed update.
         .add_systems(
             RunFixedMainLoop,
-            (on_npc_hold, on_player_throw, on_aim_timer).after(RunFixedMainLoopSystem::FixedMainLoop),
+            (on_npc_hold, on_player_throw, on_aim_timer).in_set(RunFixedMainLoopSystem::AfterFixedMainLoop),
         )
         .run();
 }
@@ -187,6 +187,7 @@ fn setup(
         MeshMaterial3d(prop_material.clone()),
         INITIAL_BOX_TRANSFORM,
         RigidBody::Dynamic,
+        Mass(5.0),
         Collider::from(box_shape),
         Prop,
     ));

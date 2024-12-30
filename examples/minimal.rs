@@ -30,7 +30,7 @@ fn main() {
         // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).before(RunFixedMainLoopSystem::FixedMainLoop),
+            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         .run();
 }
@@ -46,10 +46,8 @@ fn setup(
 
     commands.spawn((
         Name::new("Player Camera"),
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.0, 5.0),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 1.0, 5.0),
         // Add this to set up the camera as the entity that can pick up
         // objects.
         AvianPickupActor::default(),
@@ -86,6 +84,7 @@ fn setup(
         Transform::from_xyz(0.0, 2.0, 3.5),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
+        Mass(5.0),
         Collider::from(box_shape),
     ));
 }

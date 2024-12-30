@@ -31,7 +31,7 @@ fn main() {
         // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).before(RunFixedMainLoopSystem::FixedMainLoop),
+            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         .run();
 }
@@ -112,6 +112,7 @@ fn setup(
         Transform::from_xyz(0.0, 2.0, 3.5),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
+        Mass(5.0),
         Collider::from(box_shape),
         CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
     ));

@@ -39,7 +39,7 @@ fn main() {
             RunFixedMainLoop,
             (accumulate_input, handle_pickup_input, rotate_camera)
                 .chain()
-                .before(RunFixedMainLoopSystem::FixedMainLoop),
+                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         .add_systems(FixedUpdate, move_prop)
         .run();
@@ -102,6 +102,7 @@ fn setup(
         Transform::from_xyz(0.0, 2.0, 1.5),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
+        Mass(5.0),
         Collider::from(box_shape),
         PreferredPickupDistanceOverride::default(),
         PreferredPickupRotation::default(),

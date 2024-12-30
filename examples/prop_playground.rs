@@ -31,7 +31,7 @@ fn main() {
         // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).before(RunFixedMainLoopSystem::FixedMainLoop),
+            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         .run();
 }
@@ -109,6 +109,7 @@ fn setup(
         Transform::from_xyz(0.0, 2.0, 2.5),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
+        Mass(5.0),
         Collider::from(box_shape),
     ));
     commands.spawn((
@@ -118,6 +119,7 @@ fn setup(
         Transform::from_xyz(2.0, 2.0, 2.0).with_scale(Vec3::splat(1.75)),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
+        Mass(10.0),
         Collider::from(box_shape),
         ColliderDensity(10.0),
     ));
@@ -127,6 +129,7 @@ fn setup(
         MeshMaterial3d(cube_material.clone()),
         Transform::from_xyz(-2.0, 2.0, 2.0).with_scale(Vec3::splat(2.5)),
         RigidBody::Dynamic,
+        Mass(20.0),
         Collider::from(box_shape),
         ColliderDensity(15.0),
         PreferredPickupDistanceOverride(2.5),
@@ -144,6 +147,7 @@ fn setup(
             MeshMaterial3d(plank_material.clone()),
             *transform,
             RigidBody::Dynamic,
+            Mass(5.0),
             Collider::from(box_shape),
             ColliderDensity(11.0),
             PreferredPickupDistanceOverride(2.5),
@@ -165,6 +169,7 @@ fn setup(
             MeshMaterial3d(ball_material.clone()),
             *transform,
             RigidBody::Dynamic,
+            Mass(5.0),
             Collider::from(ball_shape),
             ColliderDensity(9.0),
         ));
@@ -190,6 +195,7 @@ fn setup(
             MeshMaterial3d(cylinder_material.clone()),
             *transform,
             RigidBody::Dynamic,
+            Mass(5.0),
             Collider::from(cylinder_shape),
             ColliderDensity(8.0),
         ));
