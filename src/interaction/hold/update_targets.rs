@@ -6,6 +6,7 @@ use crate::{
     prelude::*,
     prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},
+    PrintComponents,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -117,6 +118,7 @@ fn set_targets(
             .or_else(|| pre_pickup_rotation.map(|pre| pre.0))
         else {
             error!("Held prop does not have a preferred or pre-pickup rotation. Ignoring.");
+            commands.trigger(PrintComponents(prop));
             continue;
         };
         // orient the prop wrt the actor

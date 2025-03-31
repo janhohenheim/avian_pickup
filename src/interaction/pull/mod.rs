@@ -15,8 +15,7 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(
             PhysicsSchedule,
             flush_pulling_state.in_set(AvianPickupSystem::ResetIdle),
-        )
-        .add_observer(print_components);
+        );
 }
 
 /// Inspired by [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2497)
@@ -42,7 +41,6 @@ fn find_object(
         Has<HeldProp>,
     )>,
     q_collider: Query<&Position>,
-    q_name: Query<&Name>,
 ) {
     for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
@@ -63,9 +61,6 @@ fn find_object(
             q_rigid_body.get_mut(rigid_body_entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
-            let name = q_name.get(rigid_body_entity).unwrap();
-            info!("Pulling: Rigid body entity not found: {name}");
-            commands.trigger(PrintComponents(rigid_body_entity));
             continue;
         };
 
@@ -91,20 +86,6 @@ fn find_object(
             commands.entity(actor).queue(SetVerb::new(None));
         }
     }
-}
-
-#[derive(Event)]
-struct PrintComponents(Entity);
-
-fn print_components(trigger: Trigger<PrintComponents>, world: &World) {
-    let PrintComponents(entity) = trigger.event();
-    info!(
-        "{:#?}",
-        world
-            .inspect_entity(*entity)
-            .map(|info| info.name())
-            .collect::<Vec<_>>()
-    );
 }
 
 /// Taken from [this snippet](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2607-L2610)

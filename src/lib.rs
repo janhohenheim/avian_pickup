@@ -97,6 +97,7 @@ impl Plugin for AvianPickupPlugin {
             verb::plugin,
             rng::plugin,
         ));
+        app.add_observer(print_components);
     }
 }
 
@@ -129,6 +130,20 @@ pub(crate) enum HandleVerbSystem {
     Hold,
     Drop,
     Throw,
+}
+
+#[derive(Event)]
+struct PrintComponents(Entity);
+
+fn print_components(trigger: Trigger<PrintComponents>, world: &World) {
+    let PrintComponents(entity) = trigger.event();
+    info!(
+        "{:#?}",
+        world
+            .inspect_entity(*entity)
+            .map(|info| info.name())
+            .collect::<Vec<_>>()
+    );
 }
 
 #[cfg(doctest)]
