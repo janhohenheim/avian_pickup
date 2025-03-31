@@ -63,7 +63,7 @@ cargo add avian_interpolation3d --git https://github.com/janhohenheim/avian_inte
 
 Finally, add these plugins to your app. Make sure to add Avian Pickup after Avian:
 
-```rust,no_run
+```rust
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
@@ -76,8 +76,6 @@ App::new()
         PhysicsPlugins::default(),
         // Add Avian Pickup
         AvianPickupPlugin::default(),
-        // Add interpolation
-             TransformInterpolationPlugin::interpolate_all(),
     ));
 ```
 
@@ -109,6 +107,8 @@ fn setup(mut commands: Commands) {
         SpatialBundle::default(),
         RigidBody::Dynamic,
         Collider::sphere(0.5),
+        // Important to prevent jittering
+        InterpolateTransform,
     ));
 }
 ```
@@ -148,11 +148,7 @@ for physicsal entities in the world should be in the fixed timestep, but the cam
 A player will want to have a camera that works as smoothly as possible and updates every frame. That's why you need to place the camera in the last variable timestep schedule before the physics update. You do this like so:
 
 ```rust
-use bevy::{
-    
-    prelude::*,
-    
-};
+use bevy::prelude::*;
 
 App::new()
     .add_systems(
