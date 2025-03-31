@@ -16,7 +16,7 @@ default = ["avian3d/f32", "avian3d/parry-f32"]
 serialize = ["dep:serde", "bevy/serialize", "avian3d/serialize"]
 
 [dependencies]
-rand = "0.8.5"
+rand = "0.9"
 serde = { version = "1.0.210", optional = true }
 
 [dependencies.bevy]
