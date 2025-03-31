@@ -78,7 +78,7 @@ fn setup(
         Collider::from(box_shape),
         // Because we are moving the camera independently of the physics system,
         // interpolation is needed to prevent jittering.
-        //TransformInterpolation,
+        TransformInterpolation,
     ));
 }
 

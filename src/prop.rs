@@ -2,7 +2,7 @@
 //! picked up or thrown. All of these are optional.
 use std::ops::RangeInclusive;
 
-use avian3d::math::Scalar;
+use avian3d::{math::Scalar, prelude::Mass};
 use bevy::prelude::*;
 
 use crate::prelude::AvianPickupActor;
@@ -133,8 +133,9 @@ impl Default for ThrownAngularSpeedOverride {
 /// The cached mass that an object had before it was picked up
 /// that will be restored again when it is dropped.
 /// In other words, this is the mass before and after the pickup.
+/// Only used if the object had a [`Mass`] component.
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
-pub(crate) struct NonPickupMass(pub Scalar);
+pub(crate) struct NonPickupMass(pub Mass);
 
 /// Marker component for props that are held by an [`AvianPickupActor`].
 #[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Default, Reflect)]

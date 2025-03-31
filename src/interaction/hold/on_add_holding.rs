@@ -18,9 +18,8 @@ pub fn on_add_holding(
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &Rotation,
-        &mut Mass,
+        Option<&Mass>,
         Option<&PickupMassOverride>,
-        Option<&mut NonPickupMass>,
         Option<&mut PrePickupRotation>,
     )>,
 ) {
@@ -33,22 +32,10 @@ pub fn on_add_holding(
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     commands.entity(prop).insert(HeldProp);
-    let Ok((rotation, mut mass, pickup_mass, non_pickup_mass, pre_pickup_rotation)) =
-        q_prop.get_mut(prop)
-    else {
+    let Ok((rotation, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");
         return;
     };
-    let new_mass = pickup_mass
-        .map(|m| m.0)
-        .unwrap_or(config.hold.temporary_prop_mass);
-    if let Some(mut non_pickup_mass) = non_pickup_mass {
-        non_pickup_mass.0 = mass.0;
-    } else {
-        // This has some overhead, even if it only overwrites the existing component,
-        // so let's try to avoid it if possible
-        commands.entity(prop).insert(NonPickupMass(mass.0));
-    }
 
     let actor_space_rotation = prop_rotation_to_actor_space(rotation.0, actor_transform);
     if let Some(mut pre_pickup_rotation) = pre_pickup_rotation {
@@ -59,7 +46,17 @@ pub fn on_add_holding(
             .insert(PrePickupRotation(actor_space_rotation));
     }
 
-    mass.0 = new_mass;
+    // Cache old mass
+    if let Some(mass) = mass {
+        commands.entity(prop).insert(NonPickupMass(*mass));
+    }
+
+    let new_mass = pickup_mass
+        .map(|m| m.0)
+        .unwrap_or(config.hold.temporary_prop_mass);
+
+    commands.entity(prop).insert(Mass(new_mass));
+
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me
 
