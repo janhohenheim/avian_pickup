@@ -73,7 +73,7 @@ fn find_object(
             cooldown.hold();
             commands
                 .entity(actor)
-                .add(SetVerb::new(Verb::Hold(rigid_body_entity)));
+                .queue(SetVerb::new(Verb::Hold(rigid_body_entity)));
         } else {
             let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
@@ -83,7 +83,7 @@ fn find_object(
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {
                 *state = AvianPickupActorState::Pulling(rigid_body_entity);
             }
-            commands.entity(actor).add(SetVerb::new(None));
+            commands.entity(actor).queue(SetVerb::new(None));
         }
     }
 }

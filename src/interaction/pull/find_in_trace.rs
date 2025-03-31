@@ -25,8 +25,7 @@ pub(super) fn find_prop_in_trace(
             true,
             &config.obstacle_filter,
         ) {
-            let occluded = terrain_hit.entity != hit.entity
-                && terrain_hit.time_of_impact <= hit.time_of_impact;
+            let occluded = terrain_hit.entity != hit.entity && terrain_hit.distance <= hit.distance;
             !occluded
         } else {
             true
@@ -36,7 +35,7 @@ pub(super) fn find_prop_in_trace(
     if let Some(hit) = hit {
         Prop {
             entity: hit.entity,
-            toi: hit.time_of_impact,
+            toi: hit.distance,
         }
         .into()
     } else {
@@ -49,8 +48,7 @@ pub(super) fn find_prop_in_trace(
             origin.translation,
             origin.rotation,
             origin.forward(),
-            test_length,
-            false,
+            &ShapeCastConfig::from_max_distance(test_length),
             &config.prop_filter,
         );
         hit.filter(|hit| {
@@ -59,12 +57,11 @@ pub(super) fn find_prop_in_trace(
                 origin.translation,
                 origin.rotation,
                 origin.forward(),
-                test_length,
-                false,
+                &ShapeCastConfig::from_max_distance(test_length),
                 &config.obstacle_filter,
             ) {
-                let occluded = terrain_hit.entity != hit.entity
-                    && terrain_hit.time_of_impact <= hit.time_of_impact;
+                let occluded =
+                    terrain_hit.entity != hit.entity && terrain_hit.distance <= hit.distance;
                 !occluded
             } else {
                 true
@@ -72,7 +69,7 @@ pub(super) fn find_prop_in_trace(
         })
         .map(|hit| Prop {
             entity: hit.entity,
-            toi: hit.time_of_impact,
+            toi: hit.distance,
         })
     }
 }

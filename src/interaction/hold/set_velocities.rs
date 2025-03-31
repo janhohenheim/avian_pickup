@@ -25,7 +25,7 @@ fn set_velocities(
     // but from testing, it seems like this does the job pretty much identically,
     // so I reverted to this simpler version. If you need the original version,
     // check out the commit aa51b2bc4dbc52049476135ba146b3ba143b681a
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
     let inv_dt = dt.recip();
     for (shadow, holding, actor) in q_actor.iter_mut() {
         let prop = holding.0;
