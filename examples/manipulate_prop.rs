@@ -4,18 +4,16 @@
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
-use avian_interpolation3d::prelude::*;
 use avian_pickup::{
     prelude::*,
     prop::{PreferredPickupDistanceOverride, PreferredPickupRotation},
 };
 use bevy::{
-    app::RunFixedMainLoop,
     color::palettes::tailwind,
     input::mouse::{MouseMotion, MouseWheel},
     prelude::*,
-    time::run_fixed_main_schedule,
 };
+use bevy_transform_interpolation::prelude::*;
 
 mod util;
 
@@ -26,7 +24,7 @@ fn main() {
             PhysicsPlugins::default(),
             // Because we are moving the camera independently of the physics system,
             // interpolation is needed to prevent jittering.
-            AvianInterpolationPlugin::default(),
+            TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Manipulation),
@@ -40,7 +38,7 @@ fn main() {
             RunFixedMainLoop,
             (accumulate_input, handle_pickup_input, rotate_camera)
                 .chain()
-                .before(run_fixed_main_schedule),
+                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         .add_systems(FixedUpdate, move_prop)
         .run();

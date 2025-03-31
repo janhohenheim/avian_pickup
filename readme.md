@@ -67,7 +67,7 @@ Finally, add these plugins to your app. Make sure to add Avian Pickup after Avia
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
-use avian_interpolation3d::prelude::*;
+use bevy_transform_interpolation::prelude::*;
 
 App::new()
     .add_plugins((
@@ -77,7 +77,7 @@ App::new()
         // Add Avian Pickup
         AvianPickupPlugin::default(),
         // Add interpolation
-        AvianInterpolationPlugin::default(),
+             TransformInterpolationPlugin::interpolate_all(),
     ));
 ```
 
@@ -149,15 +149,15 @@ A player will want to have a camera that works as smoothly as possible and updat
 
 ```rust
 use bevy::{
-    app::RunFixedMainLoop,
+    
     prelude::*,
-    time::run_fixed_main_schedule,
+    
 };
 
 App::new()
     .add_systems(
         RunFixedMainLoop,
-        move_camera.before(run_fixed_main_schedule),
+        move_camera.in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
     );
 
 fn move_camera() { todo!() }

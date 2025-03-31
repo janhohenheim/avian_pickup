@@ -5,12 +5,9 @@
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_6, PI};
 
 use avian3d::prelude::*;
-use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
-use bevy::{
-    app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
-    time::run_fixed_main_schedule,
-};
+use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
+use bevy_transform_interpolation::prelude::*;
 use rand::Rng;
 
 mod util;
@@ -20,7 +17,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            AvianInterpolationPlugin::default(),
+            TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Resettable),
@@ -39,7 +36,7 @@ fn main() {
                 make_npc_catch,
                 rotate_camera,
             )
-                .before(run_fixed_main_schedule),
+                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         // Run fixed update zero to many times per frame.
         .add_systems(
@@ -51,7 +48,8 @@ fn main() {
         // React to things that happened during the fixed update.
         .add_systems(
             RunFixedMainLoop,
-            (on_npc_hold, on_player_throw, on_aim_timer).after(run_fixed_main_schedule),
+            (on_npc_hold, on_player_throw, on_aim_timer)
+                .in_set(RunFixedMainLoopSystem::AfterFixedMainLoop),
         )
         .run();
 }
