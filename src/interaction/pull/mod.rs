@@ -15,7 +15,8 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(
             PhysicsSchedule,
             flush_pulling_state.in_set(AvianPickupSystem::ResetIdle),
-        );
+        )
+        .add_observer(print_components);
 }
 
 /// Inspired by [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2497)
@@ -35,12 +36,13 @@ fn find_object(
     q_collider_parent: Query<&ColliderParent>,
     mut q_rigid_body: Query<(
         &RigidBody,
-        &Mass,
+        &ComputedMass,
         &mut ExternalImpulse,
         &Position,
         Has<HeldProp>,
     )>,
     q_collider: Query<&Position>,
+    q_name: Query<&Name>,
 ) {
     for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
@@ -61,6 +63,9 @@ fn find_object(
             q_rigid_body.get_mut(rigid_body_entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
+            let name = q_name.get(rigid_body_entity).unwrap();
+            info!("Pulling: Rigid body entity not found: {name}");
+            commands.trigger(PrintComponents(rigid_body_entity));
             continue;
         };
 
@@ -88,10 +93,24 @@ fn find_object(
     }
 }
 
+#[derive(Event)]
+struct PrintComponents(Entity);
+
+fn print_components(trigger: Trigger<PrintComponents>, world: &World) {
+    let PrintComponents(entity) = trigger.event();
+    info!(
+        "{:#?}",
+        world
+            .inspect_entity(*entity)
+            .map(|info| info.name())
+            .collect::<Vec<_>>()
+    );
+}
+
 /// Taken from [this snippet](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2607-L2610)
-fn adjust_impulse_for_mass(mass: Mass) -> f32 {
-    if mass.0 < 50.0 {
-        (mass.0 + 0.5) * (1.0 / 50.0)
+fn adjust_impulse_for_mass(mass: ComputedMass) -> f32 {
+    if mass.value() < 50.0 {
+        (mass.value() + 0.5) * (1.0 / 50.0)
     } else {
         1.0
     }
