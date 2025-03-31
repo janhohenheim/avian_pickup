@@ -51,10 +51,8 @@ fn setup(
 
     commands.spawn((
         Name::new("Player Camera"),
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.0, 5.0),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 1.0, 5.0),
         // Add this to set up the camera as the entity that can pick up
         // objects.
         AvianPickupActor {
@@ -69,14 +67,11 @@ fn setup(
 
     commands.spawn((
         Name::new("Light"),
-        PointLightBundle {
-            transform: Transform::from_xyz(3.0, 8.0, 3.0),
-            point_light: PointLight {
-                color: Color::WHITE,
-                intensity: 2_000_000.0,
-                shadows_enabled: true,
-                ..default()
-            },
+        Transform::from_xyz(3.0, 8.0, 3.0),
+        PointLight {
+            color: Color::WHITE,
+            intensity: 2_000_000.0,
+            shadows_enabled: true,
             ..default()
         },
     ));
@@ -93,12 +88,9 @@ fn setup(
     for (i, transform) in terrain_transforms.iter().enumerate() {
         commands.spawn((
             Name::new(format!("Wall {}", i)),
-            PbrBundle {
-                mesh: ground_mesh.clone(),
-                material: terrain_material.clone(),
-                transform: *transform,
-                ..default()
-            },
+            Mesh3d::from(ground_mesh.clone()),
+            MeshMaterial3d::from(terrain_material.clone()),
+            transform.clone(),
             RigidBody::Static,
             Collider::from(ground_shape),
         ));
@@ -108,24 +100,18 @@ fn setup(
     let box_mesh = meshes.add(box_shape);
     commands.spawn((
         Name::new("Light Box"),
-        PbrBundle {
-            mesh: box_mesh.clone(),
-            material: cube_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.0, 3.5),
-            ..default()
-        },
+        Mesh3d::from(box_mesh.clone()),
+        MeshMaterial3d::from(cube_material.clone()),
+        Transform::from_xyz(0.0, 2.0, 3.5),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
     ));
     commands.spawn((
         Name::new("Medium Box"),
-        PbrBundle {
-            mesh: box_mesh.clone(),
-            material: cube_material.clone(),
-            transform: Transform::from_xyz(2.0, 2.0, 2.0).with_scale(Vec3::splat(1.75)),
-            ..default()
-        },
+        Mesh3d::from(box_mesh.clone()),
+        MeshMaterial3d::from(cube_material.clone()),
+        Transform::from_xyz(2.0, 2.0, 2.0).with_scale(Vec3::splat(1.75)),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
@@ -133,12 +119,10 @@ fn setup(
     ));
     commands.spawn((
         Name::new("Heavy Box"),
-        PbrBundle {
-            mesh: box_mesh.clone(),
-            material: cube_material.clone(),
-            transform: Transform::from_xyz(-2.0, 2.0, 2.0).with_scale(Vec3::splat(2.5)),
-            ..default()
-        },
+        Mesh3d::from(box_mesh.clone()),
+        MeshMaterial3d::from(cube_material.clone()),
+        Transform::from_xyz(-2.0, 2.0, 2.0).with_scale(Vec3::splat(2.5)),
+        // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
         ColliderDensity(15.0),
@@ -153,12 +137,10 @@ fn setup(
     for (i, transform) in plan_transforms.iter().enumerate() {
         commands.spawn((
             Name::new(format!("Plank {i}")),
-            PbrBundle {
-                mesh: box_mesh.clone(),
-                material: plank_material.clone(),
-                transform: *transform,
-                ..default()
-            },
+            Mesh3d::from(box_mesh.clone()),
+            MeshMaterial3d::from(plank_material.clone()),
+            *transform,
+            // All `RigidBody::Dynamic` entities are able to be picked up.
             RigidBody::Dynamic,
             Collider::from(box_shape),
             ColliderDensity(11.0),
@@ -177,12 +159,10 @@ fn setup(
     for (i, transform) in ball_transforms.iter().enumerate() {
         commands.spawn((
             Name::new(format!("Ball {i}")),
-            PbrBundle {
-                mesh: ball_mesh.clone(),
-                material: ball_material.clone(),
-                transform: *transform,
-                ..default()
-            },
+            Mesh3d::from(ball_mesh.clone()),
+            MeshMaterial3d::from(ball_material.clone()),
+            *transform,
+            // All `RigidBody::Dynamic` entities are able to be picked up.
             RigidBody::Dynamic,
             Collider::from(ball_shape),
             ColliderDensity(9.0),
@@ -205,12 +185,10 @@ fn setup(
     for (i, transform) in cylinder_transforms.iter().enumerate() {
         commands.spawn((
             Name::new(format!("Cylinder {i}")),
-            PbrBundle {
-                mesh: cylinder_mesh.clone(),
-                material: cylinder_material.clone(),
-                transform: *transform,
-                ..default()
-            },
+            Mesh3d::from(cylinder_mesh.clone()),
+            MeshMaterial3d::from(cylinder_material.clone()),
+            *transform,
+            // All `RigidBody::Dynamic` entities are able to be picked up.
             RigidBody::Dynamic,
             Collider::from(cylinder_shape),
             ColliderDensity(8.0),

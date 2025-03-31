@@ -119,10 +119,8 @@ fn setup(
 
     commands.spawn((
         Name::new("Player Camera"),
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.0, 5.0),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 1.0, 5.0),
         actor_config.clone(),
         Player,
     ));
@@ -132,37 +130,28 @@ fn setup(
     commands
         .spawn((
             Name::new("NPC"),
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(npc_shape)),
-                material: npc_material.clone(),
-                transform: Transform::from_xyz(0.0, 1.0, -5.0).looking_to(Vec3::Z, Vec3::Y),
-                ..default()
-            },
+            Mesh3d::from(meshes.add(Mesh::from(npc_shape))),
+            MeshMaterial3d::from(npc_material.clone()),
+            Transform::from_xyz(0.0, 1.0, -5.0).looking_to(Vec3::Z, Vec3::Y),
             actor_config,
             Npc::default(),
         ))
         .with_children(|parent| {
             parent.spawn((
                 Name::new("Visor"),
-                PbrBundle {
-                    mesh: meshes.add(Mesh::from(visor_shape)),
-                    material: visor_material.clone(),
-                    transform: Transform::from_xyz(0.0, 0.0, -0.71),
-                    ..default()
-                },
+                Mesh3d::from(meshes.add(Mesh::from(visor_shape))),
+                MeshMaterial3d::from(visor_material.clone()),
+                Transform::from_xyz(0.0, 0.0, -0.71),
             ));
         });
 
     commands.spawn((
         Name::new("Light"),
-        PointLightBundle {
-            transform: Transform::from_xyz(3.0, 8.0, 3.0),
-            point_light: PointLight {
-                color: Color::WHITE,
-                intensity: 2_000_000.0,
-                shadows_enabled: true,
-                ..default()
-            },
+        Transform::from_xyz(3.0, 8.0, 3.0),
+        PointLight {
+            color: Color::WHITE,
+            intensity: 2_000_000.0,
+            shadows_enabled: true,
             ..default()
         },
     ));
@@ -179,12 +168,9 @@ fn setup(
     for (i, transform) in terrain_transforms.iter().enumerate() {
         commands.spawn((
             Name::new(format!("Wall {}", i)),
-            PbrBundle {
-                mesh: ground_mesh.clone(),
-                material: terrain_material.clone(),
-                transform: *transform,
-                ..default()
-            },
+            Mesh3d::from(ground_mesh.clone()),
+            MeshMaterial3d::from(terrain_material.clone()),
+            transform.clone(),
             RigidBody::Static,
             Collider::from(ground_shape),
         ));
@@ -193,12 +179,9 @@ fn setup(
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
     commands.spawn((
         Name::new("Box"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(box_shape)),
-            material: prop_material.clone(),
-            transform: INITIAL_BOX_TRANSFORM,
-            ..default()
-        },
+        Mesh3d::from(meshes.add(Mesh::from(box_shape))),
+        MeshMaterial3d::from(prop_material.clone()),
+        INITIAL_BOX_TRANSFORM,
         RigidBody::Dynamic,
         Collider::from(box_shape),
         Prop,
@@ -260,7 +243,7 @@ fn rotate_npc(
     let Ok(prop) = props.get_single() else {
         return;
     };
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
 
     for (mut transform, npc) in &mut npcs {
         let dir = match npc.state {
