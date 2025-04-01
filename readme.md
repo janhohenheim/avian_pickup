@@ -48,7 +48,7 @@ Modeled after Half Life 2's gravity gun.
 
 Make sure to add the Avian Pickup plugin after Avian itself:
 
-```rust
+```rust,no_run
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;

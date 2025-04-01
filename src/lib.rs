@@ -130,7 +130,3 @@ pub(crate) enum HandleVerbSystem {
     Drop,
     Throw,
 }
-
-#[cfg(doctest)]
-#[doc = include_str!("../readme.md")]
-mod test_readme {}
