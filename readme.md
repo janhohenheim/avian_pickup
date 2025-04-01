@@ -28,9 +28,11 @@ Modeled after Half Life 2's gravity gun.
 ## Limitations
 
 - Since the physics are running only in fixed updates but are also
-    right in front of the camera, which should run in a variable update,
-    you *need* some sort of interpolation to make it look good. I recommend
-    [`bevy_transform_interpolation`](https://github.com/Jondolf/bevy_transform_interpolation).
+  right in front of the camera, which should run in a variable update,
+  you *need* some sort of interpolation to make it look good. Fortunately,
+  Avian has a built-in solution that only requires you to attach 
+  [`TransformInterpolation`](https://docs.rs/bevy_transform_interpolation/0.1.0/bevy_transform_interpolation/interpolation/struct.TransformInterpolation.html) 
+  to your props!
 - Only a single object can be picked up per actor at a time.
 - An object cannot be pulled away while it is being held by someone else.
 - Only works in 3D.
@@ -44,30 +46,12 @@ Modeled after Half Life 2's gravity gun.
 
 ### Installation
 
-```sh
-cargo add avian_pickup --git https://github.com/janhohenheim/avian_pickup
-```
-
-it's not on crates.io yet because I'm waiting for a new `Avian` release, as this was made
-targeting the `main` branch. This means you also need to use the `main` branch of `Avian`:
-
-```sh
-cargo add avian3d --git https://github.com/Jondolf/avian
-```
-
-Additionally, you need some sort of interpolation for anything to look smooth at all:
-
-```sh
-cargo add avian_interpolation3d --git https://github.com/janhohenheim/avian_interpolation
-```
-
-Finally, add these plugins to your app. Make sure to add Avian Pickup after Avian:
+Make sure to add the Avian Pickup plugin after Avian itself:
 
 ```rust,no_run
 use bevy::prelude::*;
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
-use avian_interpolation3d::prelude::*;
 
 App::new()
     .add_plugins((
@@ -76,8 +60,6 @@ App::new()
         PhysicsPlugins::default(),
         // Add Avian Pickup
         AvianPickupPlugin::default(),
-        // Add interpolation
-        AvianInterpolationPlugin::default(),
     ));
 ```
 
@@ -86,9 +68,9 @@ App::new()
 The main two concepts of Avian Pickup are *actors* and *props*. It's simple:
 
 - An *actor* is something that can pick up *props*.
-    These are spatial entities with an [`AvianPickupActor`] component.
+  these are spatial entities with an [`AvianPickupActor`] component.
 - An *prop* is an object to be picked up.
-    These are spatial entities with a regular old [`RigidBody::Dynamic`] component and associated colliders.
+  These are spatial entities with a regular old [`RigidBody::Dynamic`] component and associated colliders.
 
 As such, this is the minimum version of these two:
 
@@ -100,15 +82,19 @@ use avian_pickup::prelude::*;
 fn setup(mut commands: Commands) {
     // Actor
     commands.spawn((
-        SpatialBundle::default(),
+        Transform::default(),
+        Visibility::default(),
         AvianPickupActor::default(),
     ));
 
     // Prop
     commands.spawn((
-        SpatialBundle::default(),
+        Transform::default(),
+        Visibility::default(),
         RigidBody::Dynamic,
         Collider::sphere(0.5),
+        // Important to prevent jittering
+        TransformInterpolation,
     ));
 }
 ```
@@ -148,16 +134,12 @@ for physicsal entities in the world should be in the fixed timestep, but the cam
 A player will want to have a camera that works as smoothly as possible and updates every frame. That's why you need to place the camera in the last variable timestep schedule before the physics update. You do this like so:
 
 ```rust
-use bevy::{
-    app::RunFixedMainLoop,
-    prelude::*,
-    time::run_fixed_main_schedule,
-};
+use bevy::prelude::*;
 
 App::new()
     .add_systems(
         RunFixedMainLoop,
-        move_camera.before(run_fixed_main_schedule),
+        move_camera.in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
     );
 
 fn move_camera() { todo!() }
@@ -167,7 +149,7 @@ fn move_camera() { todo!() }
 
 | `avian_pickup` | `avian` | `bevy` |
 |---------------|---------|-------|
-| `main`       | `main` | `0.14` |
+| `0.1`       | `0.2` | `0.15` |
 
 [`AvianPickupActor`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
 [`RigidBody::Dynamic`]: https://docs.rs/avian3d/latest/avian3d/dynamics/rigid_body/enum.RigidBody.html#variant.Dynamic

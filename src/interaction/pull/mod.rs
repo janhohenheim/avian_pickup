@@ -35,7 +35,7 @@ fn find_object(
     q_collider_parent: Query<&ColliderParent>,
     mut q_rigid_body: Query<(
         &RigidBody,
-        &Mass,
+        &ComputedMass,
         &mut ExternalImpulse,
         &Position,
         Has<HeldProp>,
@@ -73,7 +73,7 @@ fn find_object(
             cooldown.hold();
             commands
                 .entity(actor)
-                .add(SetVerb::new(Verb::Hold(rigid_body_entity)));
+                .queue(SetVerb::new(Verb::Hold(rigid_body_entity)));
         } else {
             let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
@@ -83,15 +83,15 @@ fn find_object(
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {
                 *state = AvianPickupActorState::Pulling(rigid_body_entity);
             }
-            commands.entity(actor).add(SetVerb::new(None));
+            commands.entity(actor).queue(SetVerb::new(None));
         }
     }
 }
 
 /// Taken from [this snippet](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2607-L2610)
-fn adjust_impulse_for_mass(mass: Mass) -> f32 {
-    if mass.0 < 50.0 {
-        (mass.0 + 0.5) * (1.0 / 50.0)
+fn adjust_impulse_for_mass(mass: ComputedMass) -> f32 {
+    if mass.value() < 50.0 {
+        (mass.value() + 0.5) * (1.0 / 50.0)
     } else {
         1.0
     }

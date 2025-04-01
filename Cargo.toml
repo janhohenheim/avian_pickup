@@ -4,11 +4,7 @@ version = "0.1.0"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
 edition = "2021"
-exclude = [
-    "/assets/",
-    "/docs/",
-    "/.github/",
-]
+exclude = ["/assets/", "/docs/", "/.github/"]
 repository = "https://github.com/janhohenheim/avian_pickup"
 
 [features]
@@ -17,32 +13,23 @@ repository = "https://github.com/janhohenheim/avian_pickup"
 # If you want to use f64 precision, add `avian_pickup` with `default-features = false` 
 # and activate the f64-related features in `avian3d`.
 default = ["avian3d/f32", "avian3d/parry-f32"]
-serialize = [
-    "dep:serde",
-    "bevy/serialize",
-    "avian3d/serialize",
-]
+serialize = ["dep:serde", "bevy/serialize", "avian3d/serialize"]
 
 [dependencies]
 rand = "0.8.5"
-serde = { version = "1.0.210", optional = true}
+serde = { version = "1.0.210", optional = true }
 
 [dependencies.bevy]
-version = "0.14.2"
+version = "0.15"
 default-features = false
 
 [dependencies.avian3d]
-git = "https://github.com/Jondolf/avian"
+version = "0.2.0"
 default-features = false
-features = [
-    "3d",
-    "default-collider",
-]
+features = ["3d", "default-collider"]
 
 [dev-dependencies]
-avian3d = { git = "https://github.com/Jondolf/avian" }
-bevy = { version = "0.14.2", features = ["dynamic_linking"] }
-avian_interpolation3d = { git = "https://github.com/janhohenheim/avian_interpolation" }
+bevy = { version = "0.15", features = ["dynamic_linking"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

@@ -14,7 +14,7 @@ pub fn update_error(
     q_prop: Query<&Position>,
     mut q_actor: Query<(&mut HoldError, &ShadowParams, &Holding)>,
 ) {
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
     for (mut hold_error, shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
         hold_error.error_time += dt;

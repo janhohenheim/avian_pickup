@@ -5,12 +5,8 @@
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_6, PI};
 
 use avian3d::prelude::*;
-use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
-use bevy::{
-    app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
-    time::run_fixed_main_schedule,
-};
+use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
 use rand::Rng;
 
 mod util;
@@ -20,7 +16,6 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            AvianInterpolationPlugin::default(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Resettable),
@@ -39,7 +34,7 @@ fn main() {
                 make_npc_catch,
                 rotate_camera,
             )
-                .before(run_fixed_main_schedule),
+                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         // Run fixed update zero to many times per frame.
         .add_systems(
@@ -51,7 +46,8 @@ fn main() {
         // React to things that happened during the fixed update.
         .add_systems(
             RunFixedMainLoop,
-            (on_npc_hold, on_player_throw, on_aim_timer).after(run_fixed_main_schedule),
+            (on_npc_hold, on_player_throw, on_aim_timer)
+                .in_set(RunFixedMainLoopSystem::AfterFixedMainLoop),
         )
         .run();
 }
@@ -119,10 +115,8 @@ fn setup(
 
     commands.spawn((
         Name::new("Player Camera"),
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.0, 5.0),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 1.0, 5.0),
         actor_config.clone(),
         Player,
     ));
@@ -132,37 +126,28 @@ fn setup(
     commands
         .spawn((
             Name::new("NPC"),
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(npc_shape)),
-                material: npc_material.clone(),
-                transform: Transform::from_xyz(0.0, 1.0, -5.0).looking_to(Vec3::Z, Vec3::Y),
-                ..default()
-            },
+            Mesh3d::from(meshes.add(Mesh::from(npc_shape))),
+            MeshMaterial3d::from(npc_material.clone()),
+            Transform::from_xyz(0.0, 1.0, -5.0).looking_to(Vec3::Z, Vec3::Y),
             actor_config,
             Npc::default(),
         ))
         .with_children(|parent| {
             parent.spawn((
                 Name::new("Visor"),
-                PbrBundle {
-                    mesh: meshes.add(Mesh::from(visor_shape)),
-                    material: visor_material.clone(),
-                    transform: Transform::from_xyz(0.0, 0.0, -0.71),
-                    ..default()
-                },
+                Mesh3d::from(meshes.add(Mesh::from(visor_shape))),
+                MeshMaterial3d::from(visor_material.clone()),
+                Transform::from_xyz(0.0, 0.0, -0.71),
             ));
         });
 
     commands.spawn((
         Name::new("Light"),
-        PointLightBundle {
-            transform: Transform::from_xyz(3.0, 8.0, 3.0),
-            point_light: PointLight {
-                color: Color::WHITE,
-                intensity: 2_000_000.0,
-                shadows_enabled: true,
-                ..default()
-            },
+        Transform::from_xyz(3.0, 8.0, 3.0),
+        PointLight {
+            color: Color::WHITE,
+            intensity: 2_000_000.0,
+            shadows_enabled: true,
             ..default()
         },
     ));
@@ -179,12 +164,9 @@ fn setup(
     for (i, transform) in terrain_transforms.iter().enumerate() {
         commands.spawn((
             Name::new(format!("Wall {}", i)),
-            PbrBundle {
-                mesh: ground_mesh.clone(),
-                material: terrain_material.clone(),
-                transform: *transform,
-                ..default()
-            },
+            Mesh3d::from(ground_mesh.clone()),
+            MeshMaterial3d::from(terrain_material.clone()),
+            *transform,
             RigidBody::Static,
             Collider::from(ground_shape),
         ));
@@ -193,15 +175,15 @@ fn setup(
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
     commands.spawn((
         Name::new("Box"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(box_shape)),
-            material: prop_material.clone(),
-            transform: INITIAL_BOX_TRANSFORM,
-            ..default()
-        },
+        Mesh3d::from(meshes.add(Mesh::from(box_shape))),
+        MeshMaterial3d::from(prop_material.clone()),
+        INITIAL_BOX_TRANSFORM,
         RigidBody::Dynamic,
         Collider::from(box_shape),
         Prop,
+        // Because we are moving the camera independently of the physics system,
+        // interpolation is needed to prevent jittering.
+        TransformInterpolation,
     ));
 }
 
@@ -260,7 +242,7 @@ fn rotate_npc(
     let Ok(prop) = props.get_single() else {
         return;
     };
-    let dt = time.delta_seconds();
+    let dt = time.delta_secs();
 
     for (mut transform, npc) in &mut npcs {
         let dir = match npc.state {

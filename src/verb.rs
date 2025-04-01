@@ -1,7 +1,4 @@
-use bevy::{
-    ecs::system::{EntityCommand, RunSystemOnce},
-    prelude::*,
-};
+use bevy::{ecs::system::EntityCommand, prelude::*};
 
 pub(super) fn plugin(_app: &mut App) {}
 
@@ -59,7 +56,9 @@ impl SetVerb {
 
 impl EntityCommand for SetVerb {
     fn apply(self, actor: Entity, world: &mut World) {
-        world.run_system_once_with((actor, self.0), set_verb);
+        world
+            .run_system_cached_with(set_verb, (actor, self.0))
+            .unwrap();
     }
 }
 
