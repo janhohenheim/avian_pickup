@@ -41,7 +41,7 @@ fn spawn_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         })
         .with_children(|parent| {
-            parent.spawn(ImageNode::new(crosshair_texture.into()));
+            parent.spawn(ImageNode::new(crosshair_texture));
         });
 }
 

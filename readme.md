@@ -28,9 +28,9 @@ Modeled after Half Life 2's gravity gun.
 ## Limitations
 
 - Since the physics are running only in fixed updates but are also
-    right in front of the camera, which should run in a variable update,
-    you *need* some sort of interpolation to make it look good. I recommend
-    [`bevy_transform_interpolation`](https://github.com/Jondolf/bevy_transform_interpolation).
+  right in front of the camera, which should run in a variable update,
+  you *need* some sort of interpolation to make it look good. I recommend
+  [`bevy_transform_interpolation`](https://github.com/Jondolf/bevy_transform_interpolation).
 - Only a single object can be picked up per actor at a time.
 - An object cannot be pulled away while it is being held by someone else.
 - Only works in 3D.
@@ -84,9 +84,9 @@ App::new()
 The main two concepts of Avian Pickup are *actors* and *props*. It's simple:
 
 - An *actor* is something that can pick up *props*.
-    These are spatial entities with an [`AvianPickupActor`] component.
+  these are spatial entities with an [`AvianPickupActor`] component.
 - An *prop* is an object to be picked up.
-    These are spatial entities with a regular old [`RigidBody::Dynamic`] component and associated colliders.
+  These are spatial entities with a regular old [`RigidBody::Dynamic`] component and associated colliders.
 
 As such, this is the minimum version of these two:
 
