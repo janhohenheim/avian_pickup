@@ -82,17 +82,19 @@ use avian_pickup::prelude::*;
 fn setup(mut commands: Commands) {
     // Actor
     commands.spawn((
-        SpatialBundle::default(),
+        Transform::default(),
+        Visibility::default(),
         AvianPickupActor::default(),
     ));
 
     // Prop
     commands.spawn((
-        SpatialBundle::default(),
+        Transform::default(),
+        Visibility::default(),
         RigidBody::Dynamic,
         Collider::sphere(0.5),
         // Important to prevent jittering
-        InterpolateTransform,
+        TransformInterpolation,
     ));
 }
 ```
