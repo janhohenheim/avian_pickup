@@ -68,7 +68,7 @@ fn find_object(
             continue;
         }
 
-        let can_hold = prop.toi <= config.interaction_distance;
+        let can_hold = prop.toi <= config.hold.distance_to_allow_holding;
         if can_hold {
             cooldown.hold();
             commands
