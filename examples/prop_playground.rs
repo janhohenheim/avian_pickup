@@ -6,7 +6,6 @@ use std::f32::consts::FRAC_PI_2;
 use avian3d::prelude::*;
 use avian_pickup::{prelude::*, prop::PreferredPickupDistanceOverride};
 use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
-use bevy_transform_interpolation::prelude::*;
 
 mod util;
 
@@ -15,9 +14,6 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            // Because we are moving the camera independently of the physics system,
-            // interpolation is needed to prevent jittering.
-            TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Generic),
@@ -103,6 +99,9 @@ fn setup(
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
+        // Because we are moving the camera independently of the physics system,
+        // interpolation is needed to prevent jittering.
+        TransformInterpolation,
     ));
     commands.spawn((
         Name::new("Medium Box"),
@@ -113,6 +112,7 @@ fn setup(
         RigidBody::Dynamic,
         Collider::from(box_shape),
         ColliderDensity(10.0),
+        TransformInterpolation,
     ));
     commands.spawn((
         Name::new("Heavy Box"),
@@ -124,6 +124,7 @@ fn setup(
         Collider::from(box_shape),
         ColliderDensity(15.0),
         PreferredPickupDistanceOverride(2.5),
+        TransformInterpolation,
     ));
 
     let plan_transforms = [
@@ -142,6 +143,7 @@ fn setup(
             Collider::from(box_shape),
             ColliderDensity(11.0),
             PreferredPickupDistanceOverride(2.5),
+            TransformInterpolation,
         ));
     }
 
@@ -163,6 +165,7 @@ fn setup(
             RigidBody::Dynamic,
             Collider::from(ball_shape),
             ColliderDensity(9.0),
+            TransformInterpolation,
         ));
     }
 
@@ -189,6 +192,7 @@ fn setup(
             RigidBody::Dynamic,
             Collider::from(cylinder_shape),
             ColliderDensity(8.0),
+            TransformInterpolation,
         ));
     }
 }

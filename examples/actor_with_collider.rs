@@ -6,7 +6,6 @@ use std::f32::consts::FRAC_PI_2;
 use avian3d::prelude::*;
 use avian_pickup::prelude::*;
 use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
-use bevy_transform_interpolation::prelude::*;
 
 mod util;
 
@@ -15,9 +14,6 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            // Because we are moving the camera independently of the physics system,
-            // interpolation is needed to prevent jittering.
-            TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Generic),
@@ -72,8 +68,7 @@ fn setup(
         CollisionLayers::new(CollisionLayer::Player, LayerMask::ALL),
         RigidBody::Kinematic,
         Collider::capsule(0.2, 1.3),
-        // We are moving this entity manually, so disable interpolation.
-        NoTransformEasing,
+        // We are moving this entity manually, so it doesn't need interpolation.
     ));
 
     commands.spawn((
@@ -107,6 +102,9 @@ fn setup(
         RigidBody::Dynamic,
         Collider::from(box_shape),
         CollisionLayers::new(CollisionLayer::Prop, LayerMask::ALL),
+        // Because we are moving the camera independently of the physics system,
+        // interpolation is needed to prevent jittering.
+        TransformInterpolation,
     ));
 }
 
@@ -140,10 +138,9 @@ fn handle_input(
 
 fn rotate_camera(
     mut mouse_motion: EventReader<MouseMotion>,
-    // Note how we change the `Rotation` and not the `Transform` as this is a rigid body now.
-    mut cameras: Query<&mut Rotation, With<Camera>>,
+    mut cameras: Query<&mut Transform, With<Camera>>,
 ) {
-    for mut rotation in &mut cameras {
+    for mut transform in &mut cameras {
         // The factors are just arbitrary mouse sensitivity values.
         // It's often nicer to have a faster horizontal sensitivity than vertical.
         let mouse_sensitivity = Vec2::new(0.003, 0.002);
@@ -153,10 +150,10 @@ fn rotate_camera(
             let delta_pitch = -motion.delta.y * mouse_sensitivity.y;
 
             const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-            let (yaw, pitch, roll) = rotation.to_euler(EulerRot::YXZ);
+            let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
             let yaw = yaw + delta_yaw;
             let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-            rotation.0 = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
+            transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
         }
     }
 }

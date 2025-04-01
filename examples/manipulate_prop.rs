@@ -13,7 +13,6 @@ use bevy::{
     input::mouse::{MouseMotion, MouseWheel},
     prelude::*,
 };
-use bevy_transform_interpolation::prelude::*;
 
 mod util;
 
@@ -22,9 +21,6 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            // Because we are moving the camera independently of the physics system,
-            // interpolation is needed to prevent jittering.
-            TransformInterpolationPlugin::interpolate_all(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Manipulation),
@@ -99,6 +95,9 @@ fn setup(
         Collider::from(box_shape),
         PreferredPickupDistanceOverride::default(),
         PreferredPickupRotation::default(),
+        // Because we are moving the camera independently of the physics system,
+        // interpolation is needed to prevent jittering.
+        TransformInterpolation,
     ));
 }
 
