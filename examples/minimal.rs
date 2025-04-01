@@ -3,12 +3,8 @@
 use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
-use avian_interpolation3d::prelude::*;
 use avian_pickup::prelude::*;
-use bevy::{
-    app::RunFixedMainLoop, color::palettes::tailwind, input::mouse::MouseMotion, prelude::*,
-    time::run_fixed_main_schedule,
-};
+use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
 
 mod util;
 
@@ -17,9 +13,6 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             PhysicsPlugins::default(),
-            // Because we are moving the camera independently of the physics system,
-            // interpolation is needed to prevent jittering.
-            AvianInterpolationPlugin::default(),
             AvianPickupPlugin::default(),
             // This is just here to make the example look a bit nicer.
             util::plugin(util::Example::Generic),
@@ -31,7 +24,7 @@ fn main() {
         // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).before(run_fixed_main_schedule),
+            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
         )
         .run();
 }
@@ -47,10 +40,8 @@ fn setup(
 
     commands.spawn((
         Name::new("Player Camera"),
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 1.0, 5.0),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 1.0, 5.0),
         // Add this to set up the camera as the entity that can pick up
         // objects.
         AvianPickupActor::default(),
@@ -58,14 +49,11 @@ fn setup(
 
     commands.spawn((
         Name::new("Light"),
-        PointLightBundle {
-            transform: Transform::from_xyz(3.0, 8.0, 3.0),
-            point_light: PointLight {
-                color: Color::WHITE,
-                intensity: 2_000_000.0,
-                shadows_enabled: true,
-                ..default()
-            },
+        Transform::from_xyz(3.0, 8.0, 3.0),
+        PointLight {
+            color: Color::WHITE,
+            intensity: 2_000_000.0,
+            shadows_enabled: true,
             ..default()
         },
     ));
@@ -73,11 +61,8 @@ fn setup(
     let ground_shape = Cuboid::new(15.0, 0.25, 15.0);
     commands.spawn((
         Name::new("Ground"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(ground_shape)),
-            material: terrain_material.clone(),
-            ..default()
-        },
+        Mesh3d::from(meshes.add(Mesh::from(ground_shape))),
+        MeshMaterial3d::from(terrain_material.clone()),
         RigidBody::Static,
         Collider::from(ground_shape),
     ));
@@ -85,15 +70,15 @@ fn setup(
     let box_shape = Cuboid::from_size(Vec3::splat(0.5));
     commands.spawn((
         Name::new("Box"),
-        PbrBundle {
-            mesh: meshes.add(Mesh::from(box_shape)),
-            material: prop_material.clone(),
-            transform: Transform::from_xyz(0.0, 2.0, 3.5),
-            ..default()
-        },
+        Mesh3d::from(meshes.add(Mesh::from(box_shape))),
+        MeshMaterial3d::from(prop_material.clone()),
+        Transform::from_xyz(0.0, 2.0, 3.5),
         // All `RigidBody::Dynamic` entities are able to be picked up.
         RigidBody::Dynamic,
         Collider::from(box_shape),
+        // Because we are moving the camera independently of the physics system,
+        // interpolation is needed to prevent jittering.
+        TransformInterpolation,
     ));
 }
 

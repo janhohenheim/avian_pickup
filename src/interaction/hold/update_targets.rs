@@ -41,7 +41,7 @@ fn set_targets(
         if hold_error.error > max_error {
             commands
                 .entity(actor)
-                .add(SetVerb::new(Verb::Drop { prop, forced: true }));
+                .queue(SetVerb::new(Verb::Drop { prop, forced: true }));
             continue;
         }
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
@@ -145,12 +145,15 @@ fn set_targets(
             actor_transform.translation,
             target_rotation,
             forward,
-            max_cast_toi,
-            true,
+            &ShapeCastConfig {
+                max_distance: max_cast_toi,
+                ignore_origin_penetration: true,
+                ..default()
+            },
             &terrain_filter,
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
-            let toi = terrain_hit.time_of_impact;
+            let toi = terrain_hit.distance;
             let fraction = toi / max_distance;
             if fraction < 0.5 {
                 // not doing `max(min_distance, toi)` here because that would

@@ -50,7 +50,7 @@ pub(super) fn find_prop_in_cone(
             &config.obstacle_filter,
             &|entity| q_collider.contains(entity),
         ) {
-            let occluded = hit.entity != collider && hit.time_of_impact <= dist;
+            let occluded = hit.entity != collider && hit.distance <= dist;
             if occluded {
                 continue;
             }
@@ -69,7 +69,7 @@ pub(super) fn find_prop_in_cone(
                 nearest_dist = dist;
                 canditate.replace(Prop {
                     entity: collider,
-                    toi: hit.time_of_impact,
+                    toi: hit.distance,
                 });
             }
         }
