@@ -69,14 +69,14 @@ fn find_object(
         };
         let rigid_body_entity = rigid_body_entity.get();
 
-        let Ok((&rigid_body, &mass, mut impulse, prop_position, is_already_being_held)) =
+        let Ok((_, &mass, mut impulse, prop_position, is_already_being_held)) =
             q_rigid_body.get_mut(rigid_body_entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
             continue;
         };
 
-        if is_already_being_held || !can_pull(rigid_body, mass, config) {
+        if is_already_being_held || !can_pull(mass, config) {
             continue;
         }
 
