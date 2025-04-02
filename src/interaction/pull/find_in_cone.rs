@@ -65,24 +65,7 @@ pub(super) fn find_prop_in_cone(
                 continue;
             }
         }
-
-        // Make sure it isn't occluded by other props
-        if let Some(hit) = spatial_query.cast_ray_predicate(
-            origin.translation,
-            los,
-            dist,
-            true,
-            &config.prop_filter,
-            &is_dynamic,
-        ) {
-            if hit.entity == collider {
-                nearest_dist = dist;
-                canditate.replace(Prop {
-                    entity: collider,
-                    toi: hit.distance,
-                });
-            }
-        }
     }
+    info!("canditate: {:?}", canditate);
     canditate
 }
