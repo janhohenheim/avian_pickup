@@ -76,7 +76,7 @@ pub struct AvianPickupActor {
     /// Changes how wide the pickup range is. Lower numbers are wider.
     /// This is the dot product of the direction the player is looking and the
     /// direction to the object.\
-    /// Default: 0.92
+    /// Default: 0.97
     ///
     /// Corresponds to Source's [`physcannon_cone`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_cone).
     pub interaction_cone: f32,
@@ -132,7 +132,7 @@ impl Default for AvianPickupActorPullConfig {
 pub struct AvianPickupActorHoldConfig {
     /// The maximum distance between the player and the object when it can be
     /// picked up.\
-    /// Default: 1.0 m
+    /// Default: 1.25 m
     pub distance_to_allow_holding: Scalar,
     /// The minimum distance an object must be from the player when picked up.
     /// Usually, the prop will try to stay at
@@ -186,7 +186,7 @@ pub struct AvianPickupActorHoldConfig {
 impl Default for AvianPickupActorHoldConfig {
     fn default() -> Self {
         Self {
-            distance_to_allow_holding: 1.0,
+            distance_to_allow_holding: 1.25,
             min_distance: 0.5,
             linear_velocity_easing: 1.0,
             angular_velocity_easing: 1.6,
@@ -216,6 +216,8 @@ pub struct AvianPickupActorThrowConfig {
     /// Default: 20.0 kg
     pub cutoff_mass_for_slowdown: Scalar,
     /// The range of linear speeds in m/s that the object can be thrown with.\
+    /// The lower bound is used for very heavy objects, the upper bound for \
+    /// very light objects.\
     /// Can be overridden by adding a
     /// [`ThrownLinearSpeedOverride`](crate::prop::ThrownLinearSpeedOverride)
     /// to the prop.\
@@ -288,7 +290,7 @@ impl Default for AvianPickupActor {
             obstacle_filter: default(),
             actor_filter: default(),
             interaction_distance: 1.5,
-            interaction_cone: 0.92,
+            interaction_cone: 0.97,
             pull: default(),
             hold: default(),
             throw: default(),
