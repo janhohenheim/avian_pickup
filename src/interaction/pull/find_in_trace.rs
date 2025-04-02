@@ -15,29 +15,28 @@ pub(super) fn find_prop_in_trace(
             .get(entity)
             .is_ok_and(|rigid_body| rigid_body.is_dynamic())
     };
-    let hit = spatial_query.cast_ray_predicate(
-        origin.translation,
-        origin.forward(),
-        test_length,
-        true,
-        &config.prop_filter,
-        &is_dynamic,
-    );
-
-    hit.filter(|hit| {
-        if let Some(terrain_hit) = spatial_query.cast_ray(
+    let hit = spatial_query
+        .cast_ray_predicate(
             origin.translation,
             origin.forward(),
             test_length,
             true,
-            &config.obstacle_filter,
-        ) {
-            let occluded = terrain_hit.entity != hit.entity && terrain_hit.distance <= hit.distance;
-            !occluded
-        } else {
-            true
-        }
-    });
+            &config.prop_filter,
+            &is_dynamic,
+        )
+        .filter(|hit| {
+            if let Some(terrain_hit) = spatial_query.cast_ray(
+                origin.translation,
+                origin.forward(),
+                hit.distance,
+                true,
+                &config.obstacle_filter,
+            ) {
+                terrain_hit.entity == hit.entity
+            } else {
+                true
+            }
+        });
 
     if let Some(hit) = hit {
         Prop {
