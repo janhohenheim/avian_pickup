@@ -14,7 +14,6 @@ pub(super) fn find_prop_in_cone(
             .get(entity)
             .is_ok_and(|rigid_body| rigid_body.is_dynamic())
     };
-    let is_not_dynamic = |entity: Entity| !is_dynamic(entity);
 
     const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0 * METERS_PER_INCH;
     // Reminder that the actual trace is done with 4 times the
@@ -52,19 +51,19 @@ pub(super) fn find_prop_in_cone(
         }
 
         // Make sure it isn't occluded by terrain
-        if let Some(hit) = spatial_query.cast_ray_predicate(
-            origin.translation,
-            los,
-            dist,
-            true,
-            &config.obstacle_filter,
-            &is_not_dynamic,
-        ) {
-            let occluded = hit.entity != collider && hit.distance <= dist;
-            if occluded {
+        if let Some(hit) =
+            spatial_query.cast_ray(origin.translation, los, dist, true, &config.obstacle_filter)
+        {
+            if hit.entity != collider {
                 continue;
             }
         }
+
+        nearest_dist = dist;
+        canditate.replace(Prop {
+            entity: collider,
+            toi: dist,
+        });
     }
     info!("canditate: {:?}", canditate);
     canditate
