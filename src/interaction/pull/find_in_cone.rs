@@ -65,6 +65,5 @@ pub(super) fn find_prop_in_cone(
             toi: dist,
         });
     }
-    info!("canditate: {:?}", canditate);
     canditate
 }

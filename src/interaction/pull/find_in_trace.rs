@@ -65,12 +65,10 @@ pub(super) fn find_prop_in_trace(
                 origin.translation,
                 origin.rotation,
                 origin.forward(),
-                &ShapeCastConfig::from_max_distance(test_length),
+                &ShapeCastConfig::from_max_distance(hit.distance),
                 &config.obstacle_filter,
             ) {
-                let occluded =
-                    terrain_hit.entity != hit.entity && terrain_hit.distance <= hit.distance;
-                !occluded
+                terrain_hit.entity == hit.entity
             } else {
                 true
             }
