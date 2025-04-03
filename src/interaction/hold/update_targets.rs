@@ -31,8 +31,7 @@ fn set_targets(
         Option<&PreferredPickupDistanceOverride>,
         Option<&PitchRangeOverride>,
     )>,
-
-    q_collider: Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
+    q_collider: Query<(&Position, &Rotation, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {

@@ -6,19 +6,19 @@ pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 pub(crate) fn rigid_body_compound_collider(
     rigid_body_position: Position,
     colliders: Option<&RigidBodyColliders>,
-    q_collider: &Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
+    q_collider: &Query<(&Position, &Rotation, &Collider, Option<&CollisionLayers>)>,
     filter: &SpatialQueryFilter,
 ) -> Option<Collider> {
     let collider_entities = colliders?;
     let colliders = collider_entities
         .iter()
         .filter_map(|e| {
-            let (transform, collider, layers) = q_collider.get(e).ok()?;
+            let (position, rotation, collider, layers) = q_collider.get(e).ok()?;
             let layers = layers.copied().unwrap_or_default();
             filter.test(e, layers).then(|| {
                 (
-                    transform.translation - rigid_body_position.0,
-                    transform.rotation,
+                    position.0 - rigid_body_position.0,
+                    rotation.0,
                     collider.clone(),
                 )
             })
