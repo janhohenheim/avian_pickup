@@ -10,7 +10,7 @@ use avian_pickup::{
 };
 use bevy::{
     color::palettes::tailwind,
-    input::mouse::{AccumulatedMouseMotion, MouseMotion, MouseWheel},
+    input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll},
     prelude::*,
 };
 
@@ -131,8 +131,13 @@ fn handle_pickup_input(
 
 fn rotate_camera(
     accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
-    mut transform: Single<&mut Transform, With<Camera>>,
+    camera: Single<(&mut Transform, &InputAccumulation), With<Camera>>,
 ) {
+    let (mut transform, input) = camera.into_inner();
+    if input.shift {
+        return;
+    }
+
     // The factors are just arbitrary mouse sensitivity values.
     let camera_sensitivity = Vec2::new(0.001, 0.001);
 
@@ -150,25 +155,21 @@ fn rotate_camera(
 }
 
 fn accumulate_input(
-    mut mouse_motion: EventReader<MouseMotion>,
-    mut mouse_wheel: EventReader<MouseWheel>,
+    mouse_motion: Res<AccumulatedMouseMotion>,
+    mouse_wheel: Res<AccumulatedMouseScroll>,
     key_input: Res<ButtonInput<KeyCode>>,
     mut accumulation: Query<&mut InputAccumulation>,
 ) {
-    for motion in mouse_motion.read() {
-        for mut input in &mut accumulation {
-            // The factors are just arbitrary mouse sensitivity values.
-            // It's often nicer to have a faster horizontal sensitivity than vertical.
-            let mouse_sensitivity = Vec2::new(0.003, 0.002);
-            input.rotation += motion.delta * mouse_sensitivity;
-        }
+    for mut input in &mut accumulation {
+        // The factors are just arbitrary mouse sensitivity values.
+        // It's often nicer to have a faster horizontal sensitivity than vertical.
+        let mouse_sensitivity = Vec2::new(0.003, 0.002);
+        input.rotation += mouse_motion.delta * mouse_sensitivity;
     }
-    for wheel in mouse_wheel.read() {
-        for mut input in &mut accumulation {
-            const SCROLL_SENSITIVITY: f32 = 1.0;
-            let delta = wheel.y * SCROLL_SENSITIVITY;
-            input.zoom += delta as i32;
-        }
+    for mut input in &mut accumulation {
+        const SCROLL_SENSITIVITY: f32 = 1.0;
+        let delta = mouse_wheel.delta.y * SCROLL_SENSITIVITY;
+        input.zoom += delta as i32;
     }
     for mut input in &mut accumulation {
         input.shift =
@@ -213,12 +214,17 @@ fn move_prop(
             continue;
         }
 
+        let rotation_sensitivity = Vec2::new(10.0, 10.0);
         // Make the yaw global
-        let y_rotation_global = Quat::from_rotation_y(input.rotation.x * dt);
+        let y_rotation_global =
+            Quat::from_rotation_y(input.rotation.x * rotation_sensitivity.x * dt);
 
         // Make the pitch relative to the actor's orientation
         let horizontal_axis = transform.right().into();
-        let vertical_rotation = Quat::from_axis_angle(horizontal_axis, input.rotation.y * dt);
+        let vertical_rotation = Quat::from_axis_angle(
+            horizontal_axis,
+            input.rotation.y * rotation_sensitivity.y * dt,
+        );
         rotation.0 = vertical_rotation * y_rotation_global * rotation.0;
 
         input.rotation = Vec2::ZERO;
