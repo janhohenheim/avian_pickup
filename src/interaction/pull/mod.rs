@@ -40,13 +40,25 @@ fn find_object(
         &Position,
         Has<HeldProp>,
     )>,
-    q_collider: Query<&Position>,
+    q_position: Query<&Position>,
 ) {
     for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
-        let prop = find_prop_in_trace(&spatial_query, actor_transform, config)
-            .or_else(|| find_prop_in_cone(&spatial_query, actor_transform, config, &q_collider));
-
+        let prop = find_prop_in_trace(
+            &spatial_query,
+            actor_transform,
+            config,
+            &q_rigid_body.transmute_lens().query(),
+        )
+        .or_else(|| {
+            find_prop_in_cone(
+                &spatial_query,
+                actor_transform,
+                config,
+                &q_position,
+                &q_rigid_body.transmute_lens().query(),
+            )
+        });
         let Some(prop) = prop else {
             continue;
         };
@@ -57,14 +69,14 @@ fn find_object(
         };
         let rigid_body_entity = rigid_body_entity.get();
 
-        let Ok((&rigid_body, &mass, mut impulse, prop_position, is_already_being_held)) =
+        let Ok((_, &mass, mut impulse, prop_position, is_already_being_held)) =
             q_rigid_body.get_mut(rigid_body_entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
             continue;
         };
 
-        if is_already_being_held || !can_pull(rigid_body, mass, config) {
+        if is_already_being_held || !can_pull(mass, config) {
             continue;
         }
 

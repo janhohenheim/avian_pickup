@@ -36,6 +36,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let terrain_material = materials.add(Color::WHITE);
+    let obstacle_material = materials.add(Color::from(tailwind::RED_300));
     let prop_material = materials.add(Color::from(tailwind::EMERALD_300));
 
     commands.spawn((
@@ -44,7 +45,10 @@ fn setup(
         Transform::from_xyz(0.0, 1.0, 5.0),
         // Add this to set up the camera as the entity that can pick up
         // objects.
-        AvianPickupActor::default(),
+        AvianPickupActor {
+            interaction_distance: 15.0,
+            ..default()
+        },
     ));
 
     commands.spawn((
@@ -79,6 +83,17 @@ fn setup(
         // Because we are moving the camera independently of the physics system,
         // interpolation is needed to prevent jittering.
         TransformInterpolation,
+    ));
+
+    let column_shape = Cylinder::new(0.1, 2.0);
+    commands.spawn((
+        Name::new("Column"),
+        Mesh3d::from(meshes.add(Mesh::from(column_shape))),
+        MeshMaterial3d::from(obstacle_material.clone()),
+        Transform::from_xyz(0.0, 1.0, 4.0),
+        // As a static object, the column will not be picked up.
+        RigidBody::Static,
+        Collider::from(column_shape),
     ));
 }
 

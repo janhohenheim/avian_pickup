@@ -5,7 +5,7 @@ use std::f32::consts::FRAC_PI_2;
 
 use avian3d::prelude::*;
 use avian_pickup::{prelude::*, prop::PreferredPickupDistanceOverride};
-use bevy::{color::palettes::tailwind, input::mouse::MouseMotion, prelude::*};
+use bevy::{color::palettes::tailwind, input::mouse::AccumulatedMouseMotion, prelude::*};
 
 mod util;
 
@@ -226,21 +226,21 @@ fn handle_input(
 }
 
 fn rotate_camera(
-    mut mouse_motion: EventReader<MouseMotion>,
-    mut cameras: Query<&mut Transform, With<Camera>>,
+    accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
+    mut transform: Single<&mut Transform, With<Camera>>,
 ) {
-    for mut transform in &mut cameras {
-        let mouse_sensitivity = Vec2::new(0.003, 0.002);
+    // The factors are just arbitrary mouse sensitivity values.
+    let camera_sensitivity = Vec2::new(0.001, 0.001);
 
-        for motion in mouse_motion.read() {
-            let delta_yaw = -motion.delta.x * mouse_sensitivity.x;
-            let delta_pitch = -motion.delta.y * mouse_sensitivity.y;
+    let delta = accumulated_mouse_motion.delta;
+    let delta_yaw = -delta.x * camera_sensitivity.x;
+    let delta_pitch = -delta.y * camera_sensitivity.y;
 
-            const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
-            let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
-            let yaw = yaw + delta_yaw;
-            let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
-            transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
-        }
-    }
+    let (yaw, pitch, roll) = transform.rotation.to_euler(EulerRot::YXZ);
+    let yaw = yaw + delta_yaw;
+
+    const PITCH_LIMIT: f32 = FRAC_PI_2 - 0.01;
+    let pitch = (pitch + delta_pitch).clamp(-PITCH_LIMIT, PITCH_LIMIT);
+
+    transform.rotation = Quat::from_euler(EulerRot::YXZ, yaw, pitch, roll);
 }

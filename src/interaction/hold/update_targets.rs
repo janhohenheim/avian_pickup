@@ -80,36 +80,19 @@ fn set_targets(
         };
         let prop_radius_wrt_direction =
             collide_get_extent(&prop_collider, Vec3::ZERO, prop_rotation.0, -forward);
-        let actor_collider = rigid_body_compound_collider(
-            actor,
-            &q_collider_ancestor,
-            &q_collider,
-            &config.actor_filter,
-        );
-        let actor_radius_wrt_direction = if let Some(actor_collider) = actor_collider {
-            let min_distance_to_not_penetrate = collide_get_extent(
-                &actor_collider,
-                Vec3::ZERO,
-                actor_transform.rotation,
-                forward,
-            );
-            min_distance_to_not_penetrate.max(config.hold.min_distance)
-        } else {
-            config.hold.min_distance
-        };
 
-        let min_distance = prop_radius_wrt_direction + actor_radius_wrt_direction;
+        let min_non_penetrating_distance = prop_radius_wrt_direction;
+        let min_distance = min_non_penetrating_distance + config.hold.min_distance;
         // The 2013 code now additionally does `min_distance = (min_distance * 2) + 24
         // inches` That seems straight up bizarre, so I refuse to do that.
         let preferred_distance = preferred_distance
             .map(|d| d.0)
-            .unwrap_or(config.hold.preferred_distance);
+            .unwrap_or(config.hold.preferred_distance)
+            + min_non_penetrating_distance;
         // The 2013 code does `max_distance = preferred_distance + min_distance`
         // which means that `preferred_distance` is the distance between the prop's
         // edge and the actors's edge. Expect psyche, actually `min_distance` gets
-        // deduced again at some point! I think it's more intuitive to have the
-        // preferred distance be the distance between the prop's and
-        // actor's origins if possible instead.
+        // deduced again at some point!
         let max_distance = preferred_distance.max(min_distance);
 
         let Some(actor_space_rotation) = preferred_rotation

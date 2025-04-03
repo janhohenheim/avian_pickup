@@ -69,14 +69,14 @@ pub struct AvianPickupActor {
     /// Default: Include all entities
     pub actor_filter: SpatialQueryFilter,
     /// How far away an object can be interacted with.\
-    /// Default: 1.5 m
+    /// Default: 5.0 m
     ///
-    /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength).
+    /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength) * 4.0.
     pub interaction_distance: Scalar,
     /// Changes how wide the pickup range is. Lower numbers are wider.
     /// This is the dot product of the direction the player is looking and the
     /// direction to the object.\
-    /// Default: 0.92
+    /// Default: 0.97
     ///
     /// Corresponds to Source's [`physcannon_cone`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_cone).
     pub interaction_cone: f32,
@@ -132,9 +132,15 @@ impl Default for AvianPickupActorPullConfig {
 pub struct AvianPickupActorHoldConfig {
     /// The maximum distance between the player and the object when it can be
     /// picked up.\
-    /// Default: 1.0 m
+    /// "distance" in this context is the distance between the edge of the prop
+    /// and the origin of the actor.\
+    /// Default: 3.0 m   
+    ///
+    /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength)
     pub distance_to_allow_holding: Scalar,
     /// The minimum distance an object must be from the player when picked up.
+    /// "distance" in this context is the distance between the edge of the prop
+    /// and the origin of the actor.\
     /// Usually, the prop will try to stay at
     /// [`preferred_distance`](Self::preferred_distance),
     /// but will fall back to this when there is terrain in the way as
@@ -142,7 +148,7 @@ pub struct AvianPickupActorHoldConfig {
     /// [`AvianPickupActor::obstacle_filter`](AvianPickupActor::obstacle_filter).
     /// \ If the actor is a rigid body, the distance used in that case is
     /// `max(collider_radius, min_distance)`.\
-    /// Default: 0.5 m
+    /// Default: 0.2 m
     pub min_distance: Scalar,
     /// A number >= 0 that indicates how much exponential easing will be applied
     /// to the held prop's velocity when the actor is moving.\
@@ -165,10 +171,12 @@ pub struct AvianPickupActorHoldConfig {
     pub pitch_range: RangeInclusive<f32>,
     /// The distance in meters between the player and the object when
     /// picked up and there is no obstacle in the way.\
+    /// "distance" in this context is the distance between the edge of the prop
+    /// and the origin of the actor.\
     /// Can be overridden by adding a
     /// [`PreferredPickupDistanceOverride`](crate::prop::PreferredPickupDistanceOverride)
     /// to the prop.\
-    /// Default: 1.25 m
+    /// Default: 0.6 m
     pub preferred_distance: Scalar,
     /// The mass in kg of the object when picked up.
     /// This mechanism is needed because the held object's velocity is
@@ -186,12 +194,12 @@ pub struct AvianPickupActorHoldConfig {
 impl Default for AvianPickupActorHoldConfig {
     fn default() -> Self {
         Self {
-            distance_to_allow_holding: 1.0,
-            min_distance: 0.5,
+            distance_to_allow_holding: 3.0,
+            min_distance: 0.2,
             linear_velocity_easing: 1.0,
             angular_velocity_easing: 1.6,
             pitch_range: (-75.0_f32).to_radians()..=75.0_f32.to_radians(),
-            preferred_distance: 1.25,
+            preferred_distance: 0.6,
             temporary_prop_mass: 1.0,
         }
     }
@@ -216,6 +224,8 @@ pub struct AvianPickupActorThrowConfig {
     /// Default: 20.0 kg
     pub cutoff_mass_for_slowdown: Scalar,
     /// The range of linear speeds in m/s that the object can be thrown with.\
+    /// The lower bound is used for very heavy objects, the upper bound for \
+    /// very light objects.\
     /// Can be overridden by adding a
     /// [`ThrownLinearSpeedOverride`](crate::prop::ThrownLinearSpeedOverride)
     /// to the prop.\
@@ -287,8 +297,8 @@ impl Default for AvianPickupActor {
             prop_filter: default(),
             obstacle_filter: default(),
             actor_filter: default(),
-            interaction_distance: 1.5,
-            interaction_cone: 0.92,
+            interaction_distance: 5.0,
+            interaction_cone: 0.97,
             pull: default(),
             hold: default(),
             throw: default(),
