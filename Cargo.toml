@@ -7,15 +7,7 @@ edition = "2024"
 exclude = ["/assets/", "/docs/", "/.github/"]
 repository = "https://github.com/janhohenheim/avian_pickup"
 description = "A plugin for implementing picking up dynamic rigid bodies in Avian physics for the Bevy engine.Modeled after Half Life 2's gravity gun."
-keywords = [
-    "bevy",
-    "physics",
-    "avian",
-    "pickup",
-    "gravity gun",
-    "hl2",
-    "half life",
-]
+keywords = ["bevy", "physics", "avian", "pickup", "gravity gun"]
 categories = ["game-development"]
 
 [features]
