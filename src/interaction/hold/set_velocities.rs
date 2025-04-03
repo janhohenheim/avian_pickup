@@ -1,6 +1,6 @@
 use std::f32::consts::{PI, TAU};
 
-use super::{prelude::ShadowParams, HoldSystem};
+use super::{HoldSystem, prelude::ShadowParams};
 use crate::{prelude::*, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {

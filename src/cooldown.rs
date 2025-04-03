@@ -3,7 +3,7 @@ use std::time::Duration;
 use avian3d::prelude::*;
 use bevy::{prelude::*, utils::hashbrown::HashMap};
 
-use crate::{prelude::AvianPickupAction, AvianPickupSystem};
+use crate::{AvianPickupSystem, prelude::AvianPickupAction};
 
 pub(super) mod prelude {
     pub(crate) use super::Cooldown;

@@ -1,4 +1,4 @@
-use super::{prelude::*, HoldSystem};
+use super::{HoldSystem, prelude::*};
 use crate::{prelude::*, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {
