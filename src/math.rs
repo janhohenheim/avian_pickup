@@ -19,7 +19,7 @@ pub(crate) fn rigid_body_compound_collider(
     if let Ok(children) = q_collider_ancestor.get(rigid_body) {
         for child in children.iter() {
             rigid_body_compound_collider_recursive(
-                *child,
+                child,
                 q_collider_ancestor,
                 q_collider,
                 filter,
@@ -50,7 +50,7 @@ fn rigid_body_compound_collider_recursive(
     if let Ok(children) = q_collider_ancestor.get(candidate) {
         for child in children.iter() {
             rigid_body_compound_collider_recursive(
-                *child,
+                child,
                 q_collider_ancestor,
                 q_collider,
                 filter,

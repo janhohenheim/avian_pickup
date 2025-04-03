@@ -145,9 +145,10 @@ fn move_camera() { todo!() }
 
 ## Version Compatibility
 
-| `avian_pickup` | `avian` | `bevy` |
-|----------------|---------|--------|
-| `0.1`          | `0.2`   | `0.15` |
+| `avian_pickup` | `avian`   | `bevy`      |
+|----------------|-----------|-------------|
+| `main`         | `main`    | `0.16.0-rc` |
+| `0.1`          | `0.2`     | `0.15`      |
 
 [`AvianPickupActor`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
 [`RigidBody::Dynamic`]: https://docs.rs/avian3d/latest/avian3d/dynamics/rigid_body/enum.RigidBody.html#variant.Dynamic

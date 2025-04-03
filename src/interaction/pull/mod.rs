@@ -32,7 +32,7 @@ fn find_object(
         With<Pulling>,
     >,
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
-    q_collider_parent: Query<&ColliderParent>,
+    q_collider_parent: Query<&ColliderOf>,
     mut q_rigid_body: Query<(
         &RigidBody,
         &ComputedMass,
@@ -67,7 +67,7 @@ fn find_object(
             error!("Collider entity was deleted or in an invalid state. Ignoring.");
             continue;
         };
-        let rigid_body_entity = rigid_body_entity.get();
+        let rigid_body_entity = rigid_body_entity.rigid_body;
 
         let Ok((_, &mass, mut impulse, prop_position, is_already_being_held)) =
             q_rigid_body.get_mut(rigid_body_entity)
