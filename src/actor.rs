@@ -69,7 +69,7 @@ pub struct AvianPickupActor {
     /// Default: Include all entities
     pub actor_filter: SpatialQueryFilter,
     /// How far away an object can be interacted with.\
-    /// Default: 1.5 m
+    /// Default: 5.0 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength) * 4.0.
     pub interaction_distance: Scalar,
@@ -134,7 +134,7 @@ pub struct AvianPickupActorHoldConfig {
     /// picked up.\
     /// "distance" in this context is the distance between the edge of the prop
     /// and the origin of the actor.\
-    /// Default: 0.6 m   
+    /// Default: 3.0 m   
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength)
     pub distance_to_allow_holding: Scalar,
@@ -194,7 +194,7 @@ pub struct AvianPickupActorHoldConfig {
 impl Default for AvianPickupActorHoldConfig {
     fn default() -> Self {
         Self {
-            distance_to_allow_holding: 0.6,
+            distance_to_allow_holding: 3.0,
             min_distance: 0.2,
             linear_velocity_easing: 1.0,
             angular_velocity_easing: 1.6,
@@ -297,7 +297,7 @@ impl Default for AvianPickupActor {
             prop_filter: default(),
             obstacle_filter: default(),
             actor_filter: default(),
-            interaction_distance: 1.5,
+            interaction_distance: 5.0,
             interaction_cone: 0.97,
             pull: default(),
             hold: default(),
