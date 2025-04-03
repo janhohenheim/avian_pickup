@@ -13,7 +13,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(PhysicsSchedule, tick.in_set(AvianPickupSystem::TickTimers));
 }
 
-/// Timings taken from [`CWeaponPhysCannon::SecondaryAttack`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2284)
+/// Timings taken from [`CWeaponPhysCannon::SecondaryAttack`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/hl2/weapon_physcannon.cpp#L2284)
 #[derive(Debug, Clone, Component)]
 pub(crate) struct Cooldown(HashMap<AvianPickupAction, Timer>);
 
@@ -53,8 +53,8 @@ impl Cooldown {
 
     pub(crate) fn hold(&mut self) {
         // Sneakily updated in two places:
-        // - [+ 0.5](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2316)
-        // - [+ 0.4](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2438)
+        // - [+ 0.5](https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/hl2/weapon_physcannon.cpp#L2316)
+        // - [+ 0.4](https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/hl2/weapon_physcannon.cpp#L2438)
         // Let's use just 0.4, that feels nicer.
         self.set(AvianPickupAction::Drop, 0.4);
     }

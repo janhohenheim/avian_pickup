@@ -18,7 +18,7 @@ pub(super) fn plugin(app: &mut App) {
         );
 }
 
-/// Inspired by [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2497)
+/// Inspired by [`CWeaponPhysCannon::FindObject`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/hl2/weapon_physcannon.cpp#L2497)
 fn find_object(
     mut commands: Commands,
     spatial_query: SpatialQuery,
@@ -100,7 +100,7 @@ fn find_object(
     }
 }
 
-/// Taken from [this snippet](https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/game/server/hl2/weapon_physcannon.cpp#L2607-L2610)
+/// Taken from [this snippet](https://github.com/ValveSoftware/source-sdk-2013/blob/master/src/game/server/hl2/weapon_physcannon.cpp#L2607-L2610)
 fn adjust_impulse_for_mass(mass: ComputedMass) -> f32 {
     if mass.value() < 50.0 {
         (mass.value() + 0.5) * (1.0 / 50.0)

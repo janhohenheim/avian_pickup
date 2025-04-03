@@ -30,8 +30,8 @@ Modeled after Half Life 2's gravity gun.
 - Since the physics are running only in fixed updates but are also
   right in front of the camera, which should run in a variable update,
   you *need* some sort of interpolation to make it look good. Fortunately,
-  Avian has a built-in solution that only requires you to attach 
-  [`TransformInterpolation`](https://docs.rs/bevy_transform_interpolation/0.1.0/bevy_transform_interpolation/interpolation/struct.TransformInterpolation.html) 
+  Avian has a built-in solution that only requires you to attach
+  [`TransformInterpolation`](https://docs.rs/bevy_transform_interpolation/0.1.0/bevy_transform_interpolation/interpolation/struct.TransformInterpolation.html)
   to your props!
 - Only a single object can be picked up per actor at a time.
 - An object cannot be pulled away while it is being held by someone else.
@@ -83,14 +83,12 @@ fn setup(mut commands: Commands) {
     // Actor
     commands.spawn((
         Transform::default(),
-        Visibility::default(),
         AvianPickupActor::default(),
     ));
 
     // Prop
     commands.spawn((
         Transform::default(),
-        Visibility::default(),
         RigidBody::Dynamic,
         Collider::sphere(0.5),
         // Important to prevent jittering
@@ -126,11 +124,11 @@ The [`AvianPickupActor`] holds a lot of configuration options to tweak the behav
 Many of these can be overridden for a specific prop by using components in the [`prop`] module.
 Finally, you can also read the events in the [`output`] module to react to what's happening.
 
-### First Personal Camera
+### First Person Camera
 
-If you want to use a first person perspective for your player and allow him to be an [`AvianPickupActor`],
+If you want to use a first person perspective for your player and allow them to be an [`AvianPickupActor`],
 you need to make sure to move the camera *before* the physics update takes place. Usually, all movement code
-for physicsal entities in the world should be in the fixed timestep, but the camera is a notable exception.
+for physical entities in the world should be in the fixed timestep, but the camera is a notable exception.
 A player will want to have a camera that works as smoothly as possible and updates every frame. That's why you need to place the camera in the last variable timestep schedule before the physics update. You do this like so:
 
 ```rust

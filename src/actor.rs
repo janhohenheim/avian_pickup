@@ -28,9 +28,10 @@ pub(super) fn plugin(app: &mut App) {
 /// For a first-person game, add this to the camera entity that is under the
 /// player control.
 ///
-/// Requires the entity to also hold [`TransformBundle`].
+/// Requires the entity to also hold a [`Transform`] and [`GlobalTransform`].
 ///
 /// # Example
+///
 /// ```
 /// # use avian_pickup::prelude::*;
 /// # use bevy::prelude::*;
@@ -38,7 +39,7 @@ pub(super) fn plugin(app: &mut App) {
 /// fn setup_camera(mut commands: Commands) {
 ///     commands.spawn((
 ///         Name::new("Player Camera"),
-///         Camera3dBundle::default(),
+///         Camera3d::default(),
 ///         AvianPickupActor::default(),
 ///     ));
 /// }
