@@ -194,19 +194,19 @@ fn handle_input(
 ) {
     for player in &players {
         if key_input.just_pressed(MouseButton::Left) {
-            avian_pickup_input_writer.send(AvianPickupInput {
+            avian_pickup_input_writer.write(AvianPickupInput {
                 action: AvianPickupAction::Throw,
                 actor: player,
             });
         }
         if key_input.just_pressed(MouseButton::Right) {
-            avian_pickup_input_writer.send(AvianPickupInput {
+            avian_pickup_input_writer.write(AvianPickupInput {
                 action: AvianPickupAction::Drop,
                 actor: player,
             });
         }
         if key_input.pressed(MouseButton::Right) {
-            avian_pickup_input_writer.send(AvianPickupInput {
+            avian_pickup_input_writer.write(AvianPickupInput {
                 action: AvianPickupAction::Pull,
                 actor: player,
             });
@@ -237,11 +237,8 @@ fn rotate_camera(
 fn rotate_npc(
     time: Res<Time>,
     mut npcs: Query<(&mut Transform, &Npc)>,
-    props: Query<&Transform, (With<Prop>, Without<Npc>)>,
+    prop: Single<&Transform, (With<Prop>, Without<Npc>)>,
 ) {
-    let Ok(prop) = props.get_single() else {
-        return;
-    };
     let dt = time.delta_secs();
 
     for (mut transform, npc) in &mut npcs {
@@ -271,7 +268,7 @@ fn make_npc_catch(
         if !matches!(npc.state, NpcState::Catching) {
             continue;
         }
-        avian_pickup_input_writer.send(AvianPickupInput {
+        avian_pickup_input_writer.write(AvianPickupInput {
             action: AvianPickupAction::Pull,
             actor: entity,
         });
@@ -307,7 +304,7 @@ fn on_aim_timer(
             continue;
         }
         npc.waiting();
-        avian_pickup_input_writer.send(AvianPickupInput {
+        avian_pickup_input_writer.write(AvianPickupInput {
             action: AvianPickupAction::Throw,
             actor: entity,
         });

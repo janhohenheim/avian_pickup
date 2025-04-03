@@ -1,5 +1,5 @@
 use super::prelude::HoldError;
-use crate::{math::GetBestGlobalTransform, prelude::*, prop::PrePickupRotation, verb::Holding};
+use crate::{prelude::*, prop::PrePickupRotation, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_observer(on_add_holding);
@@ -11,33 +11,34 @@ pub fn on_add_holding(
     mut commands: Commands,
     mut q_actor: Query<(
         &AvianPickupActor,
+        &GlobalTransform,
         &mut AvianPickupActorState,
         &mut HoldError,
         &Holding,
     )>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
-        &Rotation,
+        &GlobalTransform,
         Option<&Mass>,
         Option<&PickupMassOverride>,
         Option<&mut PrePickupRotation>,
     )>,
 ) {
-    let actor = trigger.entity();
-    let Ok((config, mut state, mut hold_error, holding)) = q_actor.get_mut(actor) else {
+    let actor = trigger.target();
+    let Ok((config, actor_transform, mut state, mut hold_error, holding)) = q_actor.get_mut(actor)
+    else {
         error!("Actor entity was deleted or in an invalid state. Ignoring.");
         return;
     };
-    let actor_transform = q_actor_transform.get_best_global_transform(actor);
+    let actor_transform = actor_transform.compute_transform();
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     commands.entity(prop).insert(HeldProp);
-    let Ok((rotation, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
+    let Ok((transform, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");
         return;
     };
 
-    let actor_space_rotation = prop_rotation_to_actor_space(rotation.0, actor_transform);
+    let actor_space_rotation = prop_rotation_to_actor_space(transform.rotation(), actor_transform);
     if let Some(mut pre_pickup_rotation) = pre_pickup_rotation {
         pre_pickup_rotation.0 = actor_space_rotation;
     } else {

@@ -1,8 +1,6 @@
-use avian3d::sync::ancestor_marker::AncestorMarker;
-
 use super::{HoldSystem, prelude::*};
 use crate::{
-    math::{GetBestGlobalTransform as _, rigid_body_compound_collider},
+    math::rigid_body_compound_collider,
     prelude::*,
     prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},
@@ -18,25 +16,24 @@ fn set_targets(
     spatial_query: SpatialQuery,
     mut q_actor: Query<(
         Entity,
+        &GlobalTransform,
         &AvianPickupActor,
         &HoldError,
         &mut ShadowParams,
         &Holding,
     )>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
-        &Rotation,
+        &GlobalTransform,
+        Option<&RigidBodyColliders>,
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistanceOverride>,
         Option<&PitchRangeOverride>,
     )>,
-
-    q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
+    q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
+    for (actor, actor_transform, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
         if hold_error.error > max_error {
             commands
@@ -44,10 +41,11 @@ fn set_targets(
                 .queue(SetVerb::new(Verb::Drop { prop, forced: true }));
             continue;
         }
-        let actor_transform = q_actor_transform.get_best_global_transform(actor);
+        let actor_transform = actor_transform.compute_transform();
 
         let Ok((
-            prop_rotation,
+            prop_transform,
+            rigid_body_colliders,
             pre_pickup_rotation,
             preferred_rotation,
             preferred_distance,
@@ -65,12 +63,13 @@ fn set_targets(
         let clamped_rotation =
             Quat::from_euler(EulerRot::YXZ, actor_yaw, actor_to_prop_pitch, actor_roll);
         let forward = Transform::from_rotation(clamped_rotation).forward();
+        let prop_transform = prop_transform.compute_transform();
         // We can't cast a ray wrt an entire rigid body out of the box,
         // so we manually collect all colliders in the hierarchy and
         // construct a compound collider.
         let prop_collider = rigid_body_compound_collider(
-            prop,
-            &q_collider_ancestor,
+            prop_transform,
+            rigid_body_colliders,
             &q_collider,
             &config.prop_filter,
         );
@@ -78,8 +77,12 @@ fn set_targets(
             error!("Held prop does not have a collider in its hierarchy. Ignoring.");
             continue;
         };
-        let prop_radius_wrt_direction =
-            collide_get_extent(&prop_collider, Vec3::ZERO, prop_rotation.0, -forward);
+        let prop_radius_wrt_direction = collide_get_extent(
+            &prop_collider,
+            Vec3::ZERO,
+            prop_transform.rotation,
+            -forward,
+        );
 
         let min_non_penetrating_distance = prop_radius_wrt_direction;
         let min_distance = min_non_penetrating_distance + config.hold.min_distance;

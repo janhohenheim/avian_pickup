@@ -18,7 +18,7 @@ fn drop(
         *state = AvianPickupActorState::Idle;
         cooldown.drop();
         commands.entity(actor).remove::<Dropping>();
-        w_drop_event.send(PropDropped {
+        w_drop_event.write(PropDropped {
             actor,
             prop,
             forced: drop.forced,

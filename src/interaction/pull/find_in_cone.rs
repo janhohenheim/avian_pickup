@@ -6,15 +6,8 @@ pub(super) fn find_prop_in_cone(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
-    q_position: &Query<&Position>,
-    q_rigid_body: &Query<&RigidBody>,
+    q_rigid_body: &Query<(&RigidBody, &GlobalTransform)>,
 ) -> Option<Prop> {
-    let is_dynamic = |entity: Entity| {
-        q_rigid_body
-            .get(entity)
-            .is_ok_and(|rigid_body| rigid_body.is_dynamic())
-    };
-
     const MAGIC_OFFSET_ASK_VALVE: f32 = 1.0 * METERS_PER_INCH;
     // Reminder that the actual trace is done with 4 times the
     // configured trace length in the 2013 code, eek
@@ -29,13 +22,20 @@ pub(super) fn find_prop_in_cone(
             &config.prop_filter,
         )
         .into_iter()
-        .filter(|entity| is_dynamic(*entity))
-        .collect::<Vec<_>>();
+        .filter_map(|entity| {
+            let (rigid_body, transform) = q_rigid_body.get(entity).ok()?;
+            if rigid_body.is_dynamic() {
+                let transform = transform.compute_transform();
+                Some((entity, transform))
+            } else {
+                None
+            }
+        });
     let mut canditate = None;
 
-    for collider in colliders {
-        // Safety: Pretty sure a `shape_intersection` will never return an entity without a `Position`.
-        let object_translation = q_position.get(collider).unwrap().0;
+    for (entity, transform) in colliders {
+        // Safety: Pretty sure a `shape_intersection` will never return an entity without a `GlobalTransform`.
+        let object_translation = transform.translation;
 
         // Closer than other objects
         let los = object_translation - origin.translation;
@@ -54,16 +54,13 @@ pub(super) fn find_prop_in_cone(
         if let Some(hit) =
             spatial_query.cast_ray(origin.translation, los, dist, true, &config.obstacle_filter)
         {
-            if hit.entity != collider {
+            if hit.entity != entity {
                 continue;
             }
         }
 
         nearest_dist = dist;
-        canditate.replace(Prop {
-            entity: collider,
-            toi: dist,
-        });
+        canditate.replace(Prop { entity, toi: dist });
     }
     canditate
 }
