@@ -17,7 +17,7 @@ pub fn on_add_holding(
         &Holding,
     )>,
     mut q_prop: Query<(
-        &Rotation,
+        &GlobalTransform,
         Option<&Mass>,
         Option<&PickupMassOverride>,
         Option<&mut PrePickupRotation>,
@@ -33,12 +33,12 @@ pub fn on_add_holding(
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     commands.entity(prop).insert(HeldProp);
-    let Ok((rotation, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
+    let Ok((transform, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");
         return;
     };
 
-    let actor_space_rotation = prop_rotation_to_actor_space(rotation.0, actor_transform);
+    let actor_space_rotation = prop_rotation_to_actor_space(transform.rotation(), actor_transform);
     if let Some(mut pre_pickup_rotation) = pre_pickup_rotation {
         pre_pickup_rotation.0 = actor_space_rotation;
     } else {
