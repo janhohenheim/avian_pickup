@@ -22,13 +22,13 @@ pub mod prelude {
     pub(crate) use bevy::prelude::*;
 
     pub(crate) use super::{
-        cooldown::prelude::*,
-        prop::{prelude::*, NonPickupMass},
         HandleVerbSystem,
+        cooldown::prelude::*,
+        prop::{NonPickupMass, prelude::*},
     };
     pub use crate::{
-        actor::prelude::*, input::prelude::*, output::prelude::*, AvianPickupPlugin,
-        AvianPickupSystem,
+        AvianPickupPlugin, AvianPickupSystem, actor::prelude::*, input::prelude::*,
+        output::prelude::*,
     };
 }
 

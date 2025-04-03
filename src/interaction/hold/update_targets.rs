@@ -1,8 +1,8 @@
 use avian3d::sync::ancestor_marker::AncestorMarker;
 
-use super::{prelude::*, HoldSystem};
+use super::{HoldSystem, prelude::*};
 use crate::{
-    math::{rigid_body_compound_collider, GetBestGlobalTransform as _},
+    math::{GetBestGlobalTransform as _, rigid_body_compound_collider},
     prelude::*,
     prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},

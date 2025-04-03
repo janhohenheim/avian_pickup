@@ -3,8 +3,8 @@
 
 use std::f32::consts::FRAC_PI_2;
 
-use avian3d::prelude::*;
 use avian_pickup::{prelude::*, prop::PreferredPickupDistanceOverride};
+use avian3d::prelude::*;
 use bevy::{color::palettes::tailwind, input::mouse::AccumulatedMouseMotion, prelude::*};
 
 mod util;

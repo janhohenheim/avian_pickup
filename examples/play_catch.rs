@@ -4,8 +4,8 @@
 
 use std::f32::consts::{FRAC_PI_2, FRAC_PI_6, PI};
 
-use avian3d::prelude::*;
 use avian_pickup::prelude::*;
+use avian3d::prelude::*;
 use bevy::{color::palettes::tailwind, input::mouse::AccumulatedMouseMotion, prelude::*};
 use rand::Rng;
 

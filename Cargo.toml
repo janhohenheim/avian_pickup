@@ -3,9 +3,20 @@ name = "avian_pickup"
 version = "0.1.0"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
-edition = "2021"
+edition = "2024"
 exclude = ["/assets/", "/docs/", "/.github/"]
 repository = "https://github.com/janhohenheim/avian_pickup"
+description = "A plugin for implementing picking up dynamic rigid bodies in Avian physics for the Bevy engine.Modeled after Half Life 2's gravity gun."
+keywords = [
+    "bevy",
+    "physics",
+    "avian",
+    "pickup",
+    "gravity gun",
+    "hl2",
+    "half life",
+]
+categories = ["game-development"]
 
 [features]
 # Since this library does not make sense without also depending on `avian3d`,
