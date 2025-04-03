@@ -33,7 +33,7 @@ pub struct PropThrown {
 }
 
 /// Event sent when a prop is dropped by an actor.
-/// This is meant for the user to lister to in order to play sound effects, etc.
+/// This is meant for the user to listen to in order to play sound effects, etc.
 /// Sending this has no effect on the prop itself.
 #[derive(Event, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
 #[reflect(Debug, PartialEq)]
