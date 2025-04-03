@@ -133,14 +133,14 @@ pub struct AvianPickupActorHoldConfig {
     /// The maximum distance between the player and the object when it can be
     /// picked up.\
     /// "distance" in this context is the distance between the edge of the prop
-    /// and the edge of the actor.\
+    /// and the origin of the actor.\
     /// Default: 0.6 m   
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength)
     pub distance_to_allow_holding: Scalar,
     /// The minimum distance an object must be from the player when picked up.
     /// "distance" in this context is the distance between the edge of the prop
-    /// and the edge of the actor.\
+    /// and the origin of the actor.\
     /// Usually, the prop will try to stay at
     /// [`preferred_distance`](Self::preferred_distance),
     /// but will fall back to this when there is terrain in the way as
@@ -172,7 +172,7 @@ pub struct AvianPickupActorHoldConfig {
     /// The distance in meters between the player and the object when
     /// picked up and there is no obstacle in the way.\
     /// "distance" in this context is the distance between the edge of the prop
-    /// and the edge of the actor.\
+    /// and the origin of the actor.\
     /// Can be overridden by adding a
     /// [`PreferredPickupDistanceOverride`](crate::prop::PreferredPickupDistanceOverride)
     /// to the prop.\

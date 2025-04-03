@@ -45,7 +45,10 @@ fn setup(
         Transform::from_xyz(0.0, 1.0, 5.0),
         // Add this to set up the camera as the entity that can pick up
         // objects.
-        AvianPickupActor::default(),
+        AvianPickupActor {
+            interaction_distance: 15.0,
+            ..default()
+        },
     ));
 
     commands.spawn((
@@ -88,6 +91,7 @@ fn setup(
         Mesh3d::from(meshes.add(Mesh::from(column_shape))),
         MeshMaterial3d::from(obstacle_material.clone()),
         Transform::from_xyz(0.0, 1.0, 4.0),
+        // As a static object, the column will not be picked up.
         RigidBody::Static,
         Collider::from(column_shape),
     ));
