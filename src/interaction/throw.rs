@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 use avian3d::math::Scalar;
 use rand::Rng;
 
-use crate::{math::GetBestGlobalTransform, prelude::*, rng::RngSource, verb::Throwing};
+use crate::{prelude::*, rng::RngSource, verb::Throwing};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(PhysicsSchedule, throw.in_set(HandleVerbSystem::Throw));
@@ -15,12 +15,12 @@ fn throw(
     mut commands: Commands,
     mut q_actor: Query<(
         Entity,
+        &GlobalTransform,
         &AvianPickupActor,
         &mut AvianPickupActorState,
         &mut Cooldown,
         &Throwing,
     )>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &mut LinearVelocity,
         &mut AngularVelocity,
@@ -31,10 +31,9 @@ fn throw(
     mut w_throw_event: EventWriter<PropThrown>,
     mut rng: ResMut<RngSource>,
 ) {
-    for (actor, config, mut states, mut cooldown, throw) in q_actor.iter_mut() {
+    for (actor, actor_transform, config, mut states, mut cooldown, throw) in q_actor.iter_mut() {
         let prop = throw.0;
         commands.entity(actor).remove::<Throwing>();
-        let actor_transform = q_actor_transform.get_best_global_transform(actor);
         // Safety: All props are rigid bodies, which are guaranteed to have a
         // `LinearVelocity`, `AngularVelocity`, and `Mass`.
         let Ok((mut velocity, mut angvel, mass, lin_speed_override, ang_speed_override)) =
@@ -43,6 +42,7 @@ fn throw(
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;
         };
+        let actor_transform = actor_transform.compute_transform();
         // The 2013 code now does a `continue` on
         // `prop_dist_sq > config.interaction_distance * config.interaction_distance`
         // but eh, that's fine. Better to respect players' input in such edge cases.
