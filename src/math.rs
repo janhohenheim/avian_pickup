@@ -1,62 +1,31 @@
-use avian3d::{prelude::*, sync::ancestor_marker::AncestorMarker};
+use avian3d::prelude::*;
 use bevy::prelude::*;
 
 pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 
 pub(crate) fn rigid_body_compound_collider(
-    rigid_body: Entity,
-    q_collider_ancestor: &Query<&Children, With<AncestorMarker<ColliderMarker>>>,
+    colliders: Option<&RigidBodyColliders>,
     q_collider: &Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
     filter: &SpatialQueryFilter,
 ) -> Option<Collider> {
-    let mut colliders = Vec::new();
-    if let Ok((&_transform, col, layers)) = q_collider.get(rigid_body) {
-        let layers = layers.copied().unwrap_or_default();
-        if filter.test(rigid_body, layers) {
-            colliders.push((Vec3::ZERO, Quat::IDENTITY, col.clone()));
-        }
-    }
-    if let Ok(children) = q_collider_ancestor.get(rigid_body) {
-        for child in children.iter() {
-            rigid_body_compound_collider_recursive(
-                child,
-                q_collider_ancestor,
-                q_collider,
-                filter,
-                &mut colliders,
-            );
-        }
-    }
+    let collider_entities = colliders?;
+    let colliders = collider_entities
+        .iter()
+        .filter_map(|e| {
+            let (transform, collider, layers) = q_collider.get(e).ok()?;
+            let layers = layers.copied().unwrap_or_default();
+            if filter.test(e, layers) {
+                Some((transform.translation, transform.rotation, collider.clone()))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
     if colliders.is_empty() {
         None
     } else {
         Some(Collider::compound(colliders))
-    }
-}
-
-fn rigid_body_compound_collider_recursive(
-    candidate: Entity,
-    q_collider_ancestor: &Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider: &Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
-    filter: &SpatialQueryFilter,
-    colliders: &mut Vec<(Vec3, Quat, Collider)>,
-) {
-    if let Ok((&transform, collider, layers)) = q_collider.get(candidate) {
-        let layers = layers.copied().unwrap_or_default();
-        if filter.test(candidate, layers) {
-            colliders.push((transform.translation, transform.rotation, collider.clone()));
-        }
-    }
-    if let Ok(children) = q_collider_ancestor.get(candidate) {
-        for child in children.iter() {
-            rigid_body_compound_collider_recursive(
-                child,
-                q_collider_ancestor,
-                q_collider,
-                filter,
-                colliders,
-            );
-        }
     }
 }
 
