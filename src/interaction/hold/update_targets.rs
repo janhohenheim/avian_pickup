@@ -23,6 +23,7 @@ fn set_targets(
     )>,
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
+        &Position,
         &Rotation,
         Option<&RigidBodyColliders>,
         Option<&PrePickupRotation>,
@@ -45,6 +46,7 @@ fn set_targets(
         let actor_transform = q_actor_transform.get_best_global_transform(actor);
 
         let Ok((
+            prop_position,
             prop_rotation,
             rigid_body_colliders,
             pre_pickup_rotation,
@@ -67,9 +69,12 @@ fn set_targets(
         // We can't cast a ray wrt an entire rigid body out of the box,
         // so we manually collect all colliders in the hierarchy and
         // construct a compound collider.
-        let prop_collider =
-            rigid_body_compound_collider(rigid_body_colliders, &q_collider, &config.prop_filter);
-        info!("prop_collider: {:#?}", prop_collider);
+        let prop_collider = rigid_body_compound_collider(
+            *prop_position,
+            rigid_body_colliders,
+            &q_collider,
+            &config.prop_filter,
+        );
         let Some(prop_collider) = prop_collider else {
             error!("Held prop does not have a collider in its hierarchy. Ignoring.");
             continue;

@@ -4,6 +4,7 @@ use bevy::prelude::*;
 pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 
 pub(crate) fn rigid_body_compound_collider(
+    rigid_body_position: Position,
     colliders: Option<&RigidBodyColliders>,
     q_collider: &Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
     filter: &SpatialQueryFilter,
@@ -14,19 +15,17 @@ pub(crate) fn rigid_body_compound_collider(
         .filter_map(|e| {
             let (transform, collider, layers) = q_collider.get(e).ok()?;
             let layers = layers.copied().unwrap_or_default();
-            if filter.test(e, layers) {
-                Some((transform.translation, transform.rotation, collider.clone()))
-            } else {
-                None
-            }
+            filter.test(e, layers).then(|| {
+                (
+                    transform.translation - rigid_body_position.0,
+                    transform.rotation,
+                    collider.clone(),
+                )
+            })
         })
         .collect::<Vec<_>>();
 
-    if colliders.is_empty() {
-        None
-    } else {
-        Some(Collider::compound(colliders))
-    }
+    (!colliders.is_empty()).then(|| Collider::compound(colliders))
 }
 
 pub(crate) trait GetBestGlobalTransform {
