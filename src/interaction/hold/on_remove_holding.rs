@@ -28,5 +28,7 @@ fn on_remove_holding(
     if let Some(non_pickup_mass) = non_pickup_mass {
         commands.entity(entity).insert(non_pickup_mass.0);
         commands.entity(entity).remove::<NonPickupMass>();
+    } else {
+        commands.entity(entity).remove::<Mass>();
     }
 }
