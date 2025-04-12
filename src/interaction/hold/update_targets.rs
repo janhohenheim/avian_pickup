@@ -142,7 +142,6 @@ fn set_targets(
         let distance = if let Some(terrain_hit) = terrain_hit {
             let toi = terrain_hit.distance;
             let fraction = toi / max_distance;
-            println!("toi: {toi}");
             if fraction < 0.5 {
                 // not doing `max(min_distance, toi)` here because that would
                 // result in the prop being too close to the player
