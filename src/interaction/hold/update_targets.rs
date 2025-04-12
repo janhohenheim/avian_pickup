@@ -33,6 +33,7 @@ fn set_targets(
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
+    q_collider_parent: Query<&ColliderParent>,
     q_collider: Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
@@ -94,7 +95,6 @@ fn set_targets(
         // edge and the actors's edge. Expect psyche, actually `min_distance` gets
         // deduced again at some point!
         let max_distance = preferred_distance.max(min_distance);
-
         let Some(actor_space_rotation) = preferred_rotation
             .map(|preferred| preferred.0)
             .or_else(|| pre_pickup_rotation.map(|pre| pre.0))
@@ -121,9 +121,12 @@ fn set_targets(
 
         // Not filtering this out later because we want the cast to "pass through" the
         // prop to get the distance to the terrain behind it.
-        let mut terrain_filter = config.obstacle_filter.clone();
-        terrain_filter.excluded_entities.insert(prop);
-        let terrain_hit = spatial_query.cast_shape(
+        let is_terrain = |entity: Entity| {
+            q_collider_parent
+                .get(entity)
+                .is_ok_and(|parent| parent.get() != prop)
+        };
+        let terrain_hit = spatial_query.cast_shape_predicate(
             &prop_collider,
             actor_transform.translation,
             target_rotation,
@@ -133,11 +136,13 @@ fn set_targets(
                 ignore_origin_penetration: true,
                 ..default()
             },
-            &terrain_filter,
+            &config.obstacle_filter,
+            &is_terrain,
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
             let toi = terrain_hit.distance;
             let fraction = toi / max_distance;
+            println!("toi: {toi}");
             if fraction < 0.5 {
                 // not doing `max(min_distance, toi)` here because that would
                 // result in the prop being too close to the player
