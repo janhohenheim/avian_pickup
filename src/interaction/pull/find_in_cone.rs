@@ -8,6 +8,7 @@ pub(super) fn find_prop_in_cone(
     config: &AvianPickupActor,
     q_position: &Query<&Position>,
     q_rigid_body: &Query<&RigidBody>,
+    q_collider_parent: &Query<&ColliderParent>,
 ) -> Option<Prop> {
     let is_dynamic = |entity: Entity| {
         q_rigid_body
@@ -21,7 +22,7 @@ pub(super) fn find_prop_in_cone(
     let mut nearest_dist = config.interaction_distance + MAGIC_OFFSET_ASK_VALVE;
     let box_collider = Cuboid::from_size(Vec3::splat(2.0 * nearest_dist)).into();
 
-    let colliders = spatial_query
+    let rigid_bodies = spatial_query
         .shape_intersections(
             &box_collider,
             origin.translation,
@@ -29,13 +30,15 @@ pub(super) fn find_prop_in_cone(
             &config.prop_filter,
         )
         .into_iter()
+        .filter_map(|entity| q_collider_parent.get(entity).ok())
+        .map(|collider_parent| collider_parent.get())
         .filter(|entity| is_dynamic(*entity))
         .collect::<Vec<_>>();
     let mut canditate = None;
 
-    for collider in colliders {
+    for rigid_body in rigid_bodies {
         // Safety: Pretty sure a `shape_intersection` will never return an entity without a `Position`.
-        let object_translation = q_position.get(collider).unwrap().0;
+        let object_translation = q_position.get(rigid_body).unwrap().0;
 
         // Closer than other objects
         let los = object_translation - origin.translation;
@@ -54,14 +57,17 @@ pub(super) fn find_prop_in_cone(
         if let Some(hit) =
             spatial_query.cast_ray(origin.translation, los, dist, true, &config.obstacle_filter)
         {
-            if hit.entity != collider {
+            let hit_rigid_body = q_collider_parent
+                .get(hit.entity)
+                .map_or(hit.entity, |collider_parent| collider_parent.get());
+            if hit_rigid_body != rigid_body {
                 continue;
             }
         }
 
         nearest_dist = dist;
         canditate.replace(Prop {
-            entity: collider,
+            entity: rigid_body,
             toi: dist,
         });
     }

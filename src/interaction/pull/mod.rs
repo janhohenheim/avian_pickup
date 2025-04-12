@@ -49,6 +49,7 @@ fn find_object(
             actor_transform,
             config,
             &q_rigid_body.transmute_lens().query(),
+            &q_collider_parent,
         )
         .or_else(|| {
             find_prop_in_cone(
@@ -57,20 +58,15 @@ fn find_object(
                 config,
                 &q_position,
                 &q_rigid_body.transmute_lens().query(),
+                &q_collider_parent,
             )
         });
         let Some(prop) = prop else {
             continue;
         };
 
-        let Ok(rigid_body_entity) = q_collider_parent.get(prop.entity) else {
-            error!("Collider entity was deleted or in an invalid state. Ignoring.");
-            continue;
-        };
-        let rigid_body_entity = rigid_body_entity.get();
-
         let Ok((_, &mass, mut impulse, prop_position, is_already_being_held)) =
-            q_rigid_body.get_mut(rigid_body_entity)
+            q_rigid_body.get_mut(prop.entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
             continue;
@@ -85,7 +81,7 @@ fn find_object(
             cooldown.hold();
             commands
                 .entity(actor)
-                .queue(SetVerb::new(Verb::Hold(rigid_body_entity)));
+                .queue(SetVerb::new(Verb::Hold(prop.entity)));
         } else {
             let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
@@ -93,7 +89,7 @@ fn find_object(
             cooldown.pull();
             impulse.apply_impulse(pull_impulse);
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {
-                *state = AvianPickupActorState::Pulling(rigid_body_entity);
+                *state = AvianPickupActorState::Pulling(prop.entity);
             }
             commands.entity(actor).queue(SetVerb::new(None));
         }
