@@ -31,6 +31,7 @@ fn set_targets(
         Option<&PitchRangeOverride>,
     )>,
     q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
+    q_collider_of: Query<&ColliderOf>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, actor_transform, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
@@ -97,7 +98,6 @@ fn set_targets(
         // edge and the actors's edge. Expect psyche, actually `min_distance` gets
         // deduced again at some point!
         let max_distance = preferred_distance.max(min_distance);
-
         let Some(actor_space_rotation) = preferred_rotation
             .map(|preferred| preferred.0)
             .or_else(|| pre_pickup_rotation.map(|pre| pre.0))
@@ -124,9 +124,12 @@ fn set_targets(
 
         // Not filtering this out later because we want the cast to "pass through" the
         // prop to get the distance to the terrain behind it.
-        let mut terrain_filter = config.obstacle_filter.clone();
-        terrain_filter.excluded_entities.insert(prop);
-        let terrain_hit = spatial_query.cast_shape(
+        let is_terrain = |entity: Entity| {
+            q_collider_of
+                .get(entity)
+                .is_ok_and(|collider_of| collider_of.rigid_body != prop)
+        };
+        let terrain_hit = spatial_query.cast_shape_predicate(
             &prop_collider,
             actor_transform.translation,
             target_rotation,
@@ -136,7 +139,8 @@ fn set_targets(
                 ignore_origin_penetration: true,
                 ..default()
             },
-            &terrain_filter,
+            &config.obstacle_filter,
+            &is_terrain,
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
             let toi = terrain_hit.distance;

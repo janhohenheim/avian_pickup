@@ -7,12 +7,17 @@ pub(super) fn find_prop_in_trace(
     origin: Transform,
     config: &AvianPickupActor,
     q_rigid_body: &Query<&RigidBody>,
+    q_collider_of: &Query<&ColliderOf>,
 ) -> Option<Prop> {
     // Fun fact: Valve lies to you and actually multiplies this by 4 at this point.
     let test_length = config.interaction_distance;
     let is_dynamic = |entity: Entity| {
+        let Ok(collider_of) = q_collider_of.get(entity) else {
+            return false;
+        };
+        let rigid_body = collider_of.rigid_body;
         q_rigid_body
-            .get(entity)
+            .get(rigid_body)
             .is_ok_and(|rigid_body| rigid_body.is_dynamic())
     };
     let hit = spatial_query
@@ -24,24 +29,33 @@ pub(super) fn find_prop_in_trace(
             &config.prop_filter,
             &is_dynamic,
         )
-        .filter(|hit| {
+        .and_then(|hit| {
+            q_collider_of
+                .get(hit.entity)
+                .ok()
+                .map(|collider_of| (collider_of.rigid_body, hit.distance))
+        })
+        .filter(|(rigid_body, distance)| {
             if let Some(terrain_hit) = spatial_query.cast_ray(
                 origin.translation,
                 origin.forward(),
-                hit.distance,
+                *distance,
                 true,
                 &config.obstacle_filter,
             ) {
-                terrain_hit.entity == hit.entity
+                let terrain_rigid_body = q_collider_of
+                    .get(terrain_hit.entity)
+                    .map_or(terrain_hit.entity, |collider_of| collider_of.rigid_body);
+                terrain_rigid_body == *rigid_body
             } else {
                 true
             }
         });
 
-    if let Some(hit) = hit {
+    if let Some((rigid_body, distance)) = hit {
         Prop {
-            entity: hit.entity,
-            toi: hit.distance,
+            entity: rigid_body,
+            toi: distance,
         }
         .into()
     } else {
