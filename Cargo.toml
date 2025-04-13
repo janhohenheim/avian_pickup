@@ -1,6 +1,6 @@
 [package]
 name = "avian_pickup"
-version = "0.2.0-rc.1"
+version = "0.2.0-rc.2"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
 edition = "2024"
@@ -28,7 +28,7 @@ default-features = false
 
 [dependencies.avian3d]
 git = "https://github.com/Jondolf/avian"
-rev = "86f3c48844f9f6a7db2a9011e1b4a788c77975ae"
+rev = "cbadcccfef6019e8990aa6847e781d2df99093c3"
 features = ["3d", "default-collider"]
 default-features = false
 

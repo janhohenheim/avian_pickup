@@ -31,7 +31,7 @@ fn find_object(
         ),
         With<Pulling>,
     >,
-    q_collider_parent: Query<&ColliderOf>,
+    q_collider_of: Query<&ColliderOf>,
     mut q_rigid_body: Query<(
         &RigidBody,
         &ComputedMass,
@@ -47,6 +47,7 @@ fn find_object(
             actor_transform,
             config,
             &q_rigid_body.transmute_lens().query(),
+            &q_collider_of,
         )
         .or_else(|| {
             find_prop_in_cone(
@@ -54,20 +55,15 @@ fn find_object(
                 actor_transform,
                 config,
                 &q_rigid_body.transmute_lens().query(),
+                &q_collider_of,
             )
         });
         let Some(prop) = prop else {
             continue;
         };
 
-        let Ok(rigid_body_entity) = q_collider_parent.get(prop.entity) else {
-            error!("Collider entity was deleted or in an invalid state. Ignoring.");
-            continue;
-        };
-        let rigid_body_entity = rigid_body_entity.rigid_body;
-
         let Ok((_, &mass, mut impulse, prop_position, is_already_being_held)) =
-            q_rigid_body.get_mut(rigid_body_entity)
+            q_rigid_body.get_mut(prop.entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
             continue;
@@ -82,7 +78,7 @@ fn find_object(
             cooldown.hold();
             commands
                 .entity(actor)
-                .queue(SetVerb::new(Verb::Hold(rigid_body_entity)));
+                .queue(SetVerb::new(Verb::Hold(prop.entity)));
         } else {
             let prop_position = prop_position.translation();
             let direction = (actor_transform.translation - prop_position).normalize_or_zero();
@@ -91,7 +87,7 @@ fn find_object(
             cooldown.pull();
             impulse.apply_impulse(pull_impulse);
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {
-                *state = AvianPickupActorState::Pulling(rigid_body_entity);
+                *state = AvianPickupActorState::Pulling(prop.entity);
             }
             commands.entity(actor).queue(SetVerb::new(None));
         }
