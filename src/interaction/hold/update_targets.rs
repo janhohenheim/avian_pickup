@@ -26,7 +26,6 @@ fn set_targets(
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &Rotation,
-        &GlobalTransform,
         &ComputedCenterOfMass,
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
@@ -51,7 +50,6 @@ fn set_targets(
 
         let Ok((
             prop_rotation,
-            prop_transform,
             prop_center_of_mass,
             pre_pickup_rotation,
             preferred_rotation,
@@ -83,14 +81,14 @@ fn set_targets(
             error!("Held prop does not have a collider in its hierarchy. Ignoring.");
             continue;
         };
-        let prop_translation = prop_transform.translation();
-        let prop_radius_wrt_direction = collider_get_extent(
-            &prop_collider,
-            prop_translation,
-            prop_center_of_mass.0,
-            prop_rotation.0,
-            -forward,
-        );
+        let prop_radius_wrt_direction =
+            collider_get_extent(&prop_collider, prop_rotation.0, -forward);
+        let Some(prop_radius_wrt_direction) = prop_radius_wrt_direction else {
+            error!(
+                "Failed to get collider extent: Parry failed to find a hit with its AABB. Ignoring prop."
+            );
+            continue;
+        };
 
         let min_non_penetrating_distance = prop_radius_wrt_direction;
         let min_distance = min_non_penetrating_distance + config.hold.min_distance;
@@ -178,50 +176,29 @@ fn set_targets(
 /// Since the original code multiplies the direction by the dot product of
 /// the direction and the support point, it looks like the result is the same.
 /// That's why we just return the TOI directly.
-fn collider_get_extent(
-    collider: &Collider,
-    collider_translation: Vec3,
-    collider_center_of_mass: Vec3,
-    rotation: Quat,
-    dir: Dir3,
-) -> f32 {
+/// Note that we just use the AABB of the compound collider here, which is
+/// not the exact convex hull, but should be close enough.
+fn collider_get_extent(collider: &Collider, rotation: Quat, dir: Dir3) -> Option<f32> {
+    let aabb = collider.aabb(Vec3::ZERO, Quat::IDENTITY);
+    let aabb_lengths = aabb.size();
+    let aabb_collider = Collider::cuboid(aabb_lengths.x, aabb_lengths.y, aabb_lengths.z);
+
+    const TRANSLATION: Vec3 = Vec3::ZERO;
+    const RAY_ORIGIN: Vec3 = Vec3::ZERO;
     // We cast from inside the collider, so we don't care about a max TOI
     const MAX_TOI: f32 = f32::INFINITY;
     // Needs to be false to not just get the origin back
     const SOLID: bool = false;
 
-    // This should not be necessary, but it seems like a parry
-    // bug sometimes causes the hit to be `None` even though that should
-    // be impossible: https://discord.com/channels/691052431525675048/1124043933886976171/1275214643341561970
-    const ARBITRARY_ROTATION: f32 = 5e-3;
-    for offset in [
-        Quat::IDENTITY,
-        Quat::from_rotation_x(ARBITRARY_ROTATION),
-        Quat::from_rotation_x(-ARBITRARY_ROTATION),
-        Quat::from_rotation_y(ARBITRARY_ROTATION),
-        Quat::from_rotation_y(-ARBITRARY_ROTATION),
-        Quat::from_rotation_z(ARBITRARY_ROTATION),
-        Quat::from_rotation_z(-ARBITRARY_ROTATION),
-    ] {
-        let rotation = rotation * offset;
-        let hit = collider.cast_ray(
-            collider_translation,
-            rotation,
-            collider_center_of_mass,
-            dir.into(),
-            MAX_TOI,
-            SOLID,
-        );
-        if let Some((toi, _normal)) = hit {
-            return toi;
-        }
-    }
-
-    // Absolute last resort: just fall back to the AABB's longest extent.
-    // This *must* work, but it's longer than necessary and expensive.
-    let aabb = collider.aabb(Vec3::ZERO, rotation);
-
-    (aabb.max / 2.).length()
+    let hit = aabb_collider.cast_ray(
+        TRANSLATION,
+        rotation,
+        RAY_ORIGIN,
+        dir.into(),
+        MAX_TOI,
+        SOLID,
+    );
+    hit.map(|(toi, _normal)| toi)
 }
 
 /// TransformAnglesFromPlayerSpace
