@@ -44,7 +44,21 @@ fn rigid_body_compound_collider_recursive(
     if let Ok((&transform, collider, layers)) = q_collider.get(candidate) {
         let layers = layers.copied().unwrap_or_default();
         if filter.test(candidate, layers) {
-            colliders.push((transform.translation, transform.rotation, collider.clone()));
+            if let Some(compound) = collider.shape_scaled().as_compound() {
+                // Need to unpack compound shapes because we are later returning a big compound collider for the whole rigid body
+                // and parry crashes on nested compound shapes
+                for (isometry, shape) in compound.shapes() {
+                    let translation = Vec3::from(isometry.translation);
+                    let rotation = Quat::from(isometry.rotation);
+                    colliders.push((
+                        transform.translation + translation,
+                        transform.rotation * rotation,
+                        shape.clone().into(),
+                    ));
+                }
+            } else {
+                colliders.push((transform.translation, transform.rotation, collider.clone()));
+            }
         }
     }
     if let Ok(children) = q_collider_ancestor.get(candidate) {
