@@ -26,6 +26,8 @@ fn set_targets(
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &Rotation,
+        &GlobalTransform,
+        &ComputedCenterOfMass,
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistanceOverride>,
@@ -49,6 +51,8 @@ fn set_targets(
 
         let Ok((
             prop_rotation,
+            prop_transform,
+            prop_center_of_mass,
             pre_pickup_rotation,
             preferred_rotation,
             preferred_distance,
@@ -79,8 +83,14 @@ fn set_targets(
             error!("Held prop does not have a collider in its hierarchy. Ignoring.");
             continue;
         };
-        let prop_radius_wrt_direction =
-            collide_get_extent(&prop_collider, Vec3::ZERO, prop_rotation.0, -forward);
+        let prop_translation = prop_transform.translation();
+        let prop_radius_wrt_direction = collider_get_extent(
+            &prop_collider,
+            prop_translation,
+            prop_center_of_mass.0,
+            prop_rotation.0,
+            -forward,
+        );
 
         let min_non_penetrating_distance = prop_radius_wrt_direction;
         let min_distance = min_non_penetrating_distance + config.hold.min_distance;
@@ -168,8 +178,13 @@ fn set_targets(
 /// Since the original code multiplies the direction by the dot product of
 /// the direction and the support point, it looks like the result is the same.
 /// That's why we just return the TOI directly.
-fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Dir3) -> f32 {
-    const TRANSLATION: Vec3 = Vec3::ZERO;
+fn collider_get_extent(
+    collider: &Collider,
+    collider_translation: Vec3,
+    collider_center_of_mass: Vec3,
+    rotation: Quat,
+    dir: Dir3,
+) -> f32 {
     // We cast from inside the collider, so we don't care about a max TOI
     const MAX_TOI: f32 = f32::INFINITY;
     // Needs to be false to not just get the origin back
@@ -189,7 +204,14 @@ fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Di
         Quat::from_rotation_z(-ARBITRARY_ROTATION),
     ] {
         let rotation = rotation * offset;
-        let hit = collider.cast_ray(TRANSLATION, rotation, origin, dir.into(), MAX_TOI, SOLID);
+        let hit = collider.cast_ray(
+            collider_translation,
+            rotation,
+            collider_center_of_mass,
+            dir.into(),
+            MAX_TOI,
+            SOLID,
+        );
         if let Some((toi, _normal)) = hit {
             return toi;
         }
@@ -197,7 +219,7 @@ fn collide_get_extent(collider: &Collider, origin: Vec3, rotation: Quat, dir: Di
 
     // Absolute last resort: just fall back to the AABB's longest extent.
     // This *must* work, but it's longer than necessary and expensive.
-    let aabb = collider.aabb(origin, rotation);
+    let aabb = collider.aabb(Vec3::ZERO, rotation);
 
     (aabb.max / 2.).length()
 }
@@ -221,7 +243,7 @@ mod test {
         let dir = Vec3::new(0.014959301, -0.073083326, -0.9972137)
             .try_into()
             .unwrap();
-        let extent = collide_get_extent(&collider, Vec3::ZERO, rot, dir);
+        let extent = collider_get_extent(&collider, Vec3::ZERO, Vec3::ZERO, rot, dir);
         assert!(extent > 0.0);
         assert!(extent < 0.6);
     }
