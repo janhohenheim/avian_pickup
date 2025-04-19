@@ -26,6 +26,7 @@ fn set_targets(
     q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &Rotation,
+        &GlobalTransform,
         &ComputedCenterOfMass,
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
@@ -50,6 +51,7 @@ fn set_targets(
 
         let Ok((
             prop_rotation,
+            prop_transform,
             prop_center_of_mass,
             pre_pickup_rotation,
             preferred_rotation,
@@ -134,9 +136,11 @@ fn set_targets(
                 .get(entity)
                 .is_ok_and(|parent| parent.get() != prop)
         };
+
+        let global_center_of_mass = prop_transform.transform_point(prop_center_of_mass.0);
         let terrain_hit = spatial_query.cast_shape_predicate(
             &prop_collider,
-            actor_transform.translation + prop_center_of_mass.0,
+            global_center_of_mass,
             target_rotation,
             forward,
             &ShapeCastConfig {
@@ -165,7 +169,12 @@ fn set_targets(
         // dance since we already have made sure that the prop has a sensible minimum
         // distance
         let target_position = actor_transform.translation + forward * distance;
-        shadow.target_position = target_position - prop_center_of_mass.0;
+        // target_position is pointing to the origin of the prop, which is often at its "feet".
+        // This looks really weird when holding, so let's hold it at the center of mass instead.
+        // Note that the following calculation is distinct from just `prop_center_of_mass.0`,
+        // as that one would be the offset if the prop had no rotation.
+        let center_of_mass_offset = global_center_of_mass - prop_transform.translation();
+        shadow.target_position = target_position - center_of_mass_offset;
     }
 }
 
@@ -220,7 +229,7 @@ mod test {
         let dir = Vec3::new(0.014959301, -0.073083326, -0.9972137)
             .try_into()
             .unwrap();
-        let extent = collider_get_extent(&collider, Vec3::ZERO, Vec3::ZERO, rot, dir);
+        let extent = collider_get_extent(&collider, rot, dir).unwrap();
         assert!(extent > 0.0);
         assert!(extent < 0.6);
     }
