@@ -136,7 +136,7 @@ fn set_targets(
         };
         let terrain_hit = spatial_query.cast_shape_predicate(
             &prop_collider,
-            actor_transform.translation,
+            actor_transform.translation + prop_center_of_mass.0,
             target_rotation,
             forward,
             &ShapeCastConfig {
@@ -165,7 +165,7 @@ fn set_targets(
         // dance since we already have made sure that the prop has a sensible minimum
         // distance
         let target_position = actor_transform.translation + forward * distance;
-        shadow.target_position = target_position;
+        shadow.target_position = target_position - prop_center_of_mass.0;
     }
 }
 
