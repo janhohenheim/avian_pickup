@@ -1,5 +1,5 @@
 use super::prelude::HoldError;
-use crate::{math::GetBestGlobalTransform, prelude::*, prop::PrePickupRotation, verb::Holding};
+use crate::{prelude::*, prop::PrePickupRotation, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_observer(on_add_holding);
@@ -15,7 +15,7 @@ pub fn on_add_holding(
         &mut HoldError,
         &Holding,
     )>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
+    q_actor_transform: Query<&GlobalTransform>,
     mut q_prop: Query<(
         &Rotation,
         Option<&Mass>,
@@ -28,7 +28,7 @@ pub fn on_add_holding(
         error!("Actor entity was deleted or in an invalid state. Ignoring.");
         return;
     };
-    let actor_transform = q_actor_transform.get_best_global_transform(actor);
+    let actor_transform = q_actor_transform.get(actor).unwrap().compute_transform();
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
     commands.entity(prop).insert(HeldProp);

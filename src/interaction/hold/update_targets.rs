@@ -3,7 +3,7 @@ use avian3d::sync::ancestor_marker::AncestorMarker;
 use super::{HoldSystem, prelude::*};
 use crate::{
     avian_util::get_rigid_body_colliders,
-    math::{GetBestGlobalTransform as _, rigid_body_compound_collider},
+    math::rigid_body_compound_collider,
     prelude::*,
     prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},
@@ -19,12 +19,12 @@ fn set_targets(
     spatial_query: SpatialQuery,
     mut q_actor: Query<(
         Entity,
+        &GlobalTransform,
         &AvianPickupActor,
         &HoldError,
         &mut ShadowParams,
         &Holding,
     )>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
         &Rotation,
         &GlobalTransform,
@@ -40,7 +40,7 @@ fn set_targets(
     mut q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
+    for (actor, actor_transform, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
         if hold_error.error > max_error {
             commands
@@ -48,7 +48,7 @@ fn set_targets(
                 .queue(SetVerb::new(Verb::Drop { prop, forced: true }));
             continue;
         }
-        let actor_transform = q_actor_transform.get_best_global_transform(actor);
+        let actor_transform = actor_transform.compute_transform();
 
         let Ok((
             prop_rotation,
