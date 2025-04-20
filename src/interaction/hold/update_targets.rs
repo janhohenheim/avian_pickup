@@ -2,6 +2,7 @@ use avian3d::sync::ancestor_marker::AncestorMarker;
 
 use super::{HoldSystem, prelude::*};
 use crate::{
+    avian_util::get_rigid_body_colliders,
     math::{GetBestGlobalTransform as _, rigid_body_compound_collider},
     prelude::*,
     prop::PrePickupRotation,
@@ -36,7 +37,7 @@ fn set_targets(
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
     q_collider_parent: Query<&ColliderParent>,
-    q_collider: Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
+    mut q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
@@ -73,12 +74,13 @@ fn set_targets(
         // We can't cast a ray wrt an entire rigid body out of the box,
         // so we manually collect all colliders in the hierarchy and
         // construct a compound collider.
-        let prop_collider = rigid_body_compound_collider(
+        let colliders = get_rigid_body_colliders(
             prop,
             &q_collider_ancestor,
-            &q_collider,
-            &config.prop_filter,
+            &q_collider.transmute_lens().query(),
         );
+        let prop_collider =
+            rigid_body_compound_collider(colliders.as_deref(), &q_collider, &config.prop_filter);
         let Some(prop_collider) = prop_collider else {
             error!("Held prop does not have a collider in its hierarchy. Ignoring.");
             continue;
