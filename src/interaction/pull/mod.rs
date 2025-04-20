@@ -36,10 +36,10 @@ fn find_object(
         &RigidBody,
         &ComputedMass,
         &mut ExternalImpulse,
-        &Position,
+        &GlobalTransform,
         Has<HeldProp>,
     )>,
-    q_position: Query<&Position>,
+    q_position: Query<&GlobalTransform>,
 ) {
     for (actor, actor_transform, config, mut state, mut cooldown) in q_actor.iter_mut() {
         let actor_transform = actor_transform.compute_transform();
@@ -82,7 +82,8 @@ fn find_object(
                 .entity(actor)
                 .queue(SetVerb::new(Verb::Hold(prop.entity)));
         } else {
-            let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
+            let direction =
+                (actor_transform.translation - prop_position.translation()).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
             let pull_impulse = direction * config.pull.impulse * mass_adjustment;
             cooldown.pull();

@@ -26,7 +26,6 @@ fn set_targets(
         &Holding,
     )>,
     mut q_prop: Query<(
-        &Rotation,
         &GlobalTransform,
         &ComputedCenterOfMass,
         Option<&PrePickupRotation>,
@@ -51,7 +50,6 @@ fn set_targets(
         let actor_transform = actor_transform.compute_transform();
 
         let Ok((
-            prop_rotation,
             prop_transform,
             prop_center_of_mass,
             pre_pickup_rotation,
@@ -63,6 +61,7 @@ fn set_targets(
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;
         };
+        let prop_transform = prop_transform.compute_transform();
         let pitch_range = clamp_pitch
             .map(|c| &c.0)
             .unwrap_or(&config.hold.pitch_range);
@@ -86,7 +85,7 @@ fn set_targets(
             continue;
         };
         let prop_radius_wrt_direction =
-            collider_get_extent(&prop_collider, prop_rotation.0, -forward);
+            collider_get_extent(&prop_collider, prop_transform.rotation, -forward);
         let Some(prop_radius_wrt_direction) = prop_radius_wrt_direction else {
             error!(
                 "Failed to get collider extent: Parry failed to find a hit with its AABB. Ignoring prop."
@@ -175,7 +174,7 @@ fn set_targets(
         // This looks really weird when holding, so let's hold it at the center of mass instead.
         // Note that the following calculation is distinct from just `prop_center_of_mass.0`,
         // as that one would be the offset if the prop had no rotation.
-        let center_of_mass_offset = global_center_of_mass - prop_transform.translation();
+        let center_of_mass_offset = global_center_of_mass - prop_transform.translation;
         shadow.target_position = target_position - center_of_mass_offset;
     }
 }
