@@ -18,8 +18,9 @@ impl Default for ShadowParams {
         Self {
             target_position: Vec3::ZERO,
             target_rotation: Quat::IDENTITY,
-            max_angular: TAU * 10.0,
-            max_speed: 25.4,
+            // the following two are tuned by hand
+            max_angular: TAU * 2.0,
+            max_speed: 10.0,
         }
     }
 }
