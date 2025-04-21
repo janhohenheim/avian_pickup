@@ -3,6 +3,7 @@ use bevy::prelude::*;
 
 pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 pub(crate) fn rigid_body_compound_collider(
+    rigid_body_transform: &Transform,
     colliders: Option<&[Entity]>,
     q_collider: &Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
     filter: &SpatialQueryFilter,
@@ -14,6 +15,8 @@ pub(crate) fn rigid_body_compound_collider(
         let transform = transform.compute_transform();
         let layers = layers.copied().unwrap_or_default();
         if filter.test(entity, layers) {
+            let relative_translation = transform.translation - rigid_body_transform.translation;
+            let relative_rotation = transform.rotation * rigid_body_transform.rotation.inverse();
             if let Some(compound) = collider.shape_scaled().as_compound() {
                 // Need to unpack compound shapes because we are later returning a big compound collider for the whole rigid body
                 // and parry crashes on nested compound shapes
@@ -21,13 +24,13 @@ pub(crate) fn rigid_body_compound_collider(
                     let translation = Vec3::from(isometry.translation);
                     let rotation = Quat::from(isometry.rotation);
                     colliders.push((
-                        transform.translation + translation,
-                        transform.rotation * rotation,
+                        relative_translation + translation,
+                        relative_rotation * rotation,
                         shape.clone().into(),
                     ));
                 }
             } else {
-                colliders.push((transform.translation, transform.rotation, collider.clone()));
+                colliders.push((relative_translation, relative_rotation, collider.clone()));
             }
         }
     }

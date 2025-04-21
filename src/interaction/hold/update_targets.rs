@@ -36,6 +36,7 @@ fn set_targets(
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
     q_collider_parent: Query<&ColliderParent>,
+    q_name: Query<NameOrEntity>,
     mut q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
@@ -78,8 +79,12 @@ fn set_targets(
             &q_collider_ancestor,
             &q_collider.transmute_lens().query(),
         );
-        let prop_collider =
-            rigid_body_compound_collider(colliders.as_deref(), &q_collider, &config.prop_filter);
+        let prop_collider = rigid_body_compound_collider(
+            &prop_transform,
+            colliders.as_deref(),
+            &q_collider,
+            &config.prop_filter,
+        );
         let Some(prop_collider) = prop_collider else {
             error!("Held prop does not have a collider in its hierarchy. Ignoring.");
             continue;
@@ -123,43 +128,28 @@ fn set_targets(
 
         shadow.target_rotation = target_rotation;
 
-        // The cast needs to be longer to account for the fact that
-        // the prop might hit terrain with the side that is not facing
-        // the player. We are assuming the prop has the same radius
-        // "behind" it as it has in front of it. Also add a bit of
-        // padding to be safe.
-        let max_cast_toi = max_distance + min_distance + 0.5;
-
-        // Not filtering this out later because we want the cast to "pass through" the
-        // prop to get the distance to the terrain behind it.
-        let is_terrain = |entity: Entity| {
-            q_collider_parent
-                .get(entity)
-                .is_ok_and(|parent| parent.get() != prop)
-        };
-
         let global_center_of_mass = prop_transform.transform_point(prop_center_of_mass.0);
-        let terrain_hit = spatial_query.cast_shape_predicate(
+        let terrain_hit = spatial_query.cast_shape(
             &prop_collider,
-            global_center_of_mass,
+            actor_transform.translation,
             target_rotation,
             forward,
             &ShapeCastConfig {
-                max_distance: max_cast_toi,
-                ignore_origin_penetration: true,
+                max_distance: f32::MAX,
+                ignore_origin_penetration: false,
                 ..default()
             },
-            &config.obstacle_filter,
-            &is_terrain,
+            &config
+                .obstacle_filter
+                .clone()
+                // Safety: we would have errored earlier if the colliders were not present
+                .with_excluded_entities(colliders.unwrap()),
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
             let toi = terrain_hit.distance;
             let fraction = toi / max_distance;
             if fraction < 0.5 {
-                // not doing `max(min_distance, toi)` here because that would
-                // result in the prop being too close to the player
-                // better to intersect with the terrain than to the player.
-                min_distance
+                min_distance.min(toi)
             } else {
                 max_distance.min(toi)
             }
@@ -196,7 +186,7 @@ fn collider_get_extent(collider: &Collider, rotation: Quat, dir: Dir3) -> Option
     const TRANSLATION: Vec3 = Vec3::ZERO;
     const RAY_ORIGIN: Vec3 = Vec3::ZERO;
     // We cast from inside the collider, so we don't care about a max TOI
-    const MAX_TOI: f32 = f32::INFINITY;
+    const MAX_TOI: f32 = f32::MAX;
     // Needs to be false to not just get the origin back
     const SOLID: bool = false;
 
@@ -245,7 +235,7 @@ mod test {
         const TRANSLATION: Vec3 = Vec3::ZERO;
         const ORIGIN: Vec3 = Vec3::ZERO;
         // We cast from inside the collider, so we don't care about a max TOI
-        const MAX_TOI: f32 = f32::INFINITY;
+        const MAX_TOI: f32 = f32::MAX;
         // Needs to be false to not just get the origin back
         const SOLID: bool = false;
         let hit = collider.cast_ray(TRANSLATION, rotation, ORIGIN, dir, MAX_TOI, SOLID);
