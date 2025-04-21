@@ -75,7 +75,7 @@ fn set_verb(
     match verb {
         Some(Verb::Throw(prop)) => {
             if !throwing {
-                commands.insert(Throwing(prop));
+                commands.try_insert(Throwing(prop));
             }
             if dropping {
                 commands.remove::<Dropping>();
@@ -89,7 +89,7 @@ fn set_verb(
         }
         Some(Verb::Drop { prop, forced }) => {
             if !dropping {
-                commands.insert(Dropping { prop, forced });
+                commands.try_insert(Dropping { prop, forced });
             }
             if throwing {
                 commands.remove::<Throwing>();
@@ -103,7 +103,7 @@ fn set_verb(
         }
         Some(Verb::Pull) => {
             if !pulling {
-                commands.insert(Pulling);
+                commands.try_insert(Pulling);
             }
             if throwing {
                 commands.remove::<Throwing>();
@@ -117,7 +117,7 @@ fn set_verb(
         }
         Some(Verb::Hold(prop)) => {
             if !holding {
-                commands.insert(Holding(prop));
+                commands.try_insert(Holding(prop));
             }
             if throwing {
                 commands.remove::<Throwing>();

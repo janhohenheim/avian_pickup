@@ -313,7 +313,7 @@ impl Component for AvianPickupActor {
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(|mut world, targeted_entity, _component_id| {
             let mut commands = world.commands();
-            commands.entity(targeted_entity).insert((
+            commands.entity(targeted_entity).try_insert((
                 AvianPickupActorState::default(),
                 Cooldown::default(),
                 HoldError::default(),

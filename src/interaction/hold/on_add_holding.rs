@@ -37,7 +37,7 @@ pub fn on_add_holding(
     };
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
-    commands.entity(prop).insert(HeldProp);
+    commands.entity(prop).try_insert(HeldProp);
     let Ok((prop_transform, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");
         return;
@@ -50,19 +50,19 @@ pub fn on_add_holding(
     } else {
         commands
             .entity(prop)
-            .insert(PrePickupRotation(actor_space_rotation));
+            .try_insert(PrePickupRotation(actor_space_rotation));
     }
 
     // Cache old mass
     if let Some(mass) = mass {
-        commands.entity(prop).insert(NonPickupMass(*mass));
+        commands.entity(prop).try_insert(NonPickupMass(*mass));
     }
 
     let new_mass = pickup_mass
         .map(|m| m.0)
         .unwrap_or(config.hold.temporary_prop_mass);
 
-    commands.entity(prop).insert(Mass(new_mass));
+    commands.entity(prop).try_insert(Mass(new_mass));
 
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me
