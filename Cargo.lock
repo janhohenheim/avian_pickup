@@ -328,7 +328,7 @@ dependencies = [
 
 [[package]]
 name = "avian_pickup"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "avian3d",
  "bevy",
