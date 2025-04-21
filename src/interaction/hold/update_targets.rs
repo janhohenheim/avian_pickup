@@ -35,8 +35,6 @@ fn set_targets(
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider_parent: Query<&ColliderParent>,
-    q_name: Query<NameOrEntity>,
     mut q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
@@ -123,16 +121,27 @@ fn set_targets(
         // rotating when looking further up than the clamp allows.
         // Looks weird imo, so we use the clamped rotation.
         let clamped_actor_transform = actor_transform.with_rotation(clamped_rotation);
-        let target_rotation =
+        shadow.target_rotation =
             prop_rotation_from_actor_space(actor_space_rotation, clamped_actor_transform);
 
-        shadow.target_rotation = target_rotation;
-
+        // Without some offset, the target position is pointing to the origin of the prop, which is often at its "feet".
+        // This looks really weird when holding, so let's hold it at the center of mass instead.
+        // Note that the following calculation is distinct from just `prop_center_of_mass.0`,
+        // as that one would be the offset if the prop had no rotation.
         let global_center_of_mass = prop_transform.transform_point(prop_center_of_mass.0);
+        let center_of_mass_offset = global_center_of_mass - prop_transform.translation;
+        // Adjusting the actor's transform to the center of mass of the prop might
+        // seem backwards, but it's mathematically identical to offsetting the result
+        // of any calculation by the center of mass offset. This just does it at the "input"
+        // instead of the "output" of the calculation.
+        let center_of_mass_adjusted_actor_transform =
+            actor_transform.translation - center_of_mass_offset;
+
         let terrain_hit = spatial_query.cast_shape(
             &prop_collider,
-            actor_transform.translation,
-            target_rotation,
+            center_of_mass_adjusted_actor_transform,
+            // more stable results if we use the prop' actual rotation instead of the target rotation
+            prop_transform.rotation,
             forward,
             &ShapeCastConfig {
                 max_distance: f32::MAX,
@@ -159,13 +168,7 @@ fn set_targets(
         // Pretty sure we don't need to go through the CalcClosestPointOnLine song and
         // dance since we already have made sure that the prop has a sensible minimum
         // distance
-        let target_position = actor_transform.translation + forward * distance;
-        // target_position is pointing to the origin of the prop, which is often at its "feet".
-        // This looks really weird when holding, so let's hold it at the center of mass instead.
-        // Note that the following calculation is distinct from just `prop_center_of_mass.0`,
-        // as that one would be the offset if the prop had no rotation.
-        let center_of_mass_offset = global_center_of_mass - prop_transform.translation;
-        shadow.target_position = target_position - center_of_mass_offset;
+        shadow.target_position = center_of_mass_adjusted_actor_transform + forward * distance;
     }
 }
 
