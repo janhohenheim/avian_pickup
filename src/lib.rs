@@ -6,6 +6,7 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 
 pub mod actor;
+mod avian_util;
 mod cooldown;
 pub mod input;
 mod interaction;

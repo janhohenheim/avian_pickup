@@ -11,7 +11,7 @@ pub(super) fn plugin(app: &mut App) {
 /// CGrabController::ComputeError(),
 pub fn update_error(
     time: Res<Time>,
-    q_prop: Query<&Position>,
+    q_prop: Query<&GlobalTransform>,
     mut q_actor: Query<(&mut HoldError, &ShadowParams, &Holding)>,
 ) {
     let dt = time.delta_secs();
@@ -21,11 +21,11 @@ pub fn update_error(
         if hold_error.error_time <= 0.0 {
             continue;
         }
-        let Ok(position) = q_prop.get(prop) else {
+        let Ok(prop_transform) = q_prop.get(prop) else {
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;
         };
-        let mut error = (position.0 - shadow.target_position).length();
+        let mut error = (prop_transform.translation() - shadow.target_position).length();
         if hold_error.error_time > 1.0 {
             hold_error.error_time = 1.0;
         }

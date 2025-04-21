@@ -1,5 +1,4 @@
 use crate::{
-    math::GetBestGlobalTransform,
     prelude::*,
     verb::{Pulling, SetVerb, Verb},
 };
@@ -25,25 +24,25 @@ fn find_object(
     mut q_actor: Query<
         (
             Entity,
+            &GlobalTransform,
             &AvianPickupActor,
             &mut AvianPickupActorState,
             &mut Cooldown,
         ),
         With<Pulling>,
     >,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     q_collider_parent: Query<&ColliderParent>,
     mut q_rigid_body: Query<(
         &RigidBody,
         &ComputedMass,
         &mut ExternalImpulse,
-        &Position,
+        &GlobalTransform,
         Has<HeldProp>,
     )>,
-    q_position: Query<&Position>,
+    q_position: Query<&GlobalTransform>,
 ) {
-    for (actor, config, mut state, mut cooldown) in q_actor.iter_mut() {
-        let actor_transform = q_actor_transform.get_best_global_transform(actor);
+    for (actor, actor_transform, config, mut state, mut cooldown) in q_actor.iter_mut() {
+        let actor_transform = actor_transform.compute_transform();
         let prop = find_prop_in_trace(
             &spatial_query,
             actor_transform,
@@ -83,7 +82,8 @@ fn find_object(
                 .entity(actor)
                 .queue(SetVerb::new(Verb::Hold(prop.entity)));
         } else {
-            let direction = (actor_transform.translation - prop_position.0).normalize_or_zero();
+            let direction =
+                (actor_transform.translation - prop_position.translation()).normalize_or_zero();
             let mass_adjustment = adjust_impulse_for_mass(mass);
             let pull_impulse = direction * config.pull.impulse * mass_adjustment;
             cooldown.pull();

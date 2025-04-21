@@ -202,7 +202,10 @@ fn move_prop(
         let AvianPickupActorState::Holding(prop) = state else {
             continue;
         };
-        let (mut distance, mut rotation) = props.get_mut(*prop).unwrap();
+        let Ok((mut distance, mut rotation)) = props.get_mut(*prop) else {
+            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
         const SCROLL_VELOCITY: f32 = 5.0;
         let delta = input.zoom as f32 * SCROLL_VELOCITY * dt;
         input.zoom = 0;

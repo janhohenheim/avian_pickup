@@ -1,5 +1,5 @@
 use super::prelude::HoldError;
-use crate::{math::GetBestGlobalTransform, prelude::*, prop::PrePickupRotation, verb::Holding};
+use crate::{prelude::*, prop::PrePickupRotation, verb::Holding};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_observer(on_add_holding);
@@ -15,9 +15,9 @@ pub fn on_add_holding(
         &mut HoldError,
         &Holding,
     )>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
+    q_actor_transform: Query<&GlobalTransform>,
     mut q_prop: Query<(
-        &Rotation,
+        &GlobalTransform,
         Option<&Mass>,
         Option<&PickupMassOverride>,
         Option<&mut PrePickupRotation>,
@@ -28,34 +28,41 @@ pub fn on_add_holding(
         error!("Actor entity was deleted or in an invalid state. Ignoring.");
         return;
     };
-    let actor_transform = q_actor_transform.get_best_global_transform(actor);
+    let Ok(actor_transform) = q_actor_transform
+        .get(actor)
+        .map(|transform| transform.compute_transform())
+    else {
+        error!("Actor entity was deleted or in an invalid state. Ignoring.");
+        return;
+    };
     let prop = holding.0;
     *state = AvianPickupActorState::Holding(prop);
-    commands.entity(prop).insert(HeldProp);
-    let Ok((rotation, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
+    commands.entity(prop).try_insert(HeldProp);
+    let Ok((prop_transform, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");
         return;
     };
 
-    let actor_space_rotation = prop_rotation_to_actor_space(rotation.0, actor_transform);
+    let actor_space_rotation =
+        prop_rotation_to_actor_space(prop_transform.rotation(), actor_transform);
     if let Some(mut pre_pickup_rotation) = pre_pickup_rotation {
         pre_pickup_rotation.0 = actor_space_rotation;
     } else {
         commands
             .entity(prop)
-            .insert(PrePickupRotation(actor_space_rotation));
+            .try_insert(PrePickupRotation(actor_space_rotation));
     }
 
     // Cache old mass
     if let Some(mass) = mass {
-        commands.entity(prop).insert(NonPickupMass(*mass));
+        commands.entity(prop).try_insert(NonPickupMass(*mass));
     }
 
     let new_mass = pickup_mass
         .map(|m| m.0)
         .unwrap_or(config.hold.temporary_prop_mass);
 
-    commands.entity(prop).insert(Mass(new_mass));
+    commands.entity(prop).try_insert(Mass(new_mass));
 
     // The original code also does some damping stuff, but then deactivates
     // drag? Seems like a no-op to me

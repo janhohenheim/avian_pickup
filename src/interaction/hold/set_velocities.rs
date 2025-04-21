@@ -13,12 +13,7 @@ pub(super) fn plugin(app: &mut App) {
 /// CGrabController::Simulate
 fn set_velocities(
     time: Res<Time>,
-    mut q_prop: Query<(
-        &mut LinearVelocity,
-        &mut AngularVelocity,
-        &Position,
-        &Rotation,
-    )>,
+    mut q_prop: Query<(&mut LinearVelocity, &mut AngularVelocity, &GlobalTransform)>,
     mut q_actor: Query<(&ShadowParams, &Holding, &AvianPickupActor)>,
 ) {
     // Valve uses CGrabController::Simulate, which does *a lot* of stuff,
@@ -29,14 +24,15 @@ fn set_velocities(
     let inv_dt = dt.recip();
     for (shadow, holding, actor) in q_actor.iter_mut() {
         let prop = holding.0;
-        let Ok((mut velocity, mut angvel, position, rotation)) = q_prop.get_mut(prop) else {
+        let Ok((mut velocity, mut angvel, prop_transform)) = q_prop.get_mut(prop) else {
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;
         };
+        let prop_transform = prop_transform.compute_transform();
 
-        let delta_position = shadow.target_position - position.0;
+        let delta_position = shadow.target_position - prop_transform.translation;
 
-        let delta_rotation = shadow.target_rotation * rotation.0.inverse();
+        let delta_rotation = shadow.target_rotation * prop_transform.rotation.inverse();
         let (axis, angle) = delta_rotation.to_axis_angle();
         // This is needed because otherwise we will sometimes rotate the long way around
         let angle = if angle > PI { angle - TAU } else { angle };

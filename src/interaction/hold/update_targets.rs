@@ -2,7 +2,8 @@ use avian3d::sync::ancestor_marker::AncestorMarker;
 
 use super::{HoldSystem, prelude::*};
 use crate::{
-    math::{GetBestGlobalTransform as _, rigid_body_compound_collider},
+    avian_util::get_rigid_body_colliders,
+    math::rigid_body_compound_collider,
     prelude::*,
     prop::PrePickupRotation,
     verb::{Holding, SetVerb, Verb},
@@ -18,14 +19,13 @@ fn set_targets(
     spatial_query: SpatialQuery,
     mut q_actor: Query<(
         Entity,
+        &GlobalTransform,
         &AvianPickupActor,
         &HoldError,
         &mut ShadowParams,
         &Holding,
     )>,
-    q_actor_transform: Query<(&GlobalTransform, Option<&Position>, Option<&Rotation>)>,
     mut q_prop: Query<(
-        &Rotation,
         &GlobalTransform,
         &ComputedCenterOfMass,
         Option<&PrePickupRotation>,
@@ -35,11 +35,10 @@ fn set_targets(
     )>,
 
     q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    q_collider_parent: Query<&ColliderParent>,
-    q_collider: Query<(&Transform, &Collider, Option<&CollisionLayers>)>,
+    mut q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
-    for (actor, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
+    for (actor, actor_transform, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
         let prop = holding.0;
         if hold_error.error > max_error {
             commands
@@ -47,10 +46,9 @@ fn set_targets(
                 .queue(SetVerb::new(Verb::Drop { prop, forced: true }));
             continue;
         }
-        let actor_transform = q_actor_transform.get_best_global_transform(actor);
+        let actor_transform = actor_transform.compute_transform();
 
         let Ok((
-            prop_rotation,
             prop_transform,
             prop_center_of_mass,
             pre_pickup_rotation,
@@ -62,6 +60,7 @@ fn set_targets(
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;
         };
+        let prop_transform = prop_transform.compute_transform();
         let pitch_range = clamp_pitch
             .map(|c| &c.0)
             .unwrap_or(&config.hold.pitch_range);
@@ -73,9 +72,14 @@ fn set_targets(
         // We can't cast a ray wrt an entire rigid body out of the box,
         // so we manually collect all colliders in the hierarchy and
         // construct a compound collider.
-        let prop_collider = rigid_body_compound_collider(
+        let colliders = get_rigid_body_colliders(
             prop,
             &q_collider_ancestor,
+            &q_collider.transmute_lens().query(),
+        );
+        let prop_collider = rigid_body_compound_collider(
+            &prop_transform,
+            colliders.as_deref(),
             &q_collider,
             &config.prop_filter,
         );
@@ -84,7 +88,7 @@ fn set_targets(
             continue;
         };
         let prop_radius_wrt_direction =
-            collider_get_extent(&prop_collider, prop_rotation.0, -forward);
+            collider_get_extent(&prop_collider, prop_transform.rotation, -forward);
         let Some(prop_radius_wrt_direction) = prop_radius_wrt_direction else {
             error!(
                 "Failed to get collider extent: Parry failed to find a hit with its AABB. Ignoring prop."
@@ -117,48 +121,44 @@ fn set_targets(
         // rotating when looking further up than the clamp allows.
         // Looks weird imo, so we use the clamped rotation.
         let clamped_actor_transform = actor_transform.with_rotation(clamped_rotation);
-        let target_rotation =
+        shadow.target_rotation =
             prop_rotation_from_actor_space(actor_space_rotation, clamped_actor_transform);
 
-        shadow.target_rotation = target_rotation;
-
-        // The cast needs to be longer to account for the fact that
-        // the prop might hit terrain with the side that is not facing
-        // the player. We are assuming the prop has the same radius
-        // "behind" it as it has in front of it. Also add a bit of
-        // padding to be safe.
-        let max_cast_toi = max_distance + min_distance + 0.5;
-
-        // Not filtering this out later because we want the cast to "pass through" the
-        // prop to get the distance to the terrain behind it.
-        let is_terrain = |entity: Entity| {
-            q_collider_parent
-                .get(entity)
-                .is_ok_and(|parent| parent.get() != prop)
-        };
-
+        // Without some offset, the target position is pointing to the origin of the prop, which is often at its "feet".
+        // This looks really weird when holding, so let's hold it at the center of mass instead.
+        // Note that the following calculation is distinct from just `prop_center_of_mass.0`,
+        // as that one would be the offset if the prop had no rotation.
         let global_center_of_mass = prop_transform.transform_point(prop_center_of_mass.0);
-        let terrain_hit = spatial_query.cast_shape_predicate(
+        let center_of_mass_offset = global_center_of_mass - prop_transform.translation;
+        // Adjusting the actor's transform to the center of mass of the prop might
+        // seem backwards, but it's mathematically identical to offsetting the result
+        // of any calculation by the center of mass offset. This just does it at the "input"
+        // instead of the "output" of the calculation.
+        let center_of_mass_adjusted_actor_transform =
+            actor_transform.translation - center_of_mass_offset;
+
+        let terrain_hit = spatial_query.cast_shape(
             &prop_collider,
-            global_center_of_mass,
-            target_rotation,
+            center_of_mass_adjusted_actor_transform,
+            // more stable results if we use the prop' actual rotation instead of the target rotation
+            prop_transform.rotation,
             forward,
             &ShapeCastConfig {
-                max_distance: max_cast_toi,
-                ignore_origin_penetration: true,
+                max_distance: f32::MAX,
+                ignore_origin_penetration: false,
                 ..default()
             },
-            &config.obstacle_filter,
-            &is_terrain,
+            &config
+                .obstacle_filter
+                .clone()
+                // Safety: we would have errored earlier if the colliders were not present
+                .with_excluded_entities(colliders.unwrap()),
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
             let toi = terrain_hit.distance;
             let fraction = toi / max_distance;
             if fraction < 0.5 {
-                // not doing `max(min_distance, toi)` here because that would
-                // result in the prop being too close to the player
-                // better to intersect with the terrain than to the player.
-                min_distance
+                min_distance.min(toi)
             } else {
                 max_distance.min(toi)
             }
@@ -168,13 +168,7 @@ fn set_targets(
         // Pretty sure we don't need to go through the CalcClosestPointOnLine song and
         // dance since we already have made sure that the prop has a sensible minimum
         // distance
-        let target_position = actor_transform.translation + forward * distance;
-        // target_position is pointing to the origin of the prop, which is often at its "feet".
-        // This looks really weird when holding, so let's hold it at the center of mass instead.
-        // Note that the following calculation is distinct from just `prop_center_of_mass.0`,
-        // as that one would be the offset if the prop had no rotation.
-        let center_of_mass_offset = global_center_of_mass - prop_transform.translation();
-        shadow.target_position = target_position - center_of_mass_offset;
+        shadow.target_position = center_of_mass_adjusted_actor_transform + forward * distance;
     }
 }
 
@@ -195,7 +189,7 @@ fn collider_get_extent(collider: &Collider, rotation: Quat, dir: Dir3) -> Option
     const TRANSLATION: Vec3 = Vec3::ZERO;
     const RAY_ORIGIN: Vec3 = Vec3::ZERO;
     // We cast from inside the collider, so we don't care about a max TOI
-    const MAX_TOI: f32 = f32::INFINITY;
+    const MAX_TOI: f32 = f32::MAX;
     // Needs to be false to not just get the origin back
     const SOLID: bool = false;
 
@@ -244,7 +238,7 @@ mod test {
         const TRANSLATION: Vec3 = Vec3::ZERO;
         const ORIGIN: Vec3 = Vec3::ZERO;
         // We cast from inside the collider, so we don't care about a max TOI
-        const MAX_TOI: f32 = f32::INFINITY;
+        const MAX_TOI: f32 = f32::MAX;
         // Needs to be false to not just get the origin back
         const SOLID: bool = false;
         let hit = collider.cast_ray(TRANSLATION, rotation, ORIGIN, dir, MAX_TOI, SOLID);

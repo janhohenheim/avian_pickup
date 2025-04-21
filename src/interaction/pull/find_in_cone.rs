@@ -6,7 +6,7 @@ pub(super) fn find_prop_in_cone(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
-    q_position: &Query<&Position>,
+    q_position: &Query<&GlobalTransform>,
     q_rigid_body: &Query<&RigidBody>,
     q_collider_parent: &Query<&ColliderParent>,
 ) -> Option<Prop> {
@@ -37,8 +37,13 @@ pub(super) fn find_prop_in_cone(
     let mut canditate = None;
 
     for rigid_body in rigid_bodies {
-        // Safety: Pretty sure a `shape_intersection` will never return an entity without a `Position`.
-        let object_translation = q_position.get(rigid_body).unwrap().0;
+        let Ok(object_translation) = q_position
+            .get(rigid_body)
+            .map(|transform| transform.translation())
+        else {
+            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+            continue;
+        };
 
         // Closer than other objects
         let los = object_translation - origin.translation;
