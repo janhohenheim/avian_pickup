@@ -1,5 +1,8 @@
 # Avian Pickup
 
+[![crates.io](https://img.shields.io/crates/v/avian_pickup)](https://crates.io/crates/avian_pickup)
+[![docs.rs](https://docs.rs/avian_pickup/badge.svg)](https://docs.rs/avian_pickup)
+
 A plugin for implementing picking up dynamic rigid bodies in [Avian physics](https://github.com/Jondolf/avian/) for the [Bevy engine](https://bevyengine.org/).
 Modeled after Half Life 2's gravity gun.
 
