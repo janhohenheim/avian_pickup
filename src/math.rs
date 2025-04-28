@@ -4,13 +4,12 @@ use bevy::prelude::*;
 pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 pub(crate) fn rigid_body_compound_collider(
     rigid_body_transform: &Transform,
-    colliders: Option<&[Entity]>,
+    collider_entities: impl IntoIterator<Item = Entity>,
     q_collider: &Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
     filter: &SpatialQueryFilter,
 ) -> Option<Collider> {
-    let collider_entities = colliders?;
     let mut colliders = Vec::new();
-    for &entity in collider_entities {
+    for entity in collider_entities.into_iter() {
         let (transform, collider, layers) = q_collider.get(entity).ok()?;
         let transform = transform.compute_transform();
         let layers = layers.copied().unwrap_or_default();
