@@ -1,6 +1,6 @@
 [package]
 name = "avian_pickup"
-version = "0.1.7"
+version = "0.2.0-dev"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
 edition = "2024"
