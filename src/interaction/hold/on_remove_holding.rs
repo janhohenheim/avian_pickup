@@ -12,7 +12,7 @@ fn on_remove_holding(
 ) {
     // Safety: We are removing a `Holding` component, so we know that the entity has
     // one.
-    let holding = q_actor.get(trigger.entity()).unwrap();
+    let holding = q_actor.get(trigger.target()).unwrap();
     let prop = holding.0;
     let Ok((entity, non_pickup_mass, has_held_marker)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");

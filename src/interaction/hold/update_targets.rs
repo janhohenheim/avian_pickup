@@ -1,8 +1,5 @@
-use avian3d::sync::ancestor_marker::AncestorMarker;
-
 use super::{HoldSystem, prelude::*};
 use crate::{
-    avian_util::get_rigid_body_colliders,
     math::rigid_body_compound_collider,
     prelude::*,
     prop::PrePickupRotation,
@@ -28,14 +25,14 @@ fn set_targets(
     mut q_prop: Query<(
         &GlobalTransform,
         &ComputedCenterOfMass,
+        Option<&RigidBodyColliders>,
         Option<&PrePickupRotation>,
         Option<&PreferredPickupRotation>,
         Option<&PreferredPickupDistanceOverride>,
         Option<&PitchRangeOverride>,
     )>,
 
-    q_collider_ancestor: Query<&Children, With<AncestorMarker<ColliderMarker>>>,
-    mut q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
+    q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, actor_transform, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
@@ -51,6 +48,7 @@ fn set_targets(
         let Ok((
             prop_transform,
             prop_center_of_mass,
+            rigid_body_colliders,
             pre_pickup_rotation,
             preferred_rotation,
             preferred_distance,
@@ -72,14 +70,13 @@ fn set_targets(
         // We can't cast a ray wrt an entire rigid body out of the box,
         // so we manually collect all colliders in the hierarchy and
         // construct a compound collider.
-        let colliders = get_rigid_body_colliders(
-            prop,
-            &q_collider_ancestor,
-            &q_collider.transmute_lens().query(),
-        );
+        let Some(colliders) = rigid_body_colliders else {
+            error!("Held prop does not have rigid body colliders. Ignoring.");
+            continue;
+        };
         let prop_collider = rigid_body_compound_collider(
             &prop_transform,
-            colliders.as_deref(),
+            colliders.iter(),
             &q_collider,
             &config.prop_filter,
         );
@@ -151,8 +148,7 @@ fn set_targets(
             &config
                 .obstacle_filter
                 .clone()
-                // Safety: we would have errored earlier if the colliders were not present
-                .with_excluded_entities(colliders.unwrap()),
+                .with_excluded_entities(colliders.iter()),
         );
         let distance = if let Some(terrain_hit) = terrain_hit {
             let toi = terrain_hit.distance;

@@ -55,8 +55,10 @@ impl SetVerb {
 }
 
 impl EntityCommand for SetVerb {
-    fn apply(self, actor: Entity, world: &mut World) {
-        world
+    fn apply(self, entity_world: EntityWorldMut) {
+        let actor = entity_world.id();
+        entity_world
+            .into_world_mut()
             .run_system_cached_with(set_verb, (actor, self.0))
             .unwrap();
     }

@@ -1,5 +1,6 @@
 use super::Prop;
 use crate::{math::METERS_PER_INCH, prelude::*};
+use bevy::ecs::relationship::Relationship as _;
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectInCone`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690)
 pub(super) fn find_prop_in_cone(
@@ -8,7 +9,7 @@ pub(super) fn find_prop_in_cone(
     config: &AvianPickupActor,
     q_position: &Query<&GlobalTransform>,
     q_rigid_body: &Query<&RigidBody>,
-    q_collider_parent: &Query<&ColliderParent>,
+    q_collider_parent: &Query<&ColliderOf>,
 ) -> Option<Prop> {
     let is_dynamic = |entity: Entity| {
         q_rigid_body

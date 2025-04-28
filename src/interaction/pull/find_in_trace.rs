@@ -1,13 +1,13 @@
 use super::Prop;
 use crate::prelude::*;
-
+use bevy::ecs::relationship::Relationship as _;
 /// Inspired by [`CWeaponPhysCannon::FindObjectTrace`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2470)
 pub(super) fn find_prop_in_trace(
     spatial_query: &SpatialQuery,
     origin: Transform,
     config: &AvianPickupActor,
     q_rigid_body: &Query<&RigidBody>,
-    q_collider_parent: &Query<&ColliderParent>,
+    q_collider_parent: &Query<&ColliderOf>,
 ) -> Option<Prop> {
     // Fun fact: Valve lies to you and actually multiplies this by 4 at this point.
     let test_length = config.interaction_distance;

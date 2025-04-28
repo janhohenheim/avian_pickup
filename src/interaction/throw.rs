@@ -61,7 +61,7 @@ fn throw(
         angvel.0 = rand_direction * rand_magnitude;
 
         *states = AvianPickupActorState::Idle;
-        w_throw_event.send(PropThrown { actor, prop });
+        w_throw_event.write(PropThrown { actor, prop });
         cooldown.throw();
     }
 }

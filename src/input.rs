@@ -1,6 +1,6 @@
 //! Module for the types that represent input events for Avian Pickup.
 
-use bevy::{prelude::*, utils::HashSet};
+use bevy::{platform::collections::HashSet, prelude::*};
 
 use crate::{
     interaction::{HoldError, ShadowParams},
