@@ -4,7 +4,7 @@ use std::ops::RangeInclusive;
 
 use avian3d::{math::Scalar, prelude::*};
 use bevy::{
-    ecs::component::{ComponentHooks, HookContext, Mutable, StorageType},
+    ecs::component::{ComponentHooks, Mutable, StorageType},
     prelude::*,
 };
 

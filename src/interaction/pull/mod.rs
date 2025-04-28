@@ -1,5 +1,3 @@
-use bevy::ecs::relationship::Relationship as _;
-
 use crate::{
     prelude::*,
     verb::{Pulling, SetVerb, Verb},
