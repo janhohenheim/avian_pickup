@@ -237,11 +237,8 @@ fn rotate_camera(
 fn rotate_npc(
     time: Res<Time>,
     mut npcs: Query<(&mut Transform, &Npc)>,
-    props: Query<&Transform, (With<Prop>, Without<Npc>)>,
+    prop: Single<&Transform, (With<Prop>, Without<Npc>)>,
 ) {
-    let Ok(prop) = props.get_single() else {
-        return;
-    };
     let dt = time.delta_secs();
 
     for (mut transform, npc) in &mut npcs {
