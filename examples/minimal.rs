@@ -90,19 +90,19 @@ fn handle_input(
 ) {
     for actor in &actors {
         if key_input.just_pressed(MouseButton::Left) {
-            avian_pickup_input_writer.send(AvianPickupInput {
+            avian_pickup_input_writer.write(AvianPickupInput {
                 action: AvianPickupAction::Throw,
                 actor,
             });
         }
         if key_input.just_pressed(MouseButton::Right) {
-            avian_pickup_input_writer.send(AvianPickupInput {
+            avian_pickup_input_writer.write(AvianPickupInput {
                 action: AvianPickupAction::Drop,
                 actor,
             });
         }
         if key_input.pressed(MouseButton::Right) {
-            avian_pickup_input_writer.send(AvianPickupInput {
+            avian_pickup_input_writer.write(AvianPickupInput {
                 action: AvianPickupAction::Pull,
                 actor,
             });

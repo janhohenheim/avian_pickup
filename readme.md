@@ -110,7 +110,7 @@ fn handle_input(
     mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
 ) {
     let actor_entity = todo!("Your entity goes here");
-    avian_pickup_input_writer.send(AvianPickupInput {
+    avian_pickup_input_writer.write(AvianPickupInput {
         action: AvianPickupAction::Pull,
         actor: actor_entity,
     }); 
