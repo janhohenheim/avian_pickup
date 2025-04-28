@@ -1,3 +1,5 @@
+use bevy::ecs::relationship::Relationship as _;
+
 use crate::{
     prelude::*,
     verb::{Pulling, SetVerb, Verb},
@@ -31,7 +33,7 @@ fn find_object(
         ),
         With<Pulling>,
     >,
-    q_collider_parent: Query<&ColliderParent>,
+    q_collider_parent: Query<&ColliderOf>,
     mut q_rigid_body: Query<(
         &RigidBody,
         &ComputedMass,

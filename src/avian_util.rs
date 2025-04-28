@@ -26,7 +26,7 @@ fn get_rigid_body_colliders_recursive(
     }
     if let Ok(children) = q_collider_ancestor.get(entity) {
         for child in children.iter() {
-            get_rigid_body_colliders_recursive(*child, q_collider_ancestor, q_collider, colliders);
+            get_rigid_body_colliders_recursive(child, q_collider_ancestor, q_collider, colliders);
         }
     }
 }

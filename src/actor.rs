@@ -4,7 +4,7 @@ use std::ops::RangeInclusive;
 
 use avian3d::{math::Scalar, prelude::*};
 use bevy::{
-    ecs::component::{ComponentHooks, StorageType},
+    ecs::component::{ComponentHooks, HookContext, Mutable, StorageType},
     prelude::*,
 };
 
@@ -308,12 +308,13 @@ impl Default for AvianPickupActor {
 }
 
 impl Component for AvianPickupActor {
+    type Mutability = Mutable;
     const STORAGE_TYPE: StorageType = StorageType::Table;
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(|mut world, targeted_entity, _component_id| {
+        hooks.on_add(|mut world, ctx| {
             let mut commands = world.commands();
-            commands.entity(targeted_entity).try_insert((
+            commands.entity(ctx.entity).try_insert((
                 AvianPickupActorState::default(),
                 Cooldown::default(),
                 HoldError::default(),
