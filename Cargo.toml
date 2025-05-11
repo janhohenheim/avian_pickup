@@ -1,6 +1,6 @@
 [package]
 name = "avian_pickup"
-version = "0.2.0-dev"
+version = "0.2.0"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
 edition = "2024"
@@ -27,11 +27,10 @@ version = "0.16"
 default-features = false
 
 [dependencies.avian3d]
-version = "0.2.0"
+version = "0.3.0"
 default-features = false
 features = ["3d", "default-collider"]
 git = "https://github.com/Jondolf/avian"
-branch = "main"
 
 [dev-dependencies]
 bevy = { version = "0.16", features = ["dynamic_linking"] }

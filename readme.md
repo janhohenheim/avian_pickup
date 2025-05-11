@@ -150,6 +150,7 @@ fn move_camera() { todo!() }
 
 | `avian_pickup` | `avian` | `bevy` |
 |----------------|---------|--------|
+| `0.2`          | `0.3`   | `0.16` |
 | `0.1`          | `0.2`   | `0.15` |
 
 [`AvianPickupActor`]: https://github.com/janhohenheim/avian_pickup/blob/main/src/actor.rs
