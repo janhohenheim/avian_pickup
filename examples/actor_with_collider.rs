@@ -25,7 +25,7 @@ fn main() {
         // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
+            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
         )
         .run();
 }
@@ -110,7 +110,7 @@ fn setup(
 
 /// Pass player input along to `avian_pickup`
 fn handle_input(
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
 ) {

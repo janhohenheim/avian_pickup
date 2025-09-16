@@ -1,4 +1,8 @@
-use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::CursorGrabMode};
+use bevy::{
+    input::common_conditions::input_just_pressed,
+    prelude::*,
+    window::{CursorGrabMode, CursorOptions},
+};
 
 pub fn plugin(example: Example) -> impl Plugin {
     move |app: &mut App| {
@@ -47,19 +51,19 @@ fn spawn_crosshair(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 /// Capture the cursor when the left mouse button is pressed.
 /// This makes it way less fidgity to pick up objects.
-fn capture_cursor(mut windows: Query<&mut Window>) {
-    for mut window in &mut windows {
-        window.cursor_options.visible = false;
-        window.cursor_options.grab_mode = CursorGrabMode::Locked;
+fn capture_cursor(mut cursor_options: Query<&mut CursorOptions>) {
+    for mut cursor_options in &mut cursor_options {
+        cursor_options.visible = false;
+        cursor_options.grab_mode = CursorGrabMode::Locked;
     }
 }
 
 /// Release the cursor when the escape key is pressed.
 /// Somehow doesn't work on macOS?
-fn release_cursor(mut windows: Query<&mut Window>) {
-    for mut window in &mut windows {
-        window.cursor_options.visible = true;
-        window.cursor_options.grab_mode = CursorGrabMode::None;
+fn release_cursor(mut cursor_options: Query<&mut CursorOptions>) {
+    for mut cursor_options in &mut cursor_options {
+        cursor_options.visible = true;
+        cursor_options.grab_mode = CursorGrabMode::None;
     }
 }
 

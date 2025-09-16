@@ -1,7 +1,9 @@
 use std::time::Duration;
 
+use crate::prelude::*;
 use avian3d::prelude::*;
-use bevy::{platform::collections::HashMap, prelude::*};
+use bevy_platform::collections::HashMap;
+use bevy_time::prelude::*;
 
 use crate::{AvianPickupSystem, prelude::AvianPickupAction};
 
@@ -38,8 +40,8 @@ impl Cooldown {
             .insert(action, Timer::from_seconds(seconds, TimerMode::Once));
     }
 
-    pub(crate) fn finished(&self, action: AvianPickupAction) -> bool {
-        self.get(&action).finished()
+    pub(crate) fn is_finished(&self, action: AvianPickupAction) -> bool {
+        self.get(&action).is_finished()
     }
 
     pub(crate) fn throw(&mut self) {

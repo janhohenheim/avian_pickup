@@ -2,8 +2,9 @@
 //! picked up or thrown. All of these are optional.
 use std::ops::RangeInclusive;
 
+use crate::prelude::*;
 use avian3d::{math::Scalar, prelude::Mass};
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 
 use crate::prelude::AvianPickupActor;
 

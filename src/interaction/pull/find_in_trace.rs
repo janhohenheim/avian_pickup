@@ -1,6 +1,6 @@
 use super::Prop;
 use crate::prelude::*;
-use bevy::ecs::relationship::Relationship as _;
+use bevy_ecs::relationship::Relationship as _;
 /// Inspired by [`CWeaponPhysCannon::FindObjectTrace`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2470)
 pub(super) fn find_prop_in_trace(
     spatial_query: &SpatialQuery,

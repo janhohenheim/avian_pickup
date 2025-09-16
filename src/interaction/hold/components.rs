@@ -1,5 +1,5 @@
+use crate::prelude::*;
 use avian3d::math::{Scalar, TAU};
-use bevy::prelude::*;
 
 pub(super) fn plugin(_app: &mut App) {}
 

@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use crate::prelude::*;
 use rand::RngCore;
 
 pub(super) fn plugin(app: &mut App) {
@@ -6,7 +6,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// A resource that provides a source of randomness.
-/// Will fall back to [`rand::thread_rng()`] if no source is provided.
+/// Will fall back to [`rand::rng()`] if no source is provided.
 #[derive(Resource, Default)]
 pub struct RngSource(pub Option<Box<dyn RngCore + Send + Sync>>);
 
@@ -22,10 +22,6 @@ impl RngCore for RngSource {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.run(|rng| rng.fill_bytes(dest))
     }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
-        self.run(|rng| rng.try_fill_bytes(dest))
-    }
 }
 
 impl RngSource {
@@ -33,7 +29,7 @@ impl RngSource {
         if let Some(rng) = self.0.as_mut() {
             f(rng)
         } else {
-            f(&mut rand::thread_rng())
+            f(&mut rand::rng())
         }
     }
 }

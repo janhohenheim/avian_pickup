@@ -11,7 +11,7 @@ fn drop(
     mut commands: Commands,
     mut q_actor: Query<(Entity, &mut AvianPickupActorState, &mut Cooldown, &Dropping)>,
     mut q_prop: Query<(&mut LinearVelocity, &mut AngularVelocity)>,
-    mut w_drop_event: EventWriter<PropDropped>,
+    mut w_drop_event: MessageWriter<PropDropped>,
 ) {
     for (actor, mut state, mut cooldown, drop) in q_actor.iter_mut() {
         let prop = drop.prop;

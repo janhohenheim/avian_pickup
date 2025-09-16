@@ -3,7 +3,8 @@
 #![doc = include_str!("../readme.md")]
 
 use avian3d::prelude::*;
-use bevy::prelude::*;
+use bevy_app::prelude::*;
+use bevy_ecs::prelude::*;
 
 pub mod actor;
 mod cooldown;
@@ -18,9 +19,6 @@ mod verb;
 pub use rng::*;
 /// Everything you need to get started with Avian Pickup.
 pub mod prelude {
-    pub(crate) use avian3d::prelude::*;
-    pub(crate) use bevy::prelude::*;
-
     pub(crate) use super::{
         HandleVerbSystem,
         cooldown::prelude::*,
@@ -30,6 +28,14 @@ pub mod prelude {
         AvianPickupPlugin, AvianPickupSystem, actor::prelude::*, input::prelude::*,
         output::prelude::*,
     };
+    pub(crate) use avian3d::prelude::*;
+    pub(crate) use bevy_app::prelude::*;
+    pub(crate) use bevy_ecs::prelude::*;
+    pub(crate) use bevy_log::prelude::*;
+    pub(crate) use bevy_math::prelude::*;
+    pub(crate) use bevy_reflect::prelude::*;
+    pub(crate) use bevy_transform::prelude::*;
+    pub(crate) use bevy_utils::prelude::*;
 }
 
 /// The Avian Pickup plugin. Add this after the Avian Physics plugins to enable

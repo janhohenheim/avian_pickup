@@ -34,7 +34,7 @@ fn main() {
             RunFixedMainLoop,
             (accumulate_input, handle_pickup_input, rotate_camera)
                 .chain()
-                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
+                .in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
         )
         .add_systems(FixedUpdate, move_prop)
         .run();
@@ -103,7 +103,7 @@ fn setup(
 
 /// Pass player input along to `avian_pickup`
 fn handle_pickup_input(
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     key_input: Res<ButtonInput<MouseButton>>,
     actors: Query<Entity, With<AvianPickupActor>>,
 ) {

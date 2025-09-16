@@ -5,14 +5,14 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn on_remove_holding(
-    trigger: Trigger<OnRemove, Holding>,
+    trigger: On<Remove, Holding>,
     mut commands: Commands,
     q_actor: Query<&Holding>,
     mut q_prop: Query<(Entity, Option<&NonPickupMass>, Has<HeldProp>)>,
 ) {
     // Safety: We are removing a `Holding` component, so we know that the entity has
     // one.
-    let holding = q_actor.get(trigger.target()).unwrap();
+    let holding = q_actor.get(trigger.entity).unwrap();
     let prop = holding.0;
     let Ok((entity, non_pickup_mass, has_held_marker)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");

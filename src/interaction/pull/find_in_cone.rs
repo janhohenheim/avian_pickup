@@ -1,6 +1,6 @@
 use super::Prop;
 use crate::{math::METERS_PER_INCH, prelude::*};
-use bevy::ecs::relationship::Relationship as _;
+use bevy_ecs::relationship::Relationship as _;
 
 /// Inspired by [`CWeaponPhysCannon::FindObjectInCone`](https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/game/server/hl2/weapon_physcannon.cpp#L2690)
 pub(super) fn find_prop_in_cone(

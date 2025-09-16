@@ -23,9 +23,9 @@ Modeled after Half Life 2's gravity gun.
   - Can very easily be configured to emulate a gravity gun or a tractor beam.
 - Scheduled in fixed updates for deterministic physics.
   - Parts of the plugin use randomness, which can be overridden by a user-provided `Rng`.
-- Events keep you informed about what's happening so you can react with sound effects, particles, etc.
+- Messages keep you informed about what's happening so you can react with sound effects, particles, etc.
 - Works for the player and AI alike.
-  - Input is done with events, so you can provide your own input system.
+  - Input is done with messages, so you can provide your own input system.
 - I think the documentation is alright :)
 
 ## Limitations
@@ -100,20 +100,20 @@ fn setup(mut commands: Commands) {
 }
 ```
 
-In order for an actor to try picking up a prop, you need to send an [`AvianPickupInput`] event:
+In order for an actor to try picking up a prop, you need to send an [`AvianPickupInput`] message:
 
 ```rust
 use bevy::prelude::*;
 use avian_pickup::prelude::*;
 
 fn handle_input(
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
 ) {
     let actor_entity = todo!("Your entity goes here");
     avian_pickup_input_writer.write(AvianPickupInput {
         action: AvianPickupAction::Pull,
         actor: actor_entity,
-    }); 
+    });
 }
 ```
 
@@ -125,7 +125,7 @@ get added to every actor.
 That's it! You can use other actions to further instruct the actor to manipulate the prop.
 The [`AvianPickupActor`] holds a lot of configuration options to tweak the behavior of the actor.
 Many of these can be overridden for a specific prop by using components in the [`prop`] module.
-Finally, you can also read the events in the [`output`] module to react to what's happening.
+Finally, you can also read the messages in the [`output`] module to react to what's happening.
 
 ### First Person Camera
 
@@ -140,7 +140,7 @@ use bevy::prelude::*;
 App::new()
     .add_systems(
         RunFixedMainLoop,
-        move_camera.in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
+        move_camera.in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
     );
 
 fn move_camera() { todo!() }
@@ -150,6 +150,7 @@ fn move_camera() { todo!() }
 
 | `avian_pickup` | `avian` | `bevy` |
 |----------------|---------|--------|
+| `0.3-dev`          | `bevy-0.17`  branch  | `0.17.0-rc` |
 | `0.2`          | `0.3`   | `0.16` |
 | `0.1`          | `0.2`   | `0.15` |
 
