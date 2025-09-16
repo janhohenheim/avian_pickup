@@ -107,7 +107,7 @@ use bevy::prelude::*;
 use avian_pickup::prelude::*;
 
 fn handle_input(
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
 ) {
     let actor_entity = todo!("Your entity goes here");
     avian_pickup_input_writer.write(AvianPickupInput {

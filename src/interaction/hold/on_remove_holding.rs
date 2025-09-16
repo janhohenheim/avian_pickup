@@ -5,7 +5,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn on_remove_holding(
-    trigger: Trigger<OnRemove, Holding>,
+    trigger: On<Remove, Holding>,
     mut commands: Commands,
     q_actor: Query<&Holding>,
     mut q_prop: Query<(Entity, Option<&NonPickupMass>, Has<HeldProp>)>,

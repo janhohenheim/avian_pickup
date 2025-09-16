@@ -28,7 +28,7 @@ fn throw(
         Option<&ThrownLinearSpeedOverride>,
         Option<&ThrownAngularSpeedOverride>,
     )>,
-    mut w_throw_event: EventWriter<PropThrown>,
+    mut w_throw_event: MessageWriter<PropThrown>,
     mut rng: ResMut<RngSource>,
 ) {
     for (actor, actor_transform, config, mut states, mut cooldown, throw) in q_actor.iter_mut() {
@@ -56,7 +56,7 @@ fn throw(
         let rand_direction = random_unit_vector(rng.as_mut());
         let rand_magnitude = ang_speed_override.map(|s| s.0).unwrap_or_else(|| {
             rng.as_mut()
-                .gen_range(config.throw.angular_speed_range.clone())
+                .random_range(config.throw.angular_speed_range.clone())
         });
         angvel.0 = rand_direction * rand_magnitude;
 
@@ -116,7 +116,7 @@ fn simple_spline(value: f32) -> f32 {
 
 #[cfg(test)]
 mod test {
-    use rand::thread_rng;
+    use rand::rng;
 
     use super::*;
 
@@ -136,7 +136,7 @@ mod test {
 
     #[test]
     fn is_random_unit_vector_actually_unit() {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         // What?! A unit test that uses randomness?
         // In this part of the codebase, localized entirely within your for-loop?
         // Yes.

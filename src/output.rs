@@ -7,8 +7,8 @@ use crate::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<(PropThrown, PropDropped)>()
-        .add_event::<PropThrown>()
-        .add_event::<PropDropped>();
+        .add_message::<PropThrown>()
+        .add_message::<PropDropped>();
 }
 
 pub(super) mod prelude {

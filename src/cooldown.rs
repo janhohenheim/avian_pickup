@@ -40,8 +40,8 @@ impl Cooldown {
             .insert(action, Timer::from_seconds(seconds, TimerMode::Once));
     }
 
-    pub(crate) fn finished(&self, action: AvianPickupAction) -> bool {
-        self.get(&action).finished()
+    pub(crate) fn is_finished(&self, action: AvianPickupAction) -> bool {
+        self.get(&action).is_finished()
     }
 
     pub(crate) fn throw(&mut self) {

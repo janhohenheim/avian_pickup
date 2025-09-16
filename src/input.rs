@@ -14,7 +14,7 @@ pub(super) mod prelude {
 
 pub(super) fn plugin(app: &mut App) {
     app.register_type::<AvianPickupInput>()
-        .add_event::<AvianPickupInput>()
+        .add_message::<AvianPickupInput>()
         .add_systems(PostUpdate, set_verbs_according_to_input);
 }
 
@@ -58,7 +58,7 @@ impl AvianPickupAction {
 }
 
 fn set_verbs_according_to_input(
-    mut r_input: EventReader<AvianPickupInput>,
+    mut r_input: MessageReader<AvianPickupInput>,
     mut commands: Commands,
     q_actor: Query<
         (
@@ -115,7 +115,7 @@ fn set_verbs_according_to_input(
 
         let verb = match action {
             AvianPickupAction::Throw
-                if cooldown.finished(AvianPickupAction::Throw)
+                if cooldown.is_finished(AvianPickupAction::Throw)
                     && matches!(state, AvianPickupActorState::Holding(..)) =>
             {
                 let AvianPickupActorState::Holding(prop) = state else {
@@ -125,7 +125,7 @@ fn set_verbs_according_to_input(
             }
             AvianPickupAction::Drop
                 if matches!(state, AvianPickupActorState::Holding(..))
-                    && cooldown.finished(AvianPickupAction::Drop) =>
+                    && cooldown.is_finished(AvianPickupAction::Drop) =>
             {
                 let AvianPickupActorState::Holding(prop) = state else {
                     unreachable!()
@@ -139,7 +139,7 @@ fn set_verbs_according_to_input(
                 if matches!(
                     state,
                     AvianPickupActorState::Idle | AvianPickupActorState::Pulling(..)
-                ) && cooldown.finished(AvianPickupAction::Pull) =>
+                ) && cooldown.is_finished(AvianPickupAction::Pull) =>
             {
                 Some(Verb::Pull)
             }

@@ -7,7 +7,7 @@ pub(super) fn plugin(app: &mut App) {
 
 /// CGrabController::AttachEntity
 pub fn on_add_holding(
-    trigger: Trigger<OnAdd, Holding>,
+    trigger: On<Add, Holding>,
     mut commands: Commands,
     mut q_actor: Query<(
         &AvianPickupActor,

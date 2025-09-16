@@ -188,7 +188,7 @@ fn setup(
 }
 
 fn handle_input(
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
     key_input: Res<ButtonInput<MouseButton>>,
     players: Query<Entity, (With<AvianPickupActor>, With<Player>)>,
 ) {
@@ -262,7 +262,7 @@ fn tick_timer(time: Res<Time>, mut npcs: Query<&mut Npc>) {
 
 fn make_npc_catch(
     mut npcs: Query<(Entity, &Npc)>,
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
 ) {
     for (entity, npc) in &mut npcs {
         if !matches!(npc.state, NpcState::Catching) {
@@ -282,13 +282,13 @@ fn on_npc_hold(
         if !matches!(state, AvianPickupActorState::Holding(..)) {
             continue;
         }
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let min_pitch = -FRAC_PI_6;
         let max_pitch = 0.0;
         let min_yaw = -PI / 12.0;
         let max_yaw = PI / 12.0;
-        let random_pitch = rng.gen_range(min_pitch..max_pitch);
-        let random_yaw = rng.gen_range(min_yaw..max_yaw);
+        let random_pitch = rng.random_range(min_pitch..max_pitch);
+        let random_yaw = rng.random_range(min_yaw..max_yaw);
         let rotation = Quat::from_euler(EulerRot::YXZ, random_yaw, random_pitch, 0.0);
         let dir = rotation.mul_vec3(Vec3::Z);
         npc.aiming_to(dir);
@@ -297,10 +297,10 @@ fn on_npc_hold(
 
 fn on_aim_timer(
     mut npcs: Query<(Entity, &mut Npc)>,
-    mut avian_pickup_input_writer: EventWriter<AvianPickupInput>,
+    mut avian_pickup_input_writer: MessageWriter<AvianPickupInput>,
 ) {
     for (entity, mut npc) in &mut npcs {
-        if !matches!(npc.state, NpcState::Aiming(..)) || !npc.timer.finished() {
+        if !matches!(npc.state, NpcState::Aiming(..)) || !npc.timer.is_finished() {
             continue;
         }
         npc.waiting();
@@ -334,7 +334,7 @@ fn on_reset_pressed(
 }
 
 fn on_player_throw(
-    mut throw_events: EventReader<PropThrown>,
+    mut throw_events: MessageReader<PropThrown>,
     mut npcs: Query<&mut Npc>,
     players: Query<(), With<Player>>,
 ) {

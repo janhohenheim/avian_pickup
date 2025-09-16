@@ -6,7 +6,7 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 /// A resource that provides a source of randomness.
-/// Will fall back to [`rand::thread_rng()`] if no source is provided.
+/// Will fall back to [`rand::rng()`] if no source is provided.
 #[derive(Resource, Default)]
 pub struct RngSource(pub Option<Box<dyn RngCore + Send + Sync>>);
 
@@ -29,7 +29,7 @@ impl RngSource {
         if let Some(rng) = self.0.as_mut() {
             f(rng)
         } else {
-            f(&mut rand::thread_rng())
+            f(&mut rand::rng())
         }
     }
 }
