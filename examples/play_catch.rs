@@ -34,7 +34,7 @@ fn main() {
                 make_npc_catch,
                 rotate_camera,
             )
-                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
+                .in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
         )
         // Run fixed update zero to many times per frame.
         .add_systems(
@@ -47,7 +47,7 @@ fn main() {
         .add_systems(
             RunFixedMainLoop,
             (on_npc_hold, on_player_throw, on_aim_timer)
-                .in_set(RunFixedMainLoopSystem::AfterFixedMainLoop),
+                .in_set(RunFixedMainLoopSystems::AfterFixedMainLoop),
         )
         .run();
 }

@@ -1,6 +1,6 @@
 [package]
 name = "avian_pickup"
-version = "0.2.0"
+version = "0.3.0-dev"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
 edition = "2024"
@@ -12,28 +12,36 @@ categories = ["game-development"]
 
 [features]
 # Since this library does not make sense without also depending on `avian3d`,
-# we are not replicating the `f32`, `f64`, `parry-f32`, and `parry-f64` features. 
-# If you want to use f64 precision, add `avian_pickup` with `default-features = false` 
+# we are not replicating the `f32`, `f64`, `parry-f32`, and `parry-f64` features.
+# If you want to use f64 precision, add `avian_pickup` with `default-features = false`
 # and activate the f64-related features in `avian3d`.
 default = ["avian3d/f32", "avian3d/parry-f32"]
 serialize = ["dep:serde", "bevy/serialize", "avian3d/serialize"]
 
 [dependencies]
-rand = "0.8.5"
+rand = "0.9"
 serde = { version = "1.0.210", optional = true }
-
-[dependencies.bevy]
-version = "0.16"
-default-features = false
+bevy_ecs = { version = "0.17.0-rc", default-features = false }
+bevy_app = { version = "0.17.0-rc", default-features = false }
+bevy_transform = { version = "0.17.0-rc", default-features = false }
+bevy_math = { version = "0.17.0-rc", default-features = false }
+bevy_platform = { version = "0.17.0-rc", default-features = false }
+bevy_reflect = { version = "0.17.0-rc", default-features = false }
+bevy_time = { version = "0.17.0-rc", default-features = false }
+bevy_utils = { version = "0.17.0-rc", default-features = false }
+bevy_log = { version = "0.17.0-rc", default-features = false }
+# hack for https://github.com/bevyengine/bevy/issues/21074
+derive_more = { version = "1", default-features = false, features = ["from"] }
 
 [dependencies.avian3d]
 version = "0.3.0"
 default-features = false
 features = ["3d", "default-collider"]
 git = "https://github.com/Jondolf/avian"
+branch = "bevy-0.17"
 
 [dev-dependencies]
-bevy = { version = "0.16", features = ["dynamic_linking"] }
+bevy = { version = "0.17.0-rc", features = ["dynamic_linking"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]

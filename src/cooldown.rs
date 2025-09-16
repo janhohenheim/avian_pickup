@@ -1,7 +1,9 @@
 use std::time::Duration;
 
+use crate::prelude::*;
 use avian3d::prelude::*;
-use bevy::{platform::collections::HashMap, prelude::*};
+use bevy_platform::collections::HashMap;
+use bevy_time::prelude::*;
 
 use crate::{AvianPickupSystem, prelude::AvianPickupAction};
 

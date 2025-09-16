@@ -34,7 +34,7 @@ fn main() {
             RunFixedMainLoop,
             (accumulate_input, handle_pickup_input, rotate_camera)
                 .chain()
-                .in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
+                .in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
         )
         .add_systems(FixedUpdate, move_prop)
         .run();

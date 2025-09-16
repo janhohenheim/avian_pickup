@@ -1,10 +1,10 @@
 //! Module for the types that represent input events for Avian Pickup.
 
-use bevy::{platform::collections::HashSet, prelude::*};
+use bevy_platform::collections::HashSet;
 
 use crate::{
     interaction::{HoldError, ShadowParams},
-    prelude::{AvianPickupActor, AvianPickupActorState, Cooldown},
+    prelude::*,
     verb::{SetVerb, Verb},
 };
 
@@ -18,9 +18,9 @@ pub(super) fn plugin(app: &mut App) {
         .add_systems(PostUpdate, set_verbs_according_to_input);
 }
 
-/// Event for picking up and throwing objects.
+/// Message for picking up and throwing objects.
 /// Send this to tell Avian Pickup to do its thing.
-#[derive(Event, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
+#[derive(Message, Debug, Clone, Copy, PartialEq, Eq, Reflect)]
 #[reflect(Debug, PartialEq)]
 #[cfg_attr(
     feature = "serialize",

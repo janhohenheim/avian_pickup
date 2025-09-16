@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy_app::prelude::*;
 
 mod drop;
 mod hold;

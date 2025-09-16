@@ -35,7 +35,7 @@ fn find_object(
     mut q_rigid_body: Query<(
         &RigidBody,
         &ComputedMass,
-        &mut ExternalImpulse,
+        Forces,
         &GlobalTransform,
         Has<HeldProp>,
     )>,
@@ -64,7 +64,7 @@ fn find_object(
             continue;
         };
 
-        let Ok((_, &mass, mut impulse, prop_position, is_already_being_held)) =
+        let Ok((_, &mass, mut forces, prop_position, is_already_being_held)) =
             q_rigid_body.get_mut(prop.entity)
         else {
             // These components might not be present on non-dynamic rigid bodies
@@ -87,7 +87,7 @@ fn find_object(
             let mass_adjustment = adjust_impulse_for_mass(mass);
             let pull_impulse = direction * config.pull.impulse * mass_adjustment;
             cooldown.pull();
-            impulse.apply_impulse(pull_impulse);
+            forces.apply_linear_impulse(pull_impulse);
             if !matches!(state.as_ref(), AvianPickupActorState::Pulling(..)) {
                 *state = AvianPickupActorState::Pulling(prop.entity);
             }

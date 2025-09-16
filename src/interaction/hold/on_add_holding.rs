@@ -23,7 +23,7 @@ pub fn on_add_holding(
         Option<&mut PrePickupRotation>,
     )>,
 ) {
-    let actor = trigger.target();
+    let actor = trigger.entity;
     let Ok((config, mut state, mut hold_error, holding)) = q_actor.get_mut(actor) else {
         error!("Actor entity was deleted or in an invalid state. Ignoring.");
         return;

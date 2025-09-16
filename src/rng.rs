@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use crate::prelude::*;
 use rand::RngCore;
 
 pub(super) fn plugin(app: &mut App) {
@@ -21,10 +21,6 @@ impl RngCore for RngSource {
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.run(|rng| rng.fill_bytes(dest))
-    }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
-        self.run(|rng| rng.try_fill_bytes(dest))
     }
 }
 

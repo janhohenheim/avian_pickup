@@ -3,14 +3,10 @@
 use std::ops::RangeInclusive;
 
 use avian3d::{math::Scalar, prelude::*};
-use bevy::{
-    ecs::component::{ComponentHooks, Mutable, StorageType},
-    prelude::*,
-};
 
 use crate::{
     interaction::{HoldError, ShadowParams},
-    prelude::Cooldown,
+    prelude::*,
 };
 
 pub(super) mod prelude {
@@ -34,7 +30,7 @@ pub(super) fn plugin(app: &mut App) {
 ///
 /// ```
 /// # use avian_pickup::prelude::*;
-/// # use bevy::prelude::*;
+/// # use bevy_ecs::prelude::*;
 ///
 /// fn setup_camera(mut commands: Commands) {
 ///     commands.spawn((
@@ -44,13 +40,14 @@ pub(super) fn plugin(app: &mut App) {
 ///     ));
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Reflect)]
+#[derive(Debug, Component, Clone, PartialEq, Reflect)]
 #[reflect(Debug, Component, Default, PartialEq)]
 #[cfg_attr(
     feature = "serialize",
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
+#[require(AvianPickupActorState, Cooldown, HoldError, ShadowParams)]
 pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for objects to pick up.\
     /// Note that no matter what this filter says, only entities with a
@@ -135,7 +132,7 @@ pub struct AvianPickupActorHoldConfig {
     /// picked up.\
     /// "distance" in this context is the distance between the edge of the prop
     /// and the origin of the actor.\
-    /// Default: 3.0 m   
+    /// Default: 3.0 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength)
     pub distance_to_allow_holding: Scalar,
@@ -304,22 +301,5 @@ impl Default for AvianPickupActor {
             hold: default(),
             throw: default(),
         }
-    }
-}
-
-impl Component for AvianPickupActor {
-    type Mutability = Mutable;
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(|mut world, ctx| {
-            let mut commands = world.commands();
-            commands.entity(ctx.entity).try_insert((
-                AvianPickupActorState::default(),
-                Cooldown::default(),
-                HoldError::default(),
-                ShadowParams::default(),
-            ));
-        });
     }
 }

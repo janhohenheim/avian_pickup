@@ -1,5 +1,5 @@
+use crate::prelude::*;
 use avian3d::prelude::*;
-use bevy::prelude::*;
 
 pub(crate) const METERS_PER_INCH: f32 = 0.0254;
 pub(crate) fn rigid_body_compound_collider(

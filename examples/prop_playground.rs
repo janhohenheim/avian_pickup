@@ -25,7 +25,7 @@ fn main() {
         // to the last variable timestep schedule before the fixed timestep systems run.
         .add_systems(
             RunFixedMainLoop,
-            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystem::BeforeFixedMainLoop),
+            (handle_input, rotate_camera).in_set(RunFixedMainLoopSystems::BeforeFixedMainLoop),
         )
         .run();
 }
