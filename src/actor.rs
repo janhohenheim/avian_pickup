@@ -163,8 +163,7 @@ pub struct AvianPickupActorHoldConfig {
     /// The minimum and maximum pitch the held prop can have in radians while
     /// following the actor's pitch.\
     /// Can be overridden by adding a
-    /// [`PitchRangeOverride`](crate::prop::PitchRangeOverride)
-    /// to the prop.\
+    /// [`PitchRangeOverride`] to the prop.\
     /// Default: (-75.0).to_radians() to 75.0.to_radians()
     pub pitch_range: RangeInclusive<f32>,
     /// The distance in meters between the player and the object when
@@ -172,7 +171,7 @@ pub struct AvianPickupActorHoldConfig {
     /// "distance" in this context is the distance between the edge of the prop
     /// and the origin of the actor.\
     /// Can be overridden by adding a
-    /// [`PreferredPickupDistanceOverride`](crate::prop::PreferredPickupDistanceOverride)
+    /// [`PreferredPickupDistanceOverride`]
     /// to the prop.\
     /// Default: 0.6 m
     pub preferred_distance: Scalar,
@@ -184,7 +183,7 @@ pub struct AvianPickupActorHoldConfig {
     /// The prop's original mass will be restored when the prop is no longer
     /// being held\
     /// Can be overridden by adding a
-    /// [`PickupMassOverride`](crate::prop::PickupMassOverride) to the prop.\
+    /// [`PickupMassOverride`] to the prop.\
     /// Default: 1 kg
     pub temporary_prop_mass: Scalar,
 }
@@ -225,15 +224,13 @@ pub struct AvianPickupActorThrowConfig {
     /// The lower bound is used for very heavy objects, the upper bound for \
     /// very light objects.\
     /// Can be overridden by adding a
-    /// [`ThrownLinearSpeedOverride`](crate::prop::ThrownLinearSpeedOverride)
-    /// to the prop.\
+    /// [`ThrownLinearSpeedOverride`] to the prop.\
     /// Default: 0.0 m/s to 5.0 m/s
     pub linear_speed_range: RangeInclusive<Scalar>,
     /// The range of angular speeds in rad/s that the object can be thrown with.
     /// When throwing, a random value in this range will be chosen.\
     /// Can be overridden by adding a
-    /// [`ThrownAngularSpeedOverride`](crate::prop::ThrownAngularSpeedOverride)
-    /// to the prop.\
+    /// [`ThrownAngularSpeedOverride`] to the prop.\
     /// Default: 0.0 rad/s to 1.0 rad/s
     pub angular_speed_range: RangeInclusive<Scalar>,
 }
@@ -258,8 +255,7 @@ impl Default for AvianPickupActorThrowConfig {
 /// The state of an [`AvianPickupActor`]. This component is automatically added
 /// to the entity holding the [`AvianPickupActor`], do not add or remove it.\
 /// If you need to react to a prop being thrown or dropped, listen to
-/// [`PropThrown`](crate::output::PropThrown) and
-/// [`PropDropped`](crate::output::PropDropped).
+/// [`PropThrown`] and [`PropDropped`]
 pub enum AvianPickupActorState {
     /// The actor is not doing anything.
     #[default]
