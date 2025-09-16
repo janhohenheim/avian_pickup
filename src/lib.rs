@@ -46,7 +46,7 @@ pub mod prelude {
 /// ```no_run
 /// # use avian3d::prelude::*;
 /// # use avian_pickup::prelude::*;
-/// # use bevy_ecs::prelude::*;
+/// # use bevy::prelude::*;
 ///
 /// App::new().add_plugins((
 ///     DefaultPlugins,

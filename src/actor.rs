@@ -30,7 +30,7 @@ pub(super) fn plugin(app: &mut App) {
 ///
 /// ```
 /// # use avian_pickup::prelude::*;
-/// # use bevy_ecs::prelude::*;
+/// # use bevy::prelude::*;
 ///
 /// fn setup_camera(mut commands: Commands) {
 ///     commands.spawn((
