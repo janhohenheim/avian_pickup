@@ -34,7 +34,7 @@ bevy_log = { version = "0.17.0-rc", default-features = false }
 derive_more = { version = "1", default-features = false, features = ["from"] }
 
 [dependencies.avian3d]
-version = "0.3.0"
+version = "0.4.0-dev"
 default-features = false
 features = ["3d", "default-collider"]
 git = "https://github.com/Jondolf/avian"
