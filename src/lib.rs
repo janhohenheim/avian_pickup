@@ -79,7 +79,7 @@ impl Plugin for AvianPickupPlugin {
                 AvianPickupSystem::Last,
             )
                 .chain()
-                .before(PhysicsStepSet::First),
+                .before(PhysicsStepSystems::First),
         )
         .configure_sets(
             PhysicsSchedule,
