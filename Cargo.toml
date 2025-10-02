@@ -21,27 +21,25 @@ serialize = ["dep:serde", "bevy/serialize", "avian3d/serialize"]
 [dependencies]
 rand = "0.9"
 serde = { version = "1.0.210", optional = true }
-bevy_ecs = { version = "0.17.0-rc", default-features = false }
-bevy_app = { version = "0.17.0-rc", default-features = false }
-bevy_transform = { version = "0.17.0-rc", default-features = false }
-bevy_math = { version = "0.17.0-rc", default-features = false }
-bevy_platform = { version = "0.17.0-rc", default-features = false }
-bevy_reflect = { version = "0.17.0-rc", default-features = false }
-bevy_time = { version = "0.17.0-rc", default-features = false }
-bevy_utils = { version = "0.17.0-rc", default-features = false }
-bevy_log = { version = "0.17.0-rc", default-features = false }
-# hack for https://github.com/bevyengine/bevy/issues/21074
-derive_more = { version = "1", default-features = false, features = ["from"] }
+bevy_ecs = { version = "0.17.0", default-features = false }
+bevy_app = { version = "0.17.0", default-features = false }
+bevy_transform = { version = "0.17.0", default-features = false }
+bevy_math = { version = "0.17.0", default-features = false }
+bevy_platform = { version = "0.17.0", default-features = false }
+bevy_reflect = { version = "0.17.0", default-features = false }
+bevy_time = { version = "0.17.0", default-features = false }
+bevy_utils = { version = "0.17.0", default-features = false }
+bevy_log = { version = "0.17.0", default-features = false }
 
 [dependencies.avian3d]
 version = "0.4.0-dev"
 default-features = false
 features = ["3d", "default-collider"]
 git = "https://github.com/Jondolf/avian"
-branch = "bevy-0.17"
+branch = "main"
 
 [dev-dependencies]
-bevy = { version = "0.17.0-rc", features = ["dynamic_linking"] }
+bevy = { version = "0.17.0", features = ["dynamic_linking"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
