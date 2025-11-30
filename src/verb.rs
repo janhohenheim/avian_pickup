@@ -41,8 +41,9 @@ pub(crate) struct Dropping {
 #[derive(Debug, Clone, Copy, Component)]
 pub(crate) struct Pulling;
 
+/// Component inserted on an actor when they are holding a prop.
 #[derive(Debug, Clone, Copy, Component)]
-pub(crate) struct Holding(pub(crate) Entity);
+pub struct Holding(pub Entity);
 
 /// Sets or clears the [`Verb`] of an actor.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

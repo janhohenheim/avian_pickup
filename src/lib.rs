@@ -15,6 +15,7 @@ pub mod output;
 pub mod prop;
 mod rng;
 mod verb;
+pub use verb::Holding;
 
 pub use rng::*;
 /// Everything you need to get started with Avian Pickup.
