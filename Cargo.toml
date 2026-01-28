@@ -1,12 +1,12 @@
 [package]
 name = "avian_pickup"
-version = "0.3.1"
+version = "0.4.0-dev"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
 edition = "2024"
 exclude = ["/assets/", "/docs/", "/.github/"]
 repository = "https://github.com/janhohenheim/avian_pickup"
-description = "A plugin for implementing picking up dynamic rigid bodies in Avian physics for the Bevy engine.Modeled after Half Life 2's gravity gun."
+description = "A plugin for implementing picking up dynamic rigid bodies in Avian physics for the Bevy engine. Modeled after Half Life 2's gravity gun."
 keywords = ["bevy", "physics", "avian", "pickup", "gravity"]
 categories = ["game-development"]
 
@@ -21,23 +21,23 @@ serialize = ["dep:serde", "bevy/serialize", "avian3d/serialize"]
 [dependencies]
 rand = "0.9"
 serde = { version = "1.0.210", optional = true }
-bevy_ecs = { version = "0.17.0", default-features = false }
-bevy_app = { version = "0.17.0", default-features = false }
-bevy_transform = { version = "0.17.0", default-features = false }
-bevy_math = { version = "0.17.0", default-features = false }
-bevy_platform = { version = "0.17.0", default-features = false }
-bevy_reflect = { version = "0.17.0", default-features = false }
-bevy_time = { version = "0.17.0", default-features = false }
-bevy_utils = { version = "0.17.0", default-features = false }
-bevy_log = { version = "0.17.0", default-features = false }
+bevy_ecs = { version = "0.18.0", default-features = false }
+bevy_app = { version = "0.18.0", default-features = false }
+bevy_transform = { version = "0.18.0", default-features = false }
+bevy_math = { version = "0.18.0", default-features = false }
+bevy_platform = { version = "0.18.0", default-features = false }
+bevy_reflect = { version = "0.18.0", default-features = false }
+bevy_time = { version = "0.18.0", default-features = false }
+bevy_utils = { version = "0.18.0", default-features = false }
+bevy_log = { version = "0.18.0", default-features = false }
 
 [dependencies.avian3d]
-version = "0.4"
+version = "0.5"
 default-features = false
 features = ["3d", "default-collider"]
 
 [dev-dependencies]
-bevy = { version = "0.17.0", features = ["dynamic_linking"] }
+bevy = { version = "0.18.0", features = ["dynamic_linking"] }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
