@@ -13,8 +13,7 @@ pub(super) mod prelude {
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.register_type::<AvianPickupInput>()
-        .add_message::<AvianPickupInput>()
+    app.add_message::<AvianPickupInput>()
         .add_systems(PostUpdate, set_verbs_according_to_input);
 }
 

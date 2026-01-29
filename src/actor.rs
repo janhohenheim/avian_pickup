@@ -16,9 +16,7 @@ pub(super) mod prelude {
     };
 }
 
-pub(super) fn plugin(app: &mut App) {
-    app.register_type::<(AvianPickupActor, AvianPickupActorState)>();
-}
+pub(super) fn plugin(_app: &mut App) {}
 
 /// Tag component for an actor that is able to pick up object.
 /// For a first-person game, add this to the camera entity that is under the

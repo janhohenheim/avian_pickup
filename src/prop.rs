@@ -8,17 +8,7 @@ use bevy_ecs::prelude::*;
 
 use crate::prelude::AvianPickupActor;
 
-pub(super) fn plugin(app: &mut App) {
-    app.register_type::<(
-        PreferredPickupRotation,
-        PitchRangeOverride,
-        PreferredPickupDistanceOverride,
-        PickupMassOverride,
-        HeldProp,
-        ThrownLinearSpeedOverride,
-        ThrownAngularSpeedOverride,
-    )>();
-}
+pub(super) fn plugin(_app: &mut App) {}
 
 pub(super) mod prelude {
     pub use super::{
