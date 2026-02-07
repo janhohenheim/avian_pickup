@@ -1,6 +1,6 @@
 [package]
 name = "avian_pickup"
-version = "0.5.0-dev"
+version = "0.5.0-rc.1"
 authors = ["Jan Hohenheim <jan@hohenheim.ch>"]
 license = "MIT OR Apache-2.0"
 edition = "2024"
@@ -32,9 +32,8 @@ bevy_utils = { version = "0.18.0", default-features = false }
 bevy_log = { version = "0.18.0", default-features = false }
 
 [dependencies.avian3d]
-version = "0.6.0-dev"
+version = "0.6.0-rc.1"
 default-features = false
-git = "https://github.com/avianphysics/avian"
 features = ["3d", "default-collider"]
 
 [dev-dependencies]
