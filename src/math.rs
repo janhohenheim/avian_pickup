@@ -20,8 +20,8 @@ pub(crate) fn rigid_body_compound_collider(
                 // Need to unpack compound shapes because we are later returning a big compound collider for the whole rigid body
                 // and parry crashes on nested compound shapes
                 for (isometry, shape) in compound.shapes() {
-                    let translation = Vec3::from(isometry.translation);
-                    let rotation = Quat::from(isometry.rotation);
+                    let translation = isometry.translation;
+                    let rotation = isometry.rotation;
                     colliders.push((
                         relative_translation + translation,
                         relative_rotation * rotation,
