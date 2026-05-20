@@ -338,9 +338,9 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "avian3d"
-version = "0.6.0-rc.1"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59554a1f936b55ade114a5f6b68bf718060133296a170c5107ffe73abfa65ea9"
+checksum = "d0751cde05c2be789fad86cd19219daf8a8907e0c6c2175f2c8144706493f010"
 dependencies = [
  "approx",
  "avian_derive",
@@ -351,7 +351,6 @@ dependencies = [
  "bitflags 2.10.0",
  "derive_more",
  "disqualified",
- "glam 0.31.0",
  "glam_matrix_extras",
  "itertools 0.14.0",
  "obvhs",
@@ -377,7 +376,7 @@ dependencies = [
 
 [[package]]
 name = "avian_pickup"
-version = "0.5.0-rc.1"
+version = "0.5.0"
 dependencies = [
  "avian3d",
  "bevy",
