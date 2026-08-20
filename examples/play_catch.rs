@@ -46,7 +46,7 @@ fn main() {
         // React to things that happened during the fixed update.
         .add_systems(
             RunFixedMainLoop,
-            (on_npc_hold, on_player_throw, on_aim_timer)
+            (on_npc_hold, on_aim_timer, read_player_throw)
                 .in_set(RunFixedMainLoopSystems::AfterFixedMainLoop),
         )
         .run();
@@ -106,7 +106,7 @@ fn setup(
     // let's boost the default values a bit to make this more fun :)
     let actor_config = AvianPickupActor {
         interaction_distance: 3.0,
-        throw: AvianPickupActorThrowConfig {
+        push: AvianPickupActorPushConfig {
             linear_speed_range: 0.0..=10.0,
             ..default()
         },
@@ -275,13 +275,8 @@ fn make_npc_catch(
     }
 }
 
-fn on_npc_hold(
-    mut npcs: Query<(&mut Npc, &AvianPickupActorState), Changed<AvianPickupActorState>>,
-) {
-    for (mut npc, state) in &mut npcs {
-        if !matches!(state, AvianPickupActorState::Holding(..)) {
-            continue;
-        }
+fn on_npc_hold(mut npcs: Query<&mut Npc, Changed<Holding>>) {
+    for mut npc in &mut npcs {
         let mut rng = rand::rng();
         let min_pitch = -FRAC_PI_6;
         let max_pitch = 0.0;
@@ -312,19 +307,20 @@ fn on_aim_timer(
 }
 
 fn on_reset_pressed(
-    mut npcs: Query<(&mut Npc, &mut AvianPickupActorState)>,
+    mut npcs: Query<(Entity, &mut Npc)>,
     mut props: Query<(&mut Transform, &mut LinearVelocity, &mut AngularVelocity), With<Prop>>,
     key_input: Res<ButtonInput<KeyCode>>,
+    mut commands: Commands,
 ) {
     if !key_input.just_pressed(KeyCode::KeyR) {
         return;
     }
-    for (mut npc, mut state) in &mut npcs {
+    for (entity, mut npc) in &mut npcs {
         if matches!(npc.state, NpcState::Aiming(..)) {
             continue;
         }
         npc.waiting();
-        *state = AvianPickupActorState::Idle;
+        commands.entity(entity).remove::<Holding>();
         for (mut transform, mut vel, mut angvel) in &mut props {
             *transform = INITIAL_BOX_TRANSFORM;
             vel.0 = Vec3::ZERO;
@@ -333,16 +329,18 @@ fn on_reset_pressed(
     }
 }
 
-fn on_player_throw(
-    mut throw_events: MessageReader<PropThrown>,
+fn read_player_throw(
+    mut pulls: MessageReader<PropPushed>,
     mut npcs: Query<&mut Npc>,
     players: Query<(), With<Player>>,
 ) {
-    for event in throw_events.read() {
-        if players.contains(event.actor) {
-            for mut npc in &mut npcs {
-                npc.catching();
-            }
+    for pull in pulls.read() {
+        if players.get(pull.actor).is_err() {
+            return;
+        }
+
+        for mut npc in &mut npcs {
+            npc.catching();
         }
     }
 }

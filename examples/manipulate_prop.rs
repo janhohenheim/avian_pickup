@@ -13,6 +13,7 @@ use bevy::{
     input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll},
     prelude::*,
 };
+use bevy_ecs::relationship::Relationship;
 
 mod util;
 
@@ -191,18 +192,16 @@ struct InputAccumulation {
 
 fn move_prop(
     time: Res<Time>,
-    mut actors: Query<(&mut InputAccumulation, &Transform, &AvianPickupActorState)>,
+    mut actors: Query<(&mut InputAccumulation, &Transform, &Holding)>,
     mut props: Query<(
         &mut PreferredPickupDistanceOverride,
         &mut PreferredPickupRotation,
     )>,
 ) {
     let dt = time.delta_secs();
-    for (mut input, transform, state) in &mut actors {
-        let AvianPickupActorState::Holding(prop) = state else {
-            continue;
-        };
-        let Ok((mut distance, mut rotation)) = props.get_mut(*prop) else {
+    for (mut input, transform, holding) in &mut actors {
+        let prop = holding.get();
+        let Ok((mut distance, mut rotation)) = props.get_mut(prop) else {
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;
         };
