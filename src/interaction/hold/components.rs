@@ -3,6 +3,38 @@ use avian3d::math::{Scalar, TAU};
 
 pub(super) fn plugin(_app: &mut App) {}
 
+/// Define what the [`AvianPickupActor`] is holding.
+///
+/// The held entity will have the [`HeldBy`] component.
+///
+/// You can add/remove it to start/stop the interaction,
+/// same can be done with [`HeldBy`].
+#[derive(Debug, Clone, Copy, Component)]
+#[relationship(relationship_target = HeldBy)]
+pub struct Holding(pub Entity);
+
+impl Default for Holding {
+    fn default() -> Self {
+        Holding(Entity::PLACEHOLDER)
+    }
+}
+
+/// Component for props that are held by an [`AvianPickupActor`].
+///
+/// Entity holding it will have the [`Holding`] component.
+///
+/// You can add/remove to start/stop the interaction,
+/// same can be done with [`Holding`].
+#[derive(Debug, Clone, Copy, Component)]
+#[relationship_target(relationship = Holding)]
+pub struct HeldBy(Entity);
+
+impl Default for HeldBy {
+    fn default() -> Self {
+        HeldBy(Entity::PLACEHOLDER)
+    }
+}
+
 #[derive(Debug, Copy, Clone, Component)]
 pub(crate) struct ShadowParams {
     /// Global target position of the held prop

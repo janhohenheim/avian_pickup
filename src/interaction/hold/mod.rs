@@ -35,5 +35,6 @@ enum HoldSystem {
 }
 
 pub(super) mod prelude {
+    pub use super::components::{HeldBy, Holding};
     pub(crate) use super::components::{HoldError, ShadowParams};
 }

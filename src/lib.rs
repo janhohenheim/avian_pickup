@@ -9,13 +9,11 @@ use bevy_ecs::prelude::*;
 pub mod actor;
 mod cooldown;
 pub mod input;
-mod interaction;
+pub mod interaction;
 mod math;
 pub mod output;
 pub mod prop;
 mod rng;
-mod verb;
-pub use verb::Holding;
 
 pub use rng::*;
 /// Everything you need to get started with Avian Pickup.
@@ -27,7 +25,7 @@ pub mod prelude {
     };
     pub use crate::{
         AvianPickupPlugin, AvianPickupSystem, actor::prelude::*, input::prelude::*,
-        output::prelude::*,
+        interaction::prelude::*, output::prelude::*,
     };
     pub(crate) use avian3d::prelude::*;
     pub(crate) use bevy_app::prelude::*;
@@ -75,7 +73,8 @@ impl Plugin for AvianPickupPlugin {
             (
                 AvianPickupSystem::First,
                 AvianPickupSystem::HandleVerb,
-                AvianPickupSystem::ResetIdle,
+                AvianPickupSystem::HandlePull,
+                AvianPickupSystem::HandlePush,
                 AvianPickupSystem::TickTimers,
                 AvianPickupSystem::Last,
             )
@@ -101,7 +100,6 @@ impl Plugin for AvianPickupPlugin {
             interaction::plugin,
             cooldown::plugin,
             prop::plugin,
-            verb::plugin,
             rng::plugin,
         ));
     }
@@ -114,16 +112,14 @@ impl Plugin for AvianPickupPlugin {
 pub enum AvianPickupSystem {
     /// Runs at the start of the [`AvianPickupSystem`]. Empty by default.
     First,
-    /// Adds forces to an object held by
-    /// [`AvianPickupActorState::Holding`](crate::prelude::AvianPickupActorState::Holding)
+    /// Adds forces to an object [`HeldBy`](crate::prelude::HeldBy)
     /// in order to keep it in place in front of the
     /// [`AvianPickupActor`](crate::prelude::AvianPickupActor).
     HandleVerb,
-    /// Resets the
-    /// [`AvianPickupActorState`](crate::prelude::AvianPickupActorState) to
-    /// [`AvianPickupActorState::Idle`](crate::prelude::AvianPickupActorState::Idle)
-    /// if needed
-    ResetIdle,
+    /// Handle [`PullRequest`](crate::prelude::PullRequest)
+    HandlePull,
+    /// Handle [`PushRequest`](crate::prelude::PushRequest)
+    HandlePush,
     /// Advances internal cooldown timers.
     TickTimers,
     /// Runs at the end of the [`AvianPickupSystem`]. Empty by default.

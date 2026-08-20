@@ -4,15 +4,12 @@ use std::ops::RangeInclusive;
 
 use avian3d::{math::Scalar, prelude::*};
 
-use crate::{
-    interaction::{HoldError, ShadowParams},
-    prelude::*,
-};
+use crate::prelude::*;
 
 pub(super) mod prelude {
     pub use super::{
         AvianPickupActor, AvianPickupActorHoldConfig, AvianPickupActorPullConfig,
-        AvianPickupActorState, AvianPickupActorThrowConfig,
+        AvianPickupActorPushConfig,
     };
 }
 
@@ -45,7 +42,7 @@ pub(super) fn plugin(_app: &mut App) {}
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-#[require(AvianPickupActorState, Cooldown, HoldError, ShadowParams)]
+#[require(Cooldown, HoldError, ShadowParams)]
 pub struct AvianPickupActor {
     /// The spatial query filter to use when looking for objects to pick up.\
     /// Note that no matter what this filter says, only entities with a
@@ -80,8 +77,8 @@ pub struct AvianPickupActor {
     pub pull: AvianPickupActorPullConfig,
     /// Configuration that is only used while holding props.
     pub hold: AvianPickupActorHoldConfig,
-    /// Configuration that is only used when throwing props.
-    pub throw: AvianPickupActorThrowConfig,
+    /// Configuration that is only used when pushing props.
+    pub push: AvianPickupActorPushConfig,
 }
 
 /// Configuration that is only used when pulling props to the actor.
@@ -200,8 +197,8 @@ impl Default for AvianPickupActorHoldConfig {
     }
 }
 
-/// Configuration that is only used when throwing props.
-/// Used in [`AvianPickupActor::throw`].
+/// Configuration that is only used when pushing props.
+/// Used in [`AvianPickupActor::push`].
 #[derive(Debug, Clone, PartialEq, Reflect)]
 #[reflect(Debug, Default, PartialEq)]
 #[cfg_attr(
@@ -209,77 +206,37 @@ impl Default for AvianPickupActorHoldConfig {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct AvianPickupActorThrowConfig {
-    /// Objects with less than this mass will be thrown with
+pub struct AvianPickupActorPushConfig {
+    /// Objects with less than this mass will be push with
     /// `linear_speed_range.end()`.\
-    /// Objects with more than this mass will be thrown with
+    /// Objects with more than this mass will be push with
     /// less speed, down to objects at
-    /// [`AvianPickupActorPullConfig::max_prop_mass`], which will be thrown
+    /// [`AvianPickupActorPullConfig::max_prop_mass`], which will be pushed
     /// with `linear_speed_range.start()`.\
     /// Default: 20.0 kg
     pub cutoff_mass_for_slowdown: Scalar,
-    /// The range of linear speeds in m/s that the object can be thrown with.\
+    /// The range of linear speeds in m/s that the object can be push with.\
     /// The lower bound is used for very heavy objects, the upper bound for \
     /// very light objects.\
     /// Can be overridden by adding a
-    /// [`ThrownLinearSpeedOverride`] to the prop.\
+    /// [`PushLinearSpeedOverride`] to the prop.\
     /// Default: 0.0 m/s to 5.0 m/s
     pub linear_speed_range: RangeInclusive<Scalar>,
-    /// The range of angular speeds in rad/s that the object can be thrown with.
-    /// When throwing, a random value in this range will be chosen.\
+    /// The range of angular speeds in rad/s that the object can be pushed with.
+    /// When pushing, a random value in this range will be chosen.\
     /// Can be overridden by adding a
-    /// [`ThrownAngularSpeedOverride`] to the prop.\
+    /// [`PushAngularSpeedOverride`] to the prop.\
     /// Default: 0.0 rad/s to 1.0 rad/s
     pub angular_speed_range: RangeInclusive<Scalar>,
 }
 
-impl Default for AvianPickupActorThrowConfig {
+impl Default for AvianPickupActorPushConfig {
     fn default() -> Self {
         Self {
             cutoff_mass_for_slowdown: 20.0,
             linear_speed_range: 0.0..=5.0,
             angular_speed_range: 0.0..=1.0,
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Component, Default, Reflect)]
-#[reflect(Debug, Component, PartialEq, Hash, Default)]
-#[cfg_attr(
-    feature = "serialize",
-    derive(serde::Serialize, serde::Deserialize),
-    reflect(Serialize, Deserialize)
-)]
-/// The state of an [`AvianPickupActor`]. This component is automatically added
-/// to the entity holding the [`AvianPickupActor`], do not add or remove it.\
-/// If you need to react to a prop being thrown or dropped, listen to
-/// [`PropThrown`] and [`PropDropped`]
-pub enum AvianPickupActorState {
-    /// The actor is not doing anything.
-    #[default]
-    Idle,
-    /// The actor is trying to pick up an object.
-    /// The object is still too far away to be picked up,
-    /// so we're pulling it closer.
-    Pulling(Entity),
-    /// The actor is holding an object.
-    Holding(Entity),
-}
-
-impl AvianPickupActorState {
-    /// Returns `true` if the actor is [`AvianPickupActorState::Idle`].
-    pub fn is_idle(self) -> bool {
-        matches!(self, AvianPickupActorState::Idle)
-    }
-
-    /// Returns `true` if the actor is [`AvianPickupActorState::Pulling`].
-    pub fn is_pulling(self) -> bool {
-        matches!(self, AvianPickupActorState::Pulling { .. })
-    }
-
-    /// Returns `true` if the actor is [`AvianPickupActorState::Holding`].
-    pub fn is_holding(self) -> bool {
-        matches!(self, AvianPickupActorState::Holding { .. })
     }
 }
 
@@ -293,7 +250,7 @@ impl Default for AvianPickupActor {
             interaction_cone: 0.97,
             pull: default(),
             hold: default(),
-            throw: default(),
+            push: default(),
         }
     }
 }

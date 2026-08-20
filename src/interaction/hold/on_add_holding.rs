@@ -1,5 +1,7 @@
+use bevy_ecs::relationship::Relationship;
+
 use super::prelude::HoldError;
-use crate::{prelude::*, prop::PrePickupRotation, verb::Holding};
+use crate::{prelude::*, prop::PrePickupRotation};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_observer(on_add_holding);
@@ -9,12 +11,7 @@ pub(super) fn plugin(app: &mut App) {
 pub fn on_add_holding(
     trigger: On<Add, Holding>,
     mut commands: Commands,
-    mut q_actor: Query<(
-        &AvianPickupActor,
-        &mut AvianPickupActorState,
-        &mut HoldError,
-        &Holding,
-    )>,
+    mut q_actor: Query<(&AvianPickupActor, &mut HoldError, &Holding)>,
     q_actor_transform: Query<&GlobalTransform>,
     mut q_prop: Query<(
         &GlobalTransform,
@@ -24,7 +21,7 @@ pub fn on_add_holding(
     )>,
 ) {
     let actor = trigger.entity;
-    let Ok((config, mut state, mut hold_error, holding)) = q_actor.get_mut(actor) else {
+    let Ok((config, mut hold_error, holding)) = q_actor.get_mut(actor) else {
         error!("Actor entity was deleted or in an invalid state. Ignoring.");
         return;
     };
@@ -35,9 +32,7 @@ pub fn on_add_holding(
         error!("Actor entity was deleted or in an invalid state. Ignoring.");
         return;
     };
-    let prop = holding.0;
-    *state = AvianPickupActorState::Holding(prop);
-    commands.entity(prop).try_insert(HeldProp);
+    let prop = holding.get();
     let Ok((prop_transform, mass, pickup_mass, pre_pickup_rotation)) = q_prop.get_mut(prop) else {
         error!("Prop entity was deleted or in an invalid state. Ignoring.");
         return;

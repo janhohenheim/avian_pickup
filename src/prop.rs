@@ -1,5 +1,5 @@
 //! Components that can be placed on props to customize their behavior when
-//! picked up or thrown. All of these are optional.
+//! picked up or pushed. All of these are optional.
 use std::ops::RangeInclusive;
 
 use crate::prelude::*;
@@ -12,8 +12,8 @@ pub(super) fn plugin(_app: &mut App) {}
 
 pub(super) mod prelude {
     pub use super::{
-        HeldProp, PickupMassOverride, PitchRangeOverride, PreferredPickupDistanceOverride,
-        PreferredPickupRotation, ThrownAngularSpeedOverride, ThrownLinearSpeedOverride,
+        PickupMassOverride, PitchRangeOverride, PreferredPickupDistanceOverride,
+        PreferredPickupRotation, PushAngularSpeedOverride, PushLinearSpeedOverride,
     };
 }
 
@@ -88,7 +88,7 @@ impl Default for PickupMassOverride {
 }
 
 /// Insert this on a prop to override
-/// [`AvianPickupActorThrowConfig::linear_speed_range`](crate::prelude::AvianPickupActorThrowConfig::linear_speed_range).
+/// [`AvianPickupActorPushConfig::linear_speed_range`](crate::prelude::AvianPickupActorPushConfig::linear_speed_range).
 #[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
@@ -96,16 +96,16 @@ impl Default for PickupMassOverride {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct ThrownLinearSpeedOverride(pub Scalar);
+pub struct PushLinearSpeedOverride(pub Scalar);
 
-impl Default for ThrownLinearSpeedOverride {
+impl Default for PushLinearSpeedOverride {
     fn default() -> Self {
-        Self(*AvianPickupActor::default().throw.linear_speed_range.end())
+        Self(*AvianPickupActor::default().push.linear_speed_range.end())
     }
 }
 
 /// Insert this on a prop to override
-/// [`AvianPickupActorThrowConfig::angular_speed_range`](crate::prelude::AvianPickupActorThrowConfig::angular_speed_range).
+/// [`AvianPickupActorPushConfig::angular_speed_range`](crate::prelude::AvianPickupActorPushConfig::angular_speed_range).
 #[derive(Debug, Clone, Copy, PartialEq, Component, Reflect)]
 #[reflect(Debug, Component, PartialEq, Default)]
 #[cfg_attr(
@@ -113,11 +113,11 @@ impl Default for ThrownLinearSpeedOverride {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct ThrownAngularSpeedOverride(pub Scalar);
+pub struct PushAngularSpeedOverride(pub Scalar);
 
-impl Default for ThrownAngularSpeedOverride {
+impl Default for PushAngularSpeedOverride {
     fn default() -> Self {
-        Self(*AvianPickupActor::default().throw.angular_speed_range.end())
+        Self(*AvianPickupActor::default().push.angular_speed_range.end())
     }
 }
 
@@ -127,13 +127,3 @@ impl Default for ThrownAngularSpeedOverride {
 /// Only used if the object had a [`Mass`] component.
 #[derive(Debug, Clone, Copy, PartialEq, Component)]
 pub(crate) struct NonPickupMass(pub Mass);
-
-/// Marker component for props that are held by an [`AvianPickupActor`].
-#[derive(Debug, Clone, Copy, PartialEq, Component, Hash, Default, Reflect)]
-#[reflect(Debug, Component, Default, Hash, PartialEq)]
-#[cfg_attr(
-    feature = "serialize",
-    derive(serde::Serialize, serde::Deserialize),
-    reflect(Serialize, Deserialize)
-)]
-pub struct HeldProp;

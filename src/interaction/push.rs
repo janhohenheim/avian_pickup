@@ -3,66 +3,79 @@ use std::ops::RangeInclusive;
 use avian3d::math::Scalar;
 use rand::{Rng, RngExt};
 
-use crate::{prelude::*, rng::RngSource, verb::Throwing};
+use crate::{AvianPickupSystem::HandlePush, prelude::*, rng::RngSource};
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(PhysicsSchedule, throw.in_set(HandleVerbSystem::Throw));
+    app.add_systems(PhysicsSchedule, procees_push_requests.in_set(HandlePush))
+        .add_message::<PushRequest>()
+        .add_message::<PropPushed>();
 }
 
-/// Note: in constrast to the physcannon, we do not allow punting when not
-/// holding any prop. I think this should be handled by the user.
-fn throw(
-    mut commands: Commands,
-    mut q_actor: Query<(
-        Entity,
-        &GlobalTransform,
-        &AvianPickupActor,
-        &mut AvianPickupActorState,
-        &mut Cooldown,
-        &Throwing,
-    )>,
-    mut q_prop: Query<(
-        &mut LinearVelocity,
-        &mut AngularVelocity,
+/// Message to start a push operation.
+#[derive(Message, Debug, Clone, Copy)]
+pub struct PushRequest {
+    /// [`AvianPickupActor`] that will push the prop.
+    pub actor: Entity,
+    /// Dynamic [`RigidBody`] to push.
+    pub prop: Entity,
+}
+
+impl PushRequest {
+    fn done(self) -> PropPushed {
+        PropPushed {
+            actor: self.actor,
+            prop: self.prop,
+        }
+    }
+}
+
+/// Message sent when prop has being pulled with success.
+#[derive(Message, Debug, Clone, Copy)]
+pub struct PropPushed {
+    /// [`AvianPickupActor`] that pushed the prop.
+    pub actor: Entity,
+    /// Dynamic [`RigidBody`] pushed by the prop.
+    pub prop: Entity,
+}
+
+fn procees_push_requests(
+    mut requests: MessageReader<PushRequest>,
+    mut pushed: MessageWriter<PropPushed>,
+    mut q_actor: Query<(&GlobalTransform, &AvianPickupActor)>,
+    mut q_rigid_body: Query<(
+        Forces,
         &ComputedMass,
-        Option<&ThrownLinearSpeedOverride>,
-        Option<&ThrownAngularSpeedOverride>,
+        Option<&PushLinearSpeedOverride>,
+        Option<&PushAngularSpeedOverride>,
     )>,
-    mut w_throw_event: MessageWriter<PropThrown>,
     mut rng: ResMut<RngSource>,
 ) {
-    for (actor, actor_transform, config, mut states, mut cooldown, throw) in q_actor.iter_mut() {
-        let actor_transform = actor_transform.compute_transform();
-        let prop = throw.0;
-        commands.entity(actor).remove::<Throwing>();
-        // Safety: All props are rigid bodies, which are guaranteed to have a
-        // `LinearVelocity`, `AngularVelocity`, and `Mass`.
-        let Ok((mut velocity, mut angvel, mass, lin_speed_override, ang_speed_override)) =
-            q_prop.get_mut(prop)
-        else {
-            error!("Prop entity was deleted or in an invalid state. Ignoring.");
+    for request in requests.read() {
+        let actor = request.actor;
+        let Ok((actor_transform, config)) = q_actor.get_mut(actor) else {
             continue;
         };
-        // The 2013 code now does a `continue` on
-        // `prop_dist_sq > config.interaction_distance * config.interaction_distance`
-        // but eh, that's fine. Better to respect players' input in such edge cases.
+
+        let prop = request.prop;
+        let Ok((mut forces, &mass, lin_speed_override, ang_speed_override)) =
+            q_rigid_body.get_mut(prop)
+        else {
+            continue;
+        };
 
         let lin_direction = actor_transform.forward();
         let lin_speed = lin_speed_override
             .map(|s| s.0)
-            .unwrap_or_else(|| calculate_launch_speed(config, *mass));
-        velocity.0 = lin_direction * lin_speed;
+            .unwrap_or_else(|| calculate_launch_speed(config, mass));
+        *forces.linear_velocity_mut() = lin_direction * lin_speed;
 
         let rand_direction = random_unit_vector(rng.as_mut());
         let rand_magnitude = ang_speed_override.map(|s| s.0).unwrap_or_else(|| {
             rng.as_mut()
-                .random_range(config.throw.angular_speed_range.clone())
+                .random_range(config.push.angular_speed_range.clone())
         });
-        angvel.0 = rand_direction * rand_magnitude;
-
-        *states = AvianPickupActorState::Idle;
-        w_throw_event.write(PropThrown { actor, prop });
-        cooldown.throw();
+        *forces.angular_velocity_mut() = rand_direction * rand_magnitude;
+        pushed.write(request.done());
     }
 }
 
@@ -72,14 +85,14 @@ fn random_unit_vector(rng: &mut impl Rng) -> Vec3 {
 
 /// Corresponds to 2013's Pickup_DefaultPhysGunLaunchVelocity
 fn calculate_launch_speed(config: &AvianPickupActor, mass: ComputedMass) -> Scalar {
-    let speed_range = &config.throw.linear_speed_range;
+    let speed_range = &config.push.linear_speed_range;
     let (min_speed, max_speed) = (*speed_range.start(), *speed_range.end());
-    if mass.value() < config.throw.cutoff_mass_for_slowdown {
+    if mass.value() < config.push.cutoff_mass_for_slowdown {
         max_speed
     } else {
         remap_through_spline(
             mass.value(),
-            config.throw.cutoff_mass_for_slowdown..=config.pull.max_prop_mass,
+            config.push.cutoff_mass_for_slowdown..=config.pull.max_prop_mass,
             max_speed..=min_speed,
         )
     }
