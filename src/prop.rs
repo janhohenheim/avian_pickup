@@ -3,7 +3,7 @@
 use std::ops::RangeInclusive;
 
 use crate::prelude::*;
-use avian3d::{math::Scalar, prelude::Mass};
+use avian3d::{math::Real, prelude::Mass};
 use bevy_ecs::prelude::*;
 
 use crate::prelude::AvianPickupActor;
@@ -46,7 +46,7 @@ pub(crate) struct PrePickupRotation(pub Quat);
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct PitchRangeOverride(pub RangeInclusive<Scalar>);
+pub struct PitchRangeOverride(pub RangeInclusive<Real>);
 impl Default for PitchRangeOverride {
     fn default() -> Self {
         Self(AvianPickupActor::default().hold.pitch_range)
@@ -62,7 +62,7 @@ impl Default for PitchRangeOverride {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct PreferredPickupDistanceOverride(pub Scalar);
+pub struct PreferredPickupDistanceOverride(pub Real);
 
 impl Default for PreferredPickupDistanceOverride {
     fn default() -> Self {
@@ -79,7 +79,7 @@ impl Default for PreferredPickupDistanceOverride {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct PickupMassOverride(pub Scalar);
+pub struct PickupMassOverride(pub Real);
 
 impl Default for PickupMassOverride {
     fn default() -> Self {
@@ -96,7 +96,7 @@ impl Default for PickupMassOverride {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct ThrownLinearSpeedOverride(pub Scalar);
+pub struct ThrownLinearSpeedOverride(pub Real);
 
 impl Default for ThrownLinearSpeedOverride {
     fn default() -> Self {
@@ -113,7 +113,7 @@ impl Default for ThrownLinearSpeedOverride {
     derive(serde::Serialize, serde::Deserialize),
     reflect(Serialize, Deserialize)
 )]
-pub struct ThrownAngularSpeedOverride(pub Scalar);
+pub struct ThrownAngularSpeedOverride(pub Real);
 
 impl Default for ThrownAngularSpeedOverride {
     fn default() -> Self {

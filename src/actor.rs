@@ -2,7 +2,7 @@
 
 use std::ops::RangeInclusive;
 
-use avian3d::{math::Scalar, prelude::*};
+use avian3d::{math::Real, prelude::*};
 
 use crate::{
     interaction::{HoldError, ShadowParams},
@@ -68,7 +68,7 @@ pub struct AvianPickupActor {
     /// Default: 5.0 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength) * 4.0.
-    pub interaction_distance: Scalar,
+    pub interaction_distance: Real,
     /// Changes how wide the pickup range is. Lower numbers are wider.
     /// This is the dot product of the direction the player is looking and the
     /// direction to the object.\
@@ -99,12 +99,12 @@ pub struct AvianPickupActorPullConfig {
     /// Default: 100.0 Ns
     ///
     /// Corresponds to Source's [`physcannon_pullforce`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_pullforce).
-    pub impulse: Scalar,
+    pub impulse: Real,
     /// The maximum mass in kg an object can have to be pulled or picked up.\
     /// Default: 35.0 kg
     ///
     /// Corresponds to Source's [`physcannon_maxmass`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_maxmass).
-    pub max_prop_mass: Scalar,
+    pub max_prop_mass: Real,
 }
 
 impl Default for AvianPickupActorPullConfig {
@@ -133,7 +133,7 @@ pub struct AvianPickupActorHoldConfig {
     /// Default: 3.0 m
     ///
     /// Corresponds to Source's [`physcannon_tracelength`](https://developer.valvesoftware.com/wiki/Weapon_physcannon#physcannon_tracelength)
-    pub distance_to_allow_holding: Scalar,
+    pub distance_to_allow_holding: Real,
     /// The minimum distance an object must be from the player when picked up.
     /// "distance" in this context is the distance between the edge of the prop
     /// and the origin of the actor.\
@@ -145,19 +145,19 @@ pub struct AvianPickupActorHoldConfig {
     /// \ If the actor is a rigid body, the distance used in that case is
     /// `max(collider_radius, min_distance)`.\
     /// Default: 0.2 m
-    pub min_distance: Scalar,
+    pub min_distance: Real,
     /// A number >= 0 that indicates how much exponential easing will be applied
     /// to the held prop's velocity when the actor is moving.\
     /// A value of 0 means no smoothing, i.e. the prop perfectly follows the
     /// actor's position.\
     /// Default: 1.0
-    pub linear_velocity_easing: Scalar,
+    pub linear_velocity_easing: Real,
     /// A number >= 0 that indicates how much exponential easing will be applied
     /// to the held prop's angular velocity when the actor is rotating.\
     /// A value of 0 means no smoothing, i.e. the prop perfectly follows the
     /// actor's point of view.\
     /// Default: 1.6
-    pub angular_velocity_easing: Scalar,
+    pub angular_velocity_easing: Real,
     /// The minimum and maximum pitch the held prop can have in radians while
     /// following the actor's pitch.\
     /// Can be overridden by adding a
@@ -172,7 +172,7 @@ pub struct AvianPickupActorHoldConfig {
     /// [`PreferredPickupDistanceOverride`]
     /// to the prop.\
     /// Default: 0.6 m
-    pub preferred_distance: Scalar,
+    pub preferred_distance: Real,
     /// The mass in kg of the object when picked up.
     /// This mechanism is needed because the held object's velocity is
     /// set directly, independent of its mass. This means that heavy
@@ -183,7 +183,7 @@ pub struct AvianPickupActorHoldConfig {
     /// Can be overridden by adding a
     /// [`PickupMassOverride`] to the prop.\
     /// Default: 1 kg
-    pub temporary_prop_mass: Scalar,
+    pub temporary_prop_mass: Real,
 }
 
 impl Default for AvianPickupActorHoldConfig {
@@ -217,20 +217,20 @@ pub struct AvianPickupActorThrowConfig {
     /// [`AvianPickupActorPullConfig::max_prop_mass`], which will be thrown
     /// with `linear_speed_range.start()`.\
     /// Default: 20.0 kg
-    pub cutoff_mass_for_slowdown: Scalar,
+    pub cutoff_mass_for_slowdown: Real,
     /// The range of linear speeds in m/s that the object can be thrown with.\
     /// The lower bound is used for very heavy objects, the upper bound for \
     /// very light objects.\
     /// Can be overridden by adding a
     /// [`ThrownLinearSpeedOverride`] to the prop.\
     /// Default: 0.0 m/s to 5.0 m/s
-    pub linear_speed_range: RangeInclusive<Scalar>,
+    pub linear_speed_range: RangeInclusive<Real>,
     /// The range of angular speeds in rad/s that the object can be thrown with.
     /// When throwing, a random value in this range will be chosen.\
     /// Can be overridden by adding a
     /// [`ThrownAngularSpeedOverride`] to the prop.\
     /// Default: 0.0 rad/s to 1.0 rad/s
-    pub angular_speed_range: RangeInclusive<Scalar>,
+    pub angular_speed_range: RangeInclusive<Real>,
 }
 
 impl Default for AvianPickupActorThrowConfig {
