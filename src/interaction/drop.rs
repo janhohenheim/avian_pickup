@@ -1,8 +1,7 @@
 use avian3d::math::Real;
+use std::f32::consts::TAU;
 
 use crate::{prelude::*, verb::Dropping};
-
-const TAU: Real = 6.28318530717958647692528676655900577_f32;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(PhysicsSchedule, drop.in_set(HandleVerbSystem::Drop));

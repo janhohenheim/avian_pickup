@@ -23,7 +23,8 @@ impl TryRng for RngSource {
     }
 
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Infallible> {
-        Ok(self.run(|rng| rng.fill_bytes(dest)))
+        self.run(|rng| rng.fill_bytes(dest));
+        Ok(())
     }
 }
 
