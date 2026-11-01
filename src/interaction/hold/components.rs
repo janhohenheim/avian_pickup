@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use avian3d::math::{Real};
+use avian3d::math::Real;
 
 const TAU: Real = 6.28318530717958647692528676655900577_f32;
 
