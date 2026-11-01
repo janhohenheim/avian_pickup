@@ -1,6 +1,7 @@
 use std::ops::RangeInclusive;
 
 use avian3d::math::Real;
+use bevy_shape::{ShapeSample, Sphere};
 use rand::{Rng, RngExt};
 
 use crate::{prelude::*, rng::RngSource, verb::Throwing};
