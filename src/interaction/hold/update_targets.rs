@@ -1,10 +1,7 @@
+use bevy_ecs::relationship::Relationship;
+
 use super::{HoldSystem, prelude::*};
-use crate::{
-    math::rigid_body_compound_collider,
-    prelude::*,
-    prop::PrePickupRotation,
-    verb::{Holding, SetVerb, Verb},
-};
+use crate::{math::rigid_body_compound_collider, prelude::*, prop::PrePickupRotation};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(PhysicsSchedule, set_targets.in_set(HoldSystem::SetTargets));
@@ -33,14 +30,15 @@ fn set_targets(
     )>,
 
     q_collider: Query<(&GlobalTransform, &Collider, Option<&CollisionLayers>)>,
+    mut w_drop_event: MessageWriter<PropForcedDrop>,
 ) {
     let max_error = 0.3048; // 12 inches in the source engine
     for (actor, actor_transform, config, hold_error, mut shadow, holding) in q_actor.iter_mut() {
-        let prop = holding.0;
+        let prop = holding.get();
         if hold_error.error > max_error {
-            commands
-                .entity(actor)
-                .queue(SetVerb::new(Verb::Drop { prop, forced: true }));
+            commands.entity(actor).remove::<Holding>();
+            // DropForced event
+            w_drop_event.write(PropForcedDrop { prop, actor });
             continue;
         }
         let actor_transform = actor_transform.compute_transform();

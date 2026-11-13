@@ -1,9 +1,10 @@
 use std::f32::consts::{PI, TAU};
 
+use bevy_ecs::relationship::Relationship;
 use bevy_time::Time;
 
 use super::{HoldSystem, prelude::ShadowParams};
-use crate::{prelude::*, verb::Holding};
+use crate::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -25,7 +26,7 @@ fn set_velocities(
     let dt = time.delta_secs();
     let inv_dt = dt.recip();
     for (shadow, holding, actor) in q_actor.iter_mut() {
-        let prop = holding.0;
+        let prop = holding.get();
         let Ok((mut velocity, mut angvel, prop_transform)) = q_prop.get_mut(prop) else {
             error!("Prop entity was deleted or in an invalid state. Ignoring.");
             continue;

@@ -1,12 +1,8 @@
 //! Module for the types that represent input events for Avian Pickup.
 
-use bevy_platform::collections::HashSet;
+use bevy_ecs::relationship::Relationship;
 
-use crate::{
-    interaction::{HoldError, ShadowParams},
-    prelude::*,
-    verb::{SetVerb, Verb},
-};
+use crate::prelude::*;
 
 pub(super) mod prelude {
     pub use super::{AvianPickupAction, AvianPickupInput};
@@ -14,7 +10,7 @@ pub(super) mod prelude {
 
 pub(super) fn plugin(app: &mut App) {
     app.add_message::<AvianPickupInput>()
-        .add_systems(PostUpdate, set_verbs_according_to_input);
+        .add_systems(PostUpdate, set_action_according_to_input);
 }
 
 /// Message for picking up and throwing objects.
@@ -56,28 +52,27 @@ impl AvianPickupAction {
     }
 }
 
-fn set_verbs_according_to_input(
+fn set_action_according_to_input(
     mut r_input: MessageReader<AvianPickupInput>,
     mut commands: Commands,
-    q_actor: Query<
-        (
-            Entity,
-            Option<&AvianPickupActorState>,
-            Option<&Cooldown>,
-            Has<GlobalTransform>,
-            Has<ShadowParams>,
-            Has<HoldError>,
-        ),
-        With<AvianPickupActor>,
-    >,
+    finder: PropFinder,
+    mut q_actor: Query<(
+        Option<&Holding>,
+        &mut Cooldown,
+        &AvianPickupActor,
+        &GlobalTransform,
+        Has<ShadowParams>,
+        Has<HoldError>,
+    )>,
+    q_prop: Query<(Has<HeldBy>, &ComputedMass)>,
+    mut pull: MessageWriter<PullRequest>,
+    mut push: MessageWriter<PushRequest>,
 ) {
-    let mut unhandled_actors: HashSet<_> = q_actor.iter().map(|(entity, ..)| entity).collect();
     'outer: for &event in r_input.read() {
         let action = event.action;
         let actor = event.actor;
-        unhandled_actors.remove(&actor);
-        let Ok((_entity, state, cooldown, has_global_transform, has_shadow, has_error)) =
-            q_actor.get(actor)
+        let Ok((holding, mut cooldown, config, actor_transform, has_shadow, has_error)) =
+            q_actor.get_mut(actor)
         else {
             error!(
                 "`AvianPickupEvent` was triggered on an entity without `AvianPickupActor`. Ignoring."
@@ -86,11 +81,7 @@ fn set_verbs_according_to_input(
         };
 
         // Doing these checks now so that we can report issues early.
-        let checks = [
-            (has_global_transform, "GlobalTransform"),
-            (has_shadow, "ShadowParams"),
-            (has_error, "HoldError"),
-        ];
+        let checks = [(has_shadow, "ShadowParams"), (has_error, "HoldError")];
         for (has_component, component_name) in checks.iter() {
             if !has_component {
                 error!(
@@ -100,53 +91,56 @@ fn set_verbs_according_to_input(
             }
         }
 
-        let Some(&state) = state else {
-            error!(
-                "`AvianPickupEvent` was triggered on an entity without `AvianPickupActorState`. Ignoring."
-            );
-            continue;
-        };
-
-        let Some(cooldown) = cooldown else {
-            error!("`AvianPickupEvent` was triggered on an entity without `Cooldown`. Ignoring.");
-            continue;
-        };
-
-        let verb = match action {
+        let mut actor_commands = commands.entity(actor);
+        match action {
             AvianPickupAction::Throw
-                if cooldown.is_finished(AvianPickupAction::Throw)
-                    && matches!(state, AvianPickupActorState::Holding(..)) =>
+                if let Some(holding) = holding
+                    && cooldown.is_finished(AvianPickupAction::Throw) =>
             {
-                let AvianPickupActorState::Holding(prop) = state else {
-                    unreachable!()
-                };
-                Some(Verb::Throw(prop))
+                actor_commands.remove::<Holding>();
+                cooldown.throw();
+
+                push.write(PushRequest {
+                    actor,
+                    prop: holding.get(),
+                });
             }
             AvianPickupAction::Drop
-                if matches!(state, AvianPickupActorState::Holding(..))
-                    && cooldown.is_finished(AvianPickupAction::Drop) =>
+                if holding.is_some() && cooldown.is_finished(AvianPickupAction::Drop) =>
             {
-                let AvianPickupActorState::Holding(prop) = state else {
-                    unreachable!()
-                };
-                Some(Verb::Drop {
-                    prop,
-                    forced: false,
-                })
+                actor_commands.remove::<Holding>();
+                cooldown.drop();
             }
             AvianPickupAction::Pull
-                if matches!(
-                    state,
-                    AvianPickupActorState::Idle | AvianPickupActorState::Pulling(..)
-                ) && cooldown.is_finished(AvianPickupAction::Pull) =>
+                if holding.is_none() && cooldown.is_finished(AvianPickupAction::Pull) =>
             {
-                Some(Verb::Pull)
+                cooldown.pull();
+                let Some(find_prop) = finder.find_prop(*actor_transform, config) else {
+                    continue;
+                };
+
+                let prop = find_prop.entity;
+                let Ok((is_already_being_held, &mass)) = q_prop.get(prop) else {
+                    continue;
+                };
+
+                if is_already_being_held || mass.value() >= config.pull.max_prop_mass {
+                    continue;
+                }
+
+                let can_hold = find_prop.toi <= config.hold.distance_to_allow_holding;
+                if can_hold {
+                    cooldown.hold();
+                    actor_commands.insert(Holding(find_prop.entity));
+                    continue;
+                }
+
+                pull.write(PullRequest {
+                    actor,
+                    prop: find_prop.entity,
+                });
             }
-            _ => None,
+            _ => {}
         };
-        commands.entity(actor).queue(SetVerb::new(verb));
-    }
-    for &actor in unhandled_actors.iter() {
-        commands.entity(actor).queue(SetVerb::new(None));
     }
 }

@@ -1,7 +1,8 @@
+use bevy_ecs::relationship::Relationship;
 use bevy_time::Time;
 
 use super::{HoldSystem, prelude::*};
-use crate::{prelude::*, verb::Holding};
+use crate::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -18,7 +19,7 @@ pub fn update_error(
 ) {
     let dt = time.delta_secs();
     for (mut hold_error, shadow, holding) in q_actor.iter_mut() {
-        let prop = holding.0;
+        let prop = holding.get();
         hold_error.error_time += dt;
         if hold_error.error_time <= 0.0 {
             continue;

@@ -50,7 +50,7 @@ fn setup(
         // objects.
         AvianPickupActor {
             interaction_distance: 20.0,
-            throw: AvianPickupActorThrowConfig {
+            push: AvianPickupActorPushConfig {
                 linear_speed_range: 0.0..=8.0,
                 ..default()
             },
