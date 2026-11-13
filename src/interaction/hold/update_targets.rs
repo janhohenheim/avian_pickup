@@ -178,7 +178,7 @@ fn set_targets(
 /// Note that we just use the AABB of the compound collider here, which is
 /// not the exact convex hull, but should be close enough.
 fn collider_get_extent(collider: &Collider, rotation: Quat, dir: Dir3) -> Option<f32> {
-    let aabb = collider.aabb(Vec3::ZERO, Quat::IDENTITY);
+    let aabb = collider.aabb(Vec3::ZERO, Quat::IDENTITY, 0.0);
     let aabb_lengths = aabb.size();
     let aabb_collider = Collider::cuboid(aabb_lengths.x, aabb_lengths.y, aabb_lengths.z);
 

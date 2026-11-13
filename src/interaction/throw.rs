@@ -1,6 +1,7 @@
 use std::ops::RangeInclusive;
 
-use avian3d::math::Scalar;
+use avian3d::math::Real;
+use bevy_shape::{ShapeSample, Sphere};
 use rand::{Rng, RngExt};
 
 use crate::{prelude::*, rng::RngSource, verb::Throwing};
@@ -71,7 +72,7 @@ fn random_unit_vector(rng: &mut impl Rng) -> Vec3 {
 }
 
 /// Corresponds to 2013's Pickup_DefaultPhysGunLaunchVelocity
-fn calculate_launch_speed(config: &AvianPickupActor, mass: ComputedMass) -> Scalar {
+fn calculate_launch_speed(config: &AvianPickupActor, mass: ComputedMass) -> Real {
     let speed_range = &config.throw.linear_speed_range;
     let (min_speed, max_speed) = (*speed_range.start(), *speed_range.end());
     if mass.value() < config.throw.cutoff_mass_for_slowdown {
@@ -91,10 +92,10 @@ fn calculate_launch_speed(config: &AvianPickupActor, mass: ComputedMass) -> Scal
 ///
 /// Corresponds to 2013's `SimpleSplineRemapValClamped`
 fn remap_through_spline(
-    val: Scalar,
-    domain: RangeInclusive<Scalar>,
-    image: RangeInclusive<Scalar>,
-) -> Scalar {
+    val: Real,
+    domain: RangeInclusive<Real>,
+    image: RangeInclusive<Real>,
+) -> Real {
     let (a, b) = (*domain.start(), *domain.end());
     let (c, d) = (*image.start(), *image.end());
     if a == b {

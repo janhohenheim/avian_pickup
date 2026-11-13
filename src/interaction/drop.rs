@@ -1,4 +1,5 @@
-use avian3d::math::{Scalar, TAU};
+use avian3d::math::Real;
+use std::f32::consts::TAU;
 
 use crate::{prelude::*, verb::Dropping};
 
@@ -31,9 +32,9 @@ fn drop(
         };
         // HL2 uses 190 inches per second, which is 4.826 meters per second.
         // let's round that to 5 m/s.
-        const HL2_NORM_SPEED: Scalar = 5.0;
-        const MAX_DROP_LINEAR_SPEED: Scalar = HL2_NORM_SPEED * 1.5;
-        const MAX_DROP_ANGULAR_SPEED: Scalar = TAU * 2.0;
+        const HL2_NORM_SPEED: Real = 5.0;
+        const MAX_DROP_LINEAR_SPEED: Real = HL2_NORM_SPEED * 1.5;
+        const MAX_DROP_ANGULAR_SPEED: Real = TAU * 2.0;
         velocity.0 = velocity.clamp_length_max(MAX_DROP_LINEAR_SPEED);
         angvel.0 = angvel.clamp_length_max(MAX_DROP_ANGULAR_SPEED);
     }
